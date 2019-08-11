@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
 	"log"
 	"net/http"
 	"os"
@@ -14,11 +15,16 @@ import (
 func main() {
 	db := newDb()
 
+	validatorService := service.NewValidator()
 	userDaoService := service.NewUserDao(db)
 	userService := service.NewUser(userDaoService)
-	userController := controller.NewUser(userService)
+	userController := controller.NewUser(userService, validatorService)
 
 	router := chi.NewRouter()
+	router.Use(middleware.RequestID)
+	router.Use(middleware.RealIP)
+	router.Use(middleware.Logger)
+	router.Use(middleware.Recoverer)
 	router.Route("/v1", func (r chi.Router) {
 		userController.RegisterRoutes(r);
 	})
