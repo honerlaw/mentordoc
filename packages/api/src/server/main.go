@@ -1,10 +1,11 @@
-package server
+package main
 
 import (
 	"database/sql"
 	"fmt"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
+	_ "github.com/go-sql-driver/mysql"
 	"log"
 	"net/http"
 	"os"
@@ -37,7 +38,7 @@ func main() {
 
 func newDb() *sql.DB {
 	dataSource := fmt.Sprintf(
-		"%s:%s@tcp(%s:%s)/%s?autocommit=true",
+		"%s:%s@tcp(%s:%s)/%s",
 		os.Getenv("DATABASE_USERNAME"),
 		os.Getenv("DATABASE_PASSWORD"),
 		os.Getenv("DATABASE_HOST"),
@@ -48,5 +49,6 @@ func newDb() *sql.DB {
 	if err != nil {
 		log.Fatal(err)
 	}
+	log.Print(db)
 	return db;
 }

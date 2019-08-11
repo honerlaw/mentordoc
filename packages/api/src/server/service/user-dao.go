@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"errors"
 	"log"
-	"server"
 	"server/model"
+	"server/util"
 	"strings"
 )
 
@@ -20,8 +20,8 @@ func NewUserDao(db *sql.DB) *UserDao {
 }
 
 func (dao *UserDao) Insert(user *model.User) (*model.User, error) {
-	user.CreatedAt = server.NowUnix()
-	user.UpdatedAt = server.NowUnix()
+	user.CreatedAt = util.NowUnix()
+	user.UpdatedAt = util.NowUnix()
 
 	_, err := dao.db.Exec(
 		"insert into user (id, email, created_at, updated_at, deleted_at) values (?, ?, ?, ?, ?)",
@@ -41,7 +41,7 @@ func (dao *UserDao) Insert(user *model.User) (*model.User, error) {
 }
 
 func (dao *UserDao) Update(user *model.User) (*model.User, error) {
-	user.UpdatedAt = server.NowUnix()
+	user.UpdatedAt = util.NowUnix()
 
 	_, err := dao.db.Exec(
 		"update user set email = ?, updated_at = ?, deleted_at = ? where id = ?",

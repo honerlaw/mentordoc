@@ -42,7 +42,7 @@ func (v *Validator) ParseAndValidate(req *http.Request, model interface{}) (inte
 func (v *Validator) Middleware(model interface{}) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-			modelPtr := reflect.New(reflect.TypeOf(model)).Elem().Interface()
+			modelPtr := reflect.New(reflect.TypeOf(model)).Interface()
 			modelPtr, err := v.ParseAndValidate(req, modelPtr)
 			if err != nil {
 				http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
