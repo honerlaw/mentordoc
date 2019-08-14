@@ -68,3 +68,22 @@ func TestSignupUserDoesntExist(t *testing.T) {
 	assert.Equal(t, status, http.StatusOK)
 	assert.Equal(t, model.(*User).Email, req.Email)
 }
+
+func TestSignupAndThenSignin(t *testing.T) {
+	req := &UserSignupRequest{
+		Email:    "footest@bar.com",
+		Password: "foobarbaz",
+	}
+	status, model, err := post("http://0.0.0.0:5050/v1/user", req, &User{})
+	assert.Assert(t, is.Nil(err))
+	assert.Equal(t, status, http.StatusOK)
+
+	signinReq := &UserSigninRequest{
+		Email:    "footest@bar.com",
+		Password: "foobarbaz",
+	}
+	status, model, err = post("http://0.0.0.0:5050/v1/user/auth", signinReq, &User{})
+	assert.Assert(t, is.Nil(err))
+	assert.Equal(t, status, http.StatusOK)
+	assert.Equal(t, model.(*User).Email, req.Email)
+}

@@ -1,7 +1,6 @@
 package server
 
 import (
-	"errors"
 	uuid "github.com/satori/go.uuid"
 	"golang.org/x/crypto/bcrypt"
 	"log"
@@ -20,13 +19,13 @@ func NewUserService(userRepository *UserRepository) *UserService {
 func (service *UserService) Create(email string, password string) (*User, error) {
 	user := service.userRepository.FindByEmail(email)
 	if user != nil {
-		return nil, errors.New("user already exists")
+		return nil, NewBadRequestError("user already exists")
 	}
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		log.Print(err)
-		return nil, errors.New("failed to create user")
+		return nil, NewInternalServerError("failed to create user")
 	}
 
 	user = &User{
@@ -37,7 +36,7 @@ func (service *UserService) Create(email string, password string) (*User, error)
 
 	user, err = service.userRepository.Insert(user)
 	if err != nil {
-		return nil, errors.New("failed to create user")
+		return nil, NewInternalServerError("failed to create user")
 	}
 
 	return user, nil
@@ -46,12 +45,12 @@ func (service *UserService) Create(email string, password string) (*User, error)
 func (service *UserService) Authenticate(email string, password string) (*User, error) {
 	user := service.userRepository.FindByEmail(email)
 	if user == nil {
-		return nil, errors.New("invalid email or password")
+		return nil, NewBadRequestError("invalid email or password")
 	}
 
 	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
-		return nil, errors.New("invalid email or password")
+		return nil, NewBadRequestError("invalid email or password")
 	}
 
 	return user, nil

@@ -33,10 +33,7 @@ func (controller *UserController) signin(w http.ResponseWriter, req *http.Reques
 
 	user, err := controller.userService.Authenticate(model.Email, model.Password)
 	if err != nil {
-		WriteHttpError(w, &HttpError{
-			Status: http.StatusBadRequest,
-			Errors: []string{err.Error()},
-		})
+		WriteHttpError(w, err)
 		return
 	}
 
@@ -48,10 +45,7 @@ func (controller *UserController) signup(w http.ResponseWriter, req *http.Reques
 
 	user, err := controller.userService.Create(model.Email, model.Password);
 	if err != nil {
-		WriteHttpError(w, &HttpError{
-			Status: http.StatusInternalServerError,
-			Errors: []string{err.Error()},
-		})
+		WriteHttpError(w, err)
 		return
 	}
 

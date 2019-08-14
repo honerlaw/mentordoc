@@ -65,8 +65,9 @@ func (repo *UserRepository) FindByEmail(email string) *User {
 		strings.TrimSpace(strings.ToLower(email)),
 	)
 	user := &User{}
-	err := row.Scan(user.Id, user.Email, user.Password, user.CreatedAt, user.UpdatedAt, user.DeletedAt)
+	err := row.Scan(&user.Id, &user.Email, &user.Password, &user.CreatedAt, &user.UpdatedAt, &user.DeletedAt)
 	if err != nil {
+		log.Print(err)
 		return nil
 	}
 	return user
