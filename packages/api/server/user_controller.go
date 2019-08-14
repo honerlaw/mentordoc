@@ -18,13 +18,13 @@ func NewUserController(userService *UserService, validatorService *ValidatorServ
 }
 
 func (controller *UserController) RegisterRoutes(router chi.Router) {
-	router.Route("/signin", func (r chi.Router) {
+	router.Route("/user/auth", func (r chi.Router) {
 		r.Use(controller.validatorService.Middleware(UserSigninRequest{}))
 		r.Post("/", controller.signin)
 	})
-	router.Route("/signup", func (r chi.Router) {
+	router.Route("/user", func (r chi.Router) {
 		r.Use(controller.validatorService.Middleware(UserSignupRequest{}))
-		r.Post("/", controller.signin)
+		r.Post("/", controller.signup)
 	})
 }
 
@@ -33,10 +33,14 @@ func (controller *UserController) signin(w http.ResponseWriter, req *http.Reques
 
 	user, err := controller.userService.Authenticate(model.Email, model.Password)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		WriteHttpError(w, &HttpError{
+			Status: http.StatusBadRequest,
+			Errors: []string{err.Error()},
+		})
+		return
 	}
 
-	WriteJsonToResponse(w, user)
+	WriteJsonToResponse(w, http.StatusOK, user)
 }
 
 func (controller *UserController) signup(w http.ResponseWriter, req *http.Request) {
@@ -44,8 +48,12 @@ func (controller *UserController) signup(w http.ResponseWriter, req *http.Reques
 
 	user, err := controller.userService.Create(model.Email, model.Password);
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		WriteHttpError(w, &HttpError{
+			Status: http.StatusInternalServerError,
+			Errors: []string{err.Error()},
+		})
+		return
 	}
 
-	WriteJsonToResponse(w, user)
+	WriteJsonToResponse(w, http.StatusOK, user)
 }

@@ -19,8 +19,8 @@ func NewUserService(userRepository *UserRepository) *UserService {
 
 func (service *UserService) Create(email string, password string) (*User, error) {
 	user := service.userRepository.FindByEmail(email)
-	if user == nil {
-		return nil, errors.New("failed to create user")
+	if user != nil {
+		return nil, errors.New("user already exists")
 	}
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)

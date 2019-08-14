@@ -3,11 +3,12 @@ package server
 import (
 	"context"
 	"encoding/json"
-	"errors"
+	"fmt"
 	"gopkg.in/go-playground/validator.v9"
 	"log"
 	"net/http"
 	"reflect"
+	"strings"
 )
 
 const RequestModelContextKey = "request_model"
@@ -22,18 +23,27 @@ func NewValidatorService() *ValidatorService {
 	}
 }
 
-func (v *ValidatorService) ParseAndValidate(req *http.Request, model interface{}) (interface{}, error)  {
+func (v *ValidatorService) ParseAndValidate(req *http.Request, model interface{}) (interface{}, *HttpError) {
 	decoder := json.NewDecoder(req.Body)
 	err := decoder.Decode(model)
 	if err != nil {
 		log.Print(err)
-		return nil, errors.New("failed to parse request body")
+		return nil, &HttpError{Errors: []string{"failed to parse request body"}}
 	}
 
 	err = v.validator.Struct(model)
 	if err != nil {
-		log.Print(err)
-		return nil, errors.New("failed to validate request body")
+
+		validatorError := &HttpError{
+			Status: http.StatusBadRequest,
+			Errors: make([]string, 0),
+		}
+
+		for _, err := range err.(validator.ValidationErrors) {
+			validatorError.Errors = append(validatorError.Errors, v.formatValidationError(err))
+		}
+
+		return nil, validatorError
 	}
 
 	return model, nil
@@ -45,7 +55,8 @@ func (v *ValidatorService) Middleware(model interface{}) func(next http.Handler)
 			modelPtr := reflect.New(reflect.TypeOf(model)).Interface()
 			modelPtr, err := v.ParseAndValidate(req, modelPtr)
 			if err != nil {
-				http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+				WriteJsonToResponse(w, err.Status, err)
+				return
 			}
 
 			ctx := context.WithValue(req.Context(), RequestModelContextKey, modelPtr)
@@ -56,4 +67,16 @@ func (v *ValidatorService) Middleware(model interface{}) func(next http.Handler)
 
 func (v *ValidatorService) GetModelFromRequest(req *http.Request) interface{} {
 	return req.Context().Value(RequestModelContextKey)
+}
+
+func (v *ValidatorService) formatValidationError(err validator.FieldError) string {
+	switch err.Tag() {
+	case "required":
+		return strings.ToLower(fmt.Sprintf("%s is required", err.Field()))
+	case "email":
+		return strings.ToLower(fmt.Sprintf("%s must be an email address", err.Field()))
+	default:
+		log.Printf("unhandled validator type of %s", err.Tag())
+		return "validation failed"
+	}
 }

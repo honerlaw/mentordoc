@@ -33,7 +33,7 @@ func main() {
 		userController.RegisterRoutes(r);
 	})
 
-	err := http.ListenAndServe(":5050", router)
+	err := http.ListenAndServe(fmt.Sprintf(":%s", os.Getenv("PORT")), router)
 	if err != nil {
 		log.Fatal(err)
 	}
