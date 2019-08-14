@@ -8,7 +8,6 @@ import (
 	"os"
 	"os/exec"
 	"testing"
-	"time"
 )
 
 var integration = flag.Bool("it", false, "run integration tests")
@@ -23,9 +22,6 @@ func TestMain(m *testing.M) {
 		if err != nil {
 			log.Fatal(err)
 		}
-
-		// @todo actually check when the docker container is up and running
-		time.Sleep(10 * time.Second)
 
 		// set envs required for everything to work
 		// @todo these should be loaded from a dotenv or something similarish

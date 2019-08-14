@@ -87,6 +87,15 @@ func newDb() *sql.DB {
 }
 
 func runMigration(db *sql.DB) {
+	// attempt to establish a connection before running the migrations
+	for tick := 0; tick < 15; tick++ {
+		err := db.Ping()
+		if err == nil {
+			break;
+		}
+		time.Sleep(time.Second)
+	}
+
 	log.Print("starting to run database migrations")
 	driver, err := mysql.WithInstance(db, &mysql.Config{})
 	if err != nil {
