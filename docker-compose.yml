@@ -23,7 +23,9 @@ services:
       - "DATABASE_PASSWORD=password"
       - "DATABASE_HOST=db"
       - "DATABASE_PORT=3306"
+      - "MIGRATION_DIR=migrations"
       - "PORT=5050"
+      - "HOST="
     ports:
       - "5050:5050"
     volumes:

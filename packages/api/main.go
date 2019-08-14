@@ -1,87 +1,17 @@
 package main
 
 import (
-	"database/sql"
-	"fmt"
-	"github.com/go-chi/chi"
-	"github.com/go-chi/chi/middleware"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/golang-migrate/migrate"
-	"github.com/golang-migrate/migrate/database/mysql"
 	_ "github.com/golang-migrate/migrate/source/file"
 	"github.com/honerlaw/mentordoc/server"
-	"log"
-	"net/http"
-	"os"
-	"time"
+	"sync"
 )
 
 func main() {
-	db := newDb()
+	waitGroup := &sync.WaitGroup{}
+	waitGroup.Add(1)
 
-	validatorService := server.NewValidatorService()
-	userRepositoryService := server.NewUserRepository(db)
-	userService := server.NewUserService(userRepositoryService)
-	userController := server.NewUserController(userService, validatorService)
+	server.StartServer(waitGroup)
 
-	router := chi.NewRouter()
-	router.Use(middleware.RequestID)
-	router.Use(middleware.RealIP)
-	router.Use(middleware.Logger)
-	router.Use(middleware.Recoverer)
-	router.Route("/v1", func(r chi.Router) {
-		userController.RegisterRoutes(r);
-	})
-
-	err := http.ListenAndServe(fmt.Sprintf(":%s", os.Getenv("PORT")), router)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	log.Print("successfully started server")
-}
-
-func newDb() *sql.DB {
-
-	// multi statements is needed for migrations
-	dataSource := fmt.Sprintf(
-		"%s:%s@tcp(%s:%s)/%s?multiStatements=true",
-		os.Getenv("DATABASE_USERNAME"),
-		os.Getenv("DATABASE_PASSWORD"),
-		os.Getenv("DATABASE_HOST"),
-		os.Getenv("DATABASE_PORT"),
-		os.Getenv("DATABASE_NAME"),
-	)
-
-	db, err := sql.Open("mysql", dataSource)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	db.SetConnMaxLifetime(time.Second)
-	db.SetMaxIdleConns(0)
-
-	runMigration(db)
-
-	return db;
-}
-
-func runMigration(db *sql.DB) {
-	log.Print("starting to run database migrations")
-	driver, err := mysql.WithInstance(db, &mysql.Config{})
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	migrator, err := migrate.NewWithDatabaseInstance("file://migrations", os.Getenv("DATABASE_NAME"), driver)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	err = migrator.Up()
-	if err != nil && err.Error() != "no change" {
-		log.Fatal(err)
-	}
-	log.Print("finished running database migrations")
+	waitGroup.Wait()
 }
