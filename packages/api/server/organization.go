@@ -1,4 +1,4 @@
-package model
+package server
 
 type Organization struct {
 	Entity

@@ -1,29 +1,27 @@
-package service
+package server
 
 import (
 	"database/sql"
 	"errors"
 	"log"
-	"server/model"
-	"server/util"
 	"strings"
 )
 
-type UserDao struct {
+type UserRepository struct {
 	db *sql.DB
 }
 
-func NewUserDao(db *sql.DB) *UserDao {
-	return &UserDao{
+func NewUserRepository(db *sql.DB) *UserRepository {
+	return &UserRepository{
 		db: db,
 	}
 }
 
-func (dao *UserDao) Insert(user *model.User) (*model.User, error) {
-	user.CreatedAt = util.NowUnix()
-	user.UpdatedAt = util.NowUnix()
+func (repo *UserRepository) Insert(user *User) (*User, error) {
+	user.CreatedAt = NowUnix()
+	user.UpdatedAt = NowUnix()
 
-	_, err := dao.db.Exec(
+	_, err := repo.db.Exec(
 		"insert into user (id, email, created_at, updated_at, deleted_at) values (?, ?, ?, ?, ?)",
 		user.Id,
 		strings.TrimSpace(strings.ToLower(user.Email)),
@@ -40,10 +38,10 @@ func (dao *UserDao) Insert(user *model.User) (*model.User, error) {
 	return user, nil;
 }
 
-func (dao *UserDao) Update(user *model.User) (*model.User, error) {
-	user.UpdatedAt = util.NowUnix()
+func (repo *UserRepository) Update(user *User) (*User, error) {
+	user.UpdatedAt = NowUnix()
 
-	_, err := dao.db.Exec(
+	_, err := repo.db.Exec(
 		"update user set email = ?, updated_at = ?, deleted_at = ? where id = ?",
 		strings.TrimSpace(strings.ToLower(user.Email)),
 		user.UpdatedAt,
@@ -59,12 +57,12 @@ func (dao *UserDao) Update(user *model.User) (*model.User, error) {
 	return user, nil;
 }
 
-func (dao *UserDao) FindByEmail(email string) *model.User {
-	row := dao.db.QueryRow(
+func (repo *UserRepository) FindByEmail(email string) *User {
+	row := repo.db.QueryRow(
 		"select id, email, created_at, updated_at, deleted_at from user where email = ?",
 		strings.TrimSpace(strings.ToLower(email)),
 	)
-	user := &model.User{}
+	user := &User{}
 	err := row.Scan(user.Id, user.Email, user.CreatedAt, user.UpdatedAt, user.DeletedAt)
 	if err != nil {
 		return nil

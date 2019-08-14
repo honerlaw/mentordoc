@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS `organizations` (
+CREATE TABLE IF NOT EXISTS `organization` (
   `id` varchar(255) NOT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS `organizations` (
   KEY `idx_organization_deleted_at` (`deleted_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE IF NOT EXISTS `users` (
+CREATE TABLE IF NOT EXISTS `user` (
   `id` varchar(255) NOT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
@@ -19,10 +19,10 @@ CREATE TABLE IF NOT EXISTS `users` (
   KEY `idx_user_deleted_at` (`deleted_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE IF NOT EXISTS `organizations_users` (
-  `organizations_id` varchar(255) NOT NULL,
-  `users_id` varchar(255) NOT NULL,
-  PRIMARY KEY (`organizations_id`, `users_id`),
-  CONSTRAINT `fk_organizations_users_organizations_id` FOREIGN KEY (`organizations_id`) REFERENCES organizations(`id`),
-  CONSTRAINT `fk_organizations_users_users_id` FOREIGN KEY (`users_id`) REFERENCES users(`id`)
+CREATE TABLE IF NOT EXISTS `organization_user` (
+  `organization_id` varchar(255) NOT NULL,
+  `user_id` varchar(255) NOT NULL,
+  PRIMARY KEY (`organization_id`, `user_id`),
+  CONSTRAINT `fk_organization_user_organization_id` FOREIGN KEY (`organization_id`) REFERENCES organization(`id`),
+  CONSTRAINT `fk_organization_user_user_id` FOREIGN KEY (`user_id`) REFERENCES user(`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

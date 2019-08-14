@@ -16,14 +16,13 @@ services:
       - mentor-doc-db:/var/lib/mysql
   server:
     image: golang:1.12.7
-    command: ["/bin/bash", "-c", "cd /opt/server/packages/api/src/server && go get && cd ../../ && go run ./src/server/main.go"]
+    command: ["/bin/bash", "-c", "cd /opt/server/packages/api && go run main.go"]
     environment:
-      GOPATH: /opt/server/packages/api
-      DATABASE_NAME: mentor_doc
-      DATABASE_USERNAME: userlocal
-      DATABASE_PASSWORD: password
-      DATABASE_HOST: db
-      DATABASE_PORT: 3306
+      - "DATABASE_NAME=mentor_doc"
+      - "DATABASE_USERNAME=userlocal"
+      - "DATABASE_PASSWORD=password"
+      - "DATABASE_HOST=db"
+      - "DATABASE_PORT=3306"
     ports:
       - "5050:5050"
     volumes:

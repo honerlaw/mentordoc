@@ -1,6 +1,2 @@
-pkg/
-src/github.com/
-src/gopkg.in/
-src/golang.org/
 migrate
 bin/

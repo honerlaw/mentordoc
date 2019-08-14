@@ -9,21 +9,20 @@ import (
 	"github.com/golang-migrate/migrate"
 	"github.com/golang-migrate/migrate/database/mysql"
 	_ "github.com/golang-migrate/migrate/source/file"
+	"github.com/honerlaw/mentordoc/server"
 	"log"
 	"net/http"
 	"os"
-	"server/controller"
-	"server/service"
 	"time"
 )
 
 func main() {
 	db := newDb()
 
-	validatorService := service.NewValidator()
-	userDaoService := service.NewUserDao(db)
-	userService := service.NewUser(userDaoService)
-	userController := controller.NewUser(userService, validatorService)
+	validatorService := server.NewValidatorService()
+	userRepositoryService := server.NewUserRepository(db)
+	userService := server.NewUserService(userRepositoryService)
+	userController := server.NewUserController(userService, validatorService)
 
 	router := chi.NewRouter()
 	router.Use(middleware.RequestID)
@@ -38,19 +37,21 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	log.Print("successfully started server")
 }
 
 func newDb() *sql.DB {
+
+	// multi statements is needed for migrations
 	dataSource := fmt.Sprintf(
-		"%s:%s@tcp(%s:%s)/%s",
+		"%s:%s@tcp(%s:%s)/%s?multiStatements=true",
 		os.Getenv("DATABASE_USERNAME"),
 		os.Getenv("DATABASE_PASSWORD"),
 		os.Getenv("DATABASE_HOST"),
 		os.Getenv("DATABASE_PORT"),
 		os.Getenv("DATABASE_NAME"),
 	)
-
-	log.Print(dataSource)
 
 	db, err := sql.Open("mysql", dataSource)
 	if err != nil {
@@ -66,18 +67,21 @@ func newDb() *sql.DB {
 }
 
 func runMigration(db *sql.DB) {
+	log.Print("starting to run database migrations")
 	driver, err := mysql.WithInstance(db, &mysql.Config{})
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	migrator, err := migrate.NewWithDatabaseInstance("file://migrations", os.Getenv("DATABASE_NAME"), driver)
+
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	err = migrator.Up()
-	if err != nil {
+	if err != nil && err.Error() != "no change" {
 		log.Fatal(err)
 	}
+	log.Print("finished running database migrations")
 }

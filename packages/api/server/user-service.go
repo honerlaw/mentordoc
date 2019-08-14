@@ -1,25 +1,24 @@
-package service
+package server
 
 import (
 	"errors"
 	uuid "github.com/satori/go.uuid"
 	"golang.org/x/crypto/bcrypt"
 	"log"
-	"server/model"
 )
 
-type User struct {
-	userDao *UserDao
+type UserService struct {
+	userRepository *UserRepository
 }
 
-func NewUser(userDao *UserDao) *User {
-	return &User {
-		userDao: userDao,
+func NewUserService(userRepository *UserRepository) *UserService {
+	return &UserService{
+		userRepository: userRepository,
 	};
 }
 
-func (service *User) Create(email string, password string) (*model.User, error) {
-	user := service.userDao.FindByEmail(email)
+func (service *UserService) Create(email string, password string) (*User, error) {
+	user := service.userRepository.FindByEmail(email)
 	if user == nil {
 		return nil, errors.New("failed to create user")
 	}
@@ -30,13 +29,13 @@ func (service *User) Create(email string, password string) (*model.User, error) 
 		return nil, errors.New("failed to create user")
 	}
 
-	user = &model.User{
+	user = &User{
 		Email: email,
 		Password: string(hash),
 	}
-	user.Id = uuid.Must(uuid.NewV4()).String()
+	user.Id = uuid.NewV4().String()
 
-	user, err = service.userDao.Insert(user)
+	user, err = service.userRepository.Insert(user)
 	if err != nil {
 		return nil, errors.New("failed to create user")
 	}
@@ -44,8 +43,8 @@ func (service *User) Create(email string, password string) (*model.User, error) 
 	return user, nil
 }
 
-func (service *User) Authenticate(email string, password string) (*model.User, error) {
-	user := service.userDao.FindByEmail(email)
+func (service *UserService) Authenticate(email string, password string) (*User, error) {
+	user := service.userRepository.FindByEmail(email)
 	if user == nil {
 		return nil, errors.New("invalid email or password")
 	}
@@ -58,6 +57,6 @@ func (service *User) Authenticate(email string, password string) (*model.User, e
 	return user, nil
 }
 
-func (service *User) FindByEmail(email string) *model.User {
-	return service.userDao.FindByEmail(email)
+func (service *UserService) FindByEmail(email string) *User {
+	return service.userRepository.FindByEmail(email)
 }

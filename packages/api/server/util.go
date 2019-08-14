@@ -1,7 +1,8 @@
-package util
+package server
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"time"
 )
@@ -17,5 +18,8 @@ func WriteJsonToResponse(w http.ResponseWriter, model interface{}) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(data)
+	_, err = w.Write(data)
+	if err != nil {
+		log.Panic(err)
+	}
 }

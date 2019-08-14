@@ -1,6 +1,6 @@
-package request
+package server
 
-type SigninRequest struct {
+type UserSigninRequest struct {
 	Email    string `json:"email" validate:"required,email"`
 	Password string `json:"password" validate:"required"`
 }

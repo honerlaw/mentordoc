@@ -1,4 +1,4 @@
-package service
+package server
 
 import (
 	"context"
@@ -12,17 +12,17 @@ import (
 
 const RequestModelContextKey = "request_model"
 
-type Validator struct {
+type ValidatorService struct {
 	validator *validator.Validate
 }
 
-func NewValidator() *Validator {
-	return &Validator {
+func NewValidatorService() *ValidatorService {
+	return &ValidatorService{
 		validator: validator.New(),
 	}
 }
 
-func (v *Validator) ParseAndValidate(req *http.Request, model interface{}) (interface{}, error)  {
+func (v *ValidatorService) ParseAndValidate(req *http.Request, model interface{}) (interface{}, error)  {
 	decoder := json.NewDecoder(req.Body)
 	err := decoder.Decode(model)
 	if err != nil {
@@ -39,7 +39,7 @@ func (v *Validator) ParseAndValidate(req *http.Request, model interface{}) (inte
 	return model, nil
 }
 
-func (v *Validator) Middleware(model interface{}) func(next http.Handler) http.Handler {
+func (v *ValidatorService) Middleware(model interface{}) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 			modelPtr := reflect.New(reflect.TypeOf(model)).Interface()
@@ -54,6 +54,6 @@ func (v *Validator) Middleware(model interface{}) func(next http.Handler) http.H
 	}
 }
 
-func (v *Validator) GetModelFromRequest(req *http.Request) interface{} {
+func (v *ValidatorService) GetModelFromRequest(req *http.Request) interface{} {
 	return req.Context().Value(RequestModelContextKey)
 }
