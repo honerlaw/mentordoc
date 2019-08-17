@@ -46,14 +46,14 @@ func (service *UserService) Create(email string, password string) (*User, error)
 		return nil, NewInternalServerError("failed to create user")
 	}
 
-	user = &User{
-		Email:    email,
-		Password: string(hash),
-	}
-	user.Id = uuid.NewV4().String()
-
 	resp, err := service.transactionManager.Transact(service, func(injected interface{}) (interface{}, error) {
 		injectedService := injected.(*UserService)
+
+		user = &User{
+			Email:    email,
+			Password: string(hash),
+		}
+		user.Id = uuid.NewV4().String()
 
 		user, err = injectedService.userRepository.Insert(user)
 
