@@ -8,13 +8,20 @@ import (
 )
 
 type UserRepository struct {
+	Transactionable
 	db *sql.DB
+	tx *sql.Tx
 }
 
-func NewUserRepository(db *sql.DB) *UserRepository {
-	return &UserRepository{
+func NewUserRepository(db *sql.DB, tx *sql.Tx) *UserRepository {
+	repo := &UserRepository{
 		db: db,
+		tx: tx,
 	}
+	repo.cloneWithTransaction = func(tx *sql.Tx) interface{} {
+		return NewUserRepository(repo.db, tx)
+	}
+	return repo;
 }
 
 func (repo *UserRepository) Insert(user *User) (*User, error) {

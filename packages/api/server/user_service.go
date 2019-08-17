@@ -1,19 +1,36 @@
 package server
 
 import (
+	"database/sql"
 	uuid "github.com/satori/go.uuid"
 	"golang.org/x/crypto/bcrypt"
 	"log"
 )
 
 type UserService struct {
-	userRepository *UserRepository
+	Transactionable
+	userRepository      *UserRepository
+	organizationService *OrganizationService
+	transactionManager  *TransactionManager
 }
 
-func NewUserService(userRepository *UserRepository) *UserService {
-	return &UserService{
-		userRepository: userRepository,
+func NewUserService(
+	userRepository *UserRepository,
+	organizationService *OrganizationService,
+	transactionManager *TransactionManager) *UserService {
+
+	service := &UserService{
+		userRepository:      userRepository,
+		organizationService: organizationService,
+		transactionManager:  transactionManager,
 	};
+	service.cloneWithTransaction = func(tx *sql.Tx) interface{} {
+		return NewUserService(
+			service.userRepository.InjectTransaction(tx).(*UserRepository),
+			service.organizationService.InjectTransaction(tx).(*OrganizationService),
+			transactionManager)
+	}
+	return service
 }
 
 func (service *UserService) Create(email string, password string) (*User, error) {
@@ -29,17 +46,28 @@ func (service *UserService) Create(email string, password string) (*User, error)
 	}
 
 	user = &User{
-		Email: email,
+		Email:    email,
 		Password: string(hash),
 	}
 	user.Id = uuid.NewV4().String()
 
-	user, err = service.userRepository.Insert(user)
+	resp, err := service.transactionManager.Transact(service, func(injected interface{}) (interface{}, error) {
+		injectedService := injected.(*UserService)
+
+		user, err = injectedService.userRepository.Insert(user)
+
+		if err != nil {
+			return nil, NewInternalServerError("failed to create user")
+		}
+
+		return user, nil
+	})
+
 	if err != nil {
-		return nil, NewInternalServerError("failed to create user")
+		return nil, err
 	}
 
-	return user, nil
+	return resp.(*User), nil
 }
 
 func (service *UserService) Authenticate(email string, password string) (*User, error) {

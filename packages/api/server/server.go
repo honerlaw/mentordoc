@@ -21,8 +21,11 @@ func StartServer(waitGroup *sync.WaitGroup) *http.Server {
 	db := newDb()
 
 	validatorService := NewValidatorService()
-	userRepositoryService := NewUserRepository(db)
-	userService := NewUserService(userRepositoryService)
+	transactionManager := NewTransactionManager(db)
+	organizationRepository := NewOrganizationRepository(db, nil)
+	organizationService := NewOrganizationService(organizationRepository)
+	userRepositoryService := NewUserRepository(db, nil)
+	userService := NewUserService(userRepositoryService, organizationService, transactionManager)
 	userController := NewUserController(userService, validatorService)
 
 	router := chi.NewRouter()
