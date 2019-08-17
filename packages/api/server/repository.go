@@ -20,3 +20,10 @@ func (repo *Repository) QueryRow(query string, args ...interface{}) *sql.Row {
 	}
 	return repo.db.QueryRow(query, args...)
 }
+
+func (repo *Repository) Query(query string, args ...interface{}) (*sql.Rows, error) {
+	if repo.tx != nil {
+		return repo.tx.Query(query, args...)
+	}
+	return repo.db.Query(query, args...)
+}
