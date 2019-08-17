@@ -2,11 +2,12 @@ package server
 
 import (
 	"database/sql"
+	"github.com/honerlaw/mentordoc/server/transaction"
 	uuid "github.com/satori/go.uuid"
 )
 
 type OrganizationService struct {
-	Transactionable
+	transaction.Transactionable
 	organizationRepository *OrganizationRepository
 }
 
@@ -14,7 +15,7 @@ func NewOrganizationService(organizationRepository *OrganizationRepository) *Org
 	service := &OrganizationService{
 		organizationRepository: organizationRepository,
 	};
-	service.cloneWithTransaction = func(tx *sql.Tx) interface{} {
+	service.CloneWithTransaction = func(tx *sql.Tx) interface{} {
 		return NewOrganizationService(service.organizationRepository.InjectTransaction(tx).(*OrganizationRepository))
 	}
 	return service
@@ -26,5 +27,5 @@ func (service *OrganizationService) Create(name string) (*Organization, error) {
 	}
 	organization.Id = uuid.NewV4().String()
 
-	return nil, nil
+	return service.organizationRepository.Insert(organization)
 }

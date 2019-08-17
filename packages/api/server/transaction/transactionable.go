@@ -1,4 +1,4 @@
-package server
+package transaction
 
 import "database/sql"
 
@@ -7,9 +7,9 @@ type TransactionableObject interface {
 }
 
 type Transactionable struct {
-	cloneWithTransaction func(tx *sql.Tx) interface{}
+	CloneWithTransaction func(tx *sql.Tx) interface{}
 }
 
 func (obj *Transactionable) InjectTransaction(tx *sql.Tx) interface{} {
-	return obj.cloneWithTransaction(tx)
+	return obj.CloneWithTransaction(tx)
 }

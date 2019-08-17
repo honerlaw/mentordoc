@@ -3,22 +3,21 @@ package server
 import (
 	"database/sql"
 	"errors"
+	"github.com/honerlaw/mentordoc/server/transaction"
 	"log"
 	"strings"
 )
 
 type UserRepository struct {
-	Transactionable
-	db *sql.DB
-	tx *sql.Tx
+	transaction.Transactionable
+	Repository
 }
 
 func NewUserRepository(db *sql.DB, tx *sql.Tx) *UserRepository {
-	repo := &UserRepository{
-		db: db,
-		tx: tx,
-	}
-	repo.cloneWithTransaction = func(tx *sql.Tx) interface{} {
+	repo := &UserRepository{}
+	repo.db = db
+	repo.tx = tx
+	repo.CloneWithTransaction = func(tx *sql.Tx) interface{} {
 		return NewUserRepository(repo.db, tx)
 	}
 	return repo;
@@ -28,7 +27,7 @@ func (repo *UserRepository) Insert(user *User) (*User, error) {
 	user.CreatedAt = NowUnix()
 	user.UpdatedAt = NowUnix()
 
-	_, err := repo.db.Exec(
+	_, err := repo.Exec(
 		"insert into user (id, email, password, created_at, updated_at, deleted_at) values (?, ?, ?, ?, ?, ?)",
 		user.Id,
 		strings.TrimSpace(strings.ToLower(user.Email)),
@@ -49,7 +48,7 @@ func (repo *UserRepository) Insert(user *User) (*User, error) {
 func (repo *UserRepository) Update(user *User) (*User, error) {
 	user.UpdatedAt = NowUnix()
 
-	_, err := repo.db.Exec(
+	_, err := repo.Exec(
 		"update user set email = ?, password = ?, updated_at = ?, deleted_at = ? where id = ?",
 		strings.TrimSpace(strings.ToLower(user.Email)),
 		user.Password,
@@ -67,7 +66,7 @@ func (repo *UserRepository) Update(user *User) (*User, error) {
 }
 
 func (repo *UserRepository) FindByEmail(email string) *User {
-	row := repo.db.QueryRow(
+	row := repo.QueryRow(
 		"select id, email, password, created_at, updated_at, deleted_at from user where email = ?",
 		strings.TrimSpace(strings.ToLower(email)),
 	)

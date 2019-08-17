@@ -3,21 +3,20 @@ package server
 import (
 	"database/sql"
 	"errors"
+	"github.com/honerlaw/mentordoc/server/transaction"
 	"log"
 )
 
 type OrganizationRepository struct {
-	Transactionable
-	db *sql.DB
-	tx *sql.Tx
+	transaction.Transactionable
+	Repository
 }
 
 func NewOrganizationRepository(db *sql.DB, tx *sql.Tx) *OrganizationRepository {
-	repo := &OrganizationRepository{
-		db: db,
-		tx: tx,
-	}
-	repo.cloneWithTransaction = func(tx *sql.Tx) interface{} {
+	repo := &OrganizationRepository{}
+	repo.db = db
+	repo.tx = tx
+	repo.CloneWithTransaction = func(tx *sql.Tx) interface{} {
 		return NewOrganizationRepository(repo.db, tx)
 	}
 	return repo
@@ -27,7 +26,7 @@ func (repo *OrganizationRepository) Insert(org *Organization) (*Organization, er
 	org.CreatedAt = NowUnix()
 	org.UpdatedAt = NowUnix()
 
-	_, err := repo.db.Exec(
+	_, err := repo.Exec(
 		"insert into organization (id, name, created_at, updated_at, deleted_at) values (?, ?, ?, ?, ?)",
 		org.Id,
 		org.Name,
@@ -47,7 +46,7 @@ func (repo *OrganizationRepository) Insert(org *Organization) (*Organization, er
 func (repo *OrganizationRepository) Update(org *Organization) (*Organization, error) {
 	org.UpdatedAt = NowUnix()
 
-	_, err := repo.db.Exec(
+	_, err := repo.Exec(
 		"update organization set name = ?, updated_at = ?, deleted_at = ? where id = ?",
 		org.Name,
 		org.UpdatedAt,
