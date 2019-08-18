@@ -2,10 +2,9 @@ package acl
 
 import "github.com/honerlaw/mentordoc/server"
 
-type Statement struct {
+type Permission struct {
 	server.Entity
 
-	ResourceName string `json:"resourceName"`
-	ResourceID   string `json:"resourceId"`
+	ResourcePath string `json:"resourcePath"`
 	Action       string `json:"action"`
 }

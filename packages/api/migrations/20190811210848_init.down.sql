@@ -1,6 +1,6 @@
-DROP TABLE `user_policy`;
-DROP TABLE `policy_statement`;
-DROP TABLE `policy`;
-DROP TABLE `statement`;
+DROP TABLE `user_role`;
+DROP TABLE `role_permission`;
+DROP TABLE `role`;
+DROP TABLE `permission`;
 DROP TABLE `organization`;
 DROP TABLE `user`;
