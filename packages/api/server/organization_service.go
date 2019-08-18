@@ -2,12 +2,10 @@ package server
 
 import (
 	"database/sql"
-	"github.com/honerlaw/mentordoc/server/transaction"
 	uuid "github.com/satori/go.uuid"
 )
 
 type OrganizationService struct {
-	transaction.Transactionable
 	organizationRepository *OrganizationRepository
 }
 
@@ -15,10 +13,11 @@ func NewOrganizationService(organizationRepository *OrganizationRepository) *Org
 	service := &OrganizationService{
 		organizationRepository: organizationRepository,
 	};
-	service.CloneWithTransaction = func(tx *sql.Tx) interface{} {
-		return NewOrganizationService(service.organizationRepository.InjectTransaction(tx).(*OrganizationRepository))
-	}
 	return service
+}
+
+func (service *OrganizationService) InjectTransaction(tx *sql.Tx) interface{} {
+	return NewOrganizationService(service.organizationRepository.InjectTransaction(tx).(*OrganizationRepository))
 }
 
 func (service *OrganizationService) Create(name string) (*Organization, error) {

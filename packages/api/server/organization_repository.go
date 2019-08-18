@@ -3,12 +3,10 @@ package server
 import (
 	"database/sql"
 	"errors"
-	"github.com/honerlaw/mentordoc/server/transaction"
 	"log"
 )
 
 type OrganizationRepository struct {
-	transaction.Transactionable
 	Repository
 }
 
@@ -16,10 +14,11 @@ func NewOrganizationRepository(db *sql.DB, tx *sql.Tx) *OrganizationRepository {
 	repo := &OrganizationRepository{}
 	repo.db = db
 	repo.tx = tx
-	repo.CloneWithTransaction = func(tx *sql.Tx) interface{} {
-		return NewOrganizationRepository(repo.db, tx)
-	}
 	return repo
+}
+
+func (repo *OrganizationRepository) InjectTransaction(tx *sql.Tx) interface{} {
+	return NewOrganizationRepository(repo.db, tx)
 }
 
 func (repo *OrganizationRepository) Insert(org *Organization) (*Organization, error) {

@@ -10,7 +10,6 @@ import (
 	"github.com/golang-migrate/migrate"
 	"github.com/golang-migrate/migrate/database/mysql"
 	_ "github.com/golang-migrate/migrate/source/file"
-	"github.com/honerlaw/mentordoc/server/transaction"
 	"log"
 	"net/http"
 	"os"
@@ -22,7 +21,7 @@ func StartServer(waitGroup *sync.WaitGroup) *http.Server {
 	db := newDb()
 
 	validatorService := NewValidatorService()
-	transactionManager := transaction.NewTransactionManager(db)
+	transactionManager := NewTransactionManager(db)
 	organizationRepository := NewOrganizationRepository(db, nil)
 	organizationService := NewOrganizationService(organizationRepository)
 	userRepositoryService := NewUserRepository(db, nil)

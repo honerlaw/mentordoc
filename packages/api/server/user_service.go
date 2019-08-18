@@ -2,36 +2,35 @@ package server
 
 import (
 	"database/sql"
-	"github.com/honerlaw/mentordoc/server/transaction"
 	uuid "github.com/satori/go.uuid"
 	"golang.org/x/crypto/bcrypt"
 	"log"
 )
 
 type UserService struct {
-	transaction.Transactionable
 	userRepository      *UserRepository
 	organizationService *OrganizationService
-	transactionManager  *transaction.TransactionManager
+	transactionManager  *TransactionManager
 }
 
 func NewUserService(
 	userRepository *UserRepository,
 	organizationService *OrganizationService,
-	transactionManager *transaction.TransactionManager) *UserService {
+	transactionManager *TransactionManager) *UserService {
 
 	service := &UserService{
 		userRepository:      userRepository,
 		organizationService: organizationService,
 		transactionManager:  transactionManager,
 	};
-	service.CloneWithTransaction = func(tx *sql.Tx) interface{} {
-		return NewUserService(
-			service.userRepository.InjectTransaction(tx).(*UserRepository),
-			service.organizationService.InjectTransaction(tx).(*OrganizationService),
-			transactionManager)
-	}
 	return service
+}
+
+func (service *UserService) InjectTransaction(tx *sql.Tx) interface{} {
+	return NewUserService(
+		service.userRepository.InjectTransaction(tx).(*UserRepository),
+		service.organizationService.InjectTransaction(tx).(*OrganizationService),
+		service.transactionManager.InjectTransaction(tx).(*TransactionManager))
 }
 
 func (service *UserService) Create(email string, password string) (*User, error) {

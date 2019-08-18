@@ -3,13 +3,11 @@ package server
 import (
 	"database/sql"
 	"errors"
-	"github.com/honerlaw/mentordoc/server/transaction"
 	"log"
 	"strings"
 )
 
 type UserRepository struct {
-	transaction.Transactionable
 	Repository
 }
 
@@ -17,10 +15,11 @@ func NewUserRepository(db *sql.DB, tx *sql.Tx) *UserRepository {
 	repo := &UserRepository{}
 	repo.db = db
 	repo.tx = tx
-	repo.CloneWithTransaction = func(tx *sql.Tx) interface{} {
-		return NewUserRepository(repo.db, tx)
-	}
 	return repo;
+}
+
+func (repo *UserRepository) InjectTransaction(tx *sql.Tx) interface{} {
+	return NewUserRepository(repo.db, tx)
 }
 
 func (repo *UserRepository) Insert(user *User) (*User, error) {

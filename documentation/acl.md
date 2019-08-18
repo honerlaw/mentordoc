@@ -1,136 +1,201 @@
 # Role Based Access Control
 
-Every role has multiple statements
+Role based access control consists of permissions, roles, and then a mapping of roles to users.
 
-Statements consist of what the user has access to
+### Permissions
 
-#### Statements
-
-Statements define what an entity will have access to but they are not tied to a specific entity.
-
-Every statement will contain the following data:
-
-- `ResourceName`
-- `Action`
-
-##### ResourceName
-
-The resource name denotes the name of a specific resource that this statement applies to.
-
-For example, if there should be some access given or taken away from an organization. The resource name would denote `organization`.
-
-##### ResourceID
-
-The resource ID denotes the actual ID for the named resource that the statement applies to.
-
-A valid resource ID is either an asterisk, or a uuid. The asterisk (`*`) denotes that given actions in the statement apply to all of the resources with the given name.
-
-##### Action
-
-Actions is an array of values that denote the actions that can be applied to a given resource. For example, if there should be read and write actions allowed for this resource, the actions would consist of `read` and `write`.
-
-##### Other Quirks
-
-- There are two actions that are implicitly allowed by anyone. That is creating a new user and creating a new organization. 
-- All resources have statements associated with them. For example every single document has a 
-
-
-##### Examples
-
-Read and write access for an organization
 ```
-{
-    ResourceName: "organization",
-    Actions: "read"
+Permission {
+    ResourcePath string
+    Action string
 }
 ```
 
-Ability to create a folder in an organization
+A permission just denotes the path to the resource that a given action applies to. Permissions are never assigned directly to a user, they are always attached to a role first, and then assigned to a user.
+
+#### ResourcePath
+
+The resource path can be just a single resource, or denote the hierarchical path for the resource. For example, the path could just be `organization`, or
+it could be `organization:folder`, or `folder`. The resource id (talked about in user role mapping), will apply to the root of the resource path. For example,
+if the path is `organization:folder`, the id would apply to `organization`.
+
+#### Actions
+
+- `view`
+- `modify`
+- `delete`
+- `create:{child_resource_name}`
+
+#### Examples
+
+The following two permissions would denote that a user would be given access to view the organization and to create folders in that organization.
+
 ```
-{
-    ResourceName: "organization"
-    ResourceID: "12345"
-    Actions: "create:folder"
+Permission {
+    ResourcePath "organization"
+    Action "view"
+}
+
+Permission {
+    ResourcePath "organization"
+    Action "create:folder"
 }
 ```
 
-Ability to create a document in a folder
+### Roles
+
 ```
-{
-    ResourceName: "folder"
-    ResourceId: "12345"
-    Actions: "create:document"
+Role {
+    Name string
 }
 ```
 
-#### Policy
+Roles define a collection of permissions. Users are always assigned permissions through roles.
 
-A policy applies to a specific resource. A policy is a collection of statements.
-
-
-User A can read documents A, B, C in folder A, but user B can not only see D
-
-Statements are defined for every resource that is created. A policy then consists of a collection of statements. Policies are then assigned to individual users.
-
-This gives granular control (in the future) over individual files.
-
-For example, if you want to grant a group of users access to all documents in a folder. You would have a policy `Folder 5 Access`, that grants read access to the folder and to each document. The policy would contain read statements for all documents and a read statement for the folder (example below). If you wanted to remoove read access to a document for all users. You wouldd simply find the statement that grants read access to the document, and remove it from all policies. This would automatically remove read access for the document for everyone in that existing policy. A new policy can be created for just the document as well. And this can be assigned to another user. This gives heavy customization to who can access what in what ways.
-
-Templates can also be created that denote a "role". These templates simply consist of the statements (and policy) that should be created for a given resource to denote a specific level of access. E.g. if a user is granted "contributor" access to a document. They would have a policy created that gives `read` and `write` access. For now these templates are defined in code.
+### User Role Mapping
 
 ```
-{
-    UserId: "12345",
-    Policies: [
-        {
-            Name: "Folder 5 Access"
-            Statements: [
-                {
-                    ResourceName: "folder"
-                    ResourceId: "12345"
-                    Action: "read" 
-                },
-                {
-                    ResourceName: "document"
-                    ResourceId: "12345"
-                    Action: "read" 
-                },
-                {
-                    ResourceName: "document"
-                    ResourceId: "54321"
-                    Action: "read" 
-                },
-            ]
-        }
-    ]
+UserRole {
+    UserId string
+    RoleId string
+    ResourceId string
+```
 
+User role mapping simply maps a set of permissions (role) to a given user and resource. An example of this would be
+mapping a role containing permissions throughout the organization to a given user.
+
+#### User Id
+
+This is simply the identifier for a specific user that the role will be applied to.
+
+#### Role Id
+
+The identifier for the set of permissions to grant to the user.
+
+#### Resource Id
+
+The identifier of the resource that the role will be applied to.
+
+### Examples
+
+Organization Owner of Organization 54321
+```
+Permission {
+    ResourcePath "organization"
+    Action "view"
+}
+
+Permission {
+    ResourcePath "organization"
+    Action "modify"
+}
+
+Permission {
+    ResourcePath "organization"
+    Action "delete"
+}
+
+Permission {
+    ResourcePath "organization"
+    Action "create:folder"
+}
+
+Permission {
+    ResourcePath "organization:folder"
+    Action "view"
+}
+
+Permission {
+    ResourcePath "organization:folder"
+    Action "modify"
+}
+
+Permission {
+    ResourcePath "organization:folder"
+    Action "delete"
+}
+
+Permission {
+    ResourcePath "organization:folder"
+    Action "create:document"
+}
+
+Permission {
+    ResourcePath "organization:folder:document"
+    Action "view"
+}
+
+Permission {
+    ResourcePath "organization:folder:document"
+    Action "modify"
+}
+
+Permission {
+    ResourcePath "organization:folder:document"
+    Action "delete"
+}
+
+Role {
+    Id "50"
+    Name "organization:owner"
+}
+
+UserRole {
+    UserId "12345"
+    RoleId "50"
+    ResourceId "54321"
 }
 ```
 
-#### Tables
+Document Viewer of Document 54321
+```
+Permission {
+    ResourcePath "document"
+    Action "view"
+}
 
-##### Statement
+Role {
+    Id "50"
+    Name "document:viewer"
+}
 
-- id
-- resourceName
-- resourceId
-- action
+UserRole {
+    UserId "12345"
+    RoleId "50"
+    ResourceId "54321"
+}
+```
 
-##### Policy
+Folder Viewer and Document Owner of Folder 54321
+```
+Permission {
+    ResourcePath "folder"
+    Action "view"
+}
 
-- id
-- name
+Permission {
+    ResourcePath "folder:document"
+    Action "view"
+}
 
-##### PolicyStatement
+Permission {
+    ResourcePath "folder:document"
+    Action "modify"
+}
 
-- policy_id
-- statement_id
+Permission {
+    ResourcePath "folder:document"
+    Action "delete"
+}
 
-##### UserPolicy
+Role {
+    Id "50"
+    Name "folder:document:owner"
+}
 
-- user_id
-- policy_id
-
-##### User
-
-...the normal user values
+UserRole {
+    UserId "12345"
+    RoleId "50"
+    ResourceId "54321"
+}
+```
