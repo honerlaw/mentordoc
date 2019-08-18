@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"github.com/honerlaw/mentordoc/server"
+	"github.com/honerlaw/mentordoc/server/model"
 	"log"
 	"strings"
 )
@@ -27,14 +28,14 @@ func (repo *PermissionRepository) InjectTransaction(tx *sql.Tx) interface{} {
 	return NewPermissionRepository(repo.db, tx)
 }
 
-func (repo *PermissionRepository) Find(resourcePath string, action string) *Permission {
+func (repo *PermissionRepository) Find(resourcePath string, action string) *model.Permission {
 	row := repo.QueryRow(
 		"select id, resource_path, action, created_at, updated_at, deleted_at from permission where resource_path = ? and action = ?",
 		resourcePath,
 		action,
 	)
 
-	permission := &Permission{}
+	permission := &model.Permission{}
 	err := row.Scan(permission.Id, permission.ResourcePath, permission.Action, permission.CreatedAt, permission.UpdatedAt, permission.DeletedAt)
 	if err != nil {
 		log.Print(err)
@@ -44,7 +45,7 @@ func (repo *PermissionRepository) Find(resourcePath string, action string) *Perm
 	return permission
 }
 
-func (repo *PermissionRepository) Insert(permission *Permission) (*Permission, error) {
+func (repo *PermissionRepository) Insert(permission *model.Permission) (*model.Permission, error) {
 	existing := repo.Find(permission.ResourcePath, permission.Action)
 	if existing != nil {
 		return existing, nil;

@@ -1,4 +1,4 @@
-package server
+package model
 
 type Entity struct {
 	Id string `json:"id"`

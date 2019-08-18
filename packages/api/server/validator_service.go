@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	serverModel "github.com/honerlaw/mentordoc/server/model"
 	"gopkg.in/go-playground/validator.v9"
 	"log"
 	"net/http"
@@ -23,27 +24,24 @@ func NewValidatorService() *ValidatorService {
 	}
 }
 
-func (v *ValidatorService) ParseAndValidate(req *http.Request, model interface{}) (interface{}, *HttpError) {
+func (v *ValidatorService) ParseAndValidate(req *http.Request, model interface{}) (interface{}, *serverModel.HttpError) {
 	decoder := json.NewDecoder(req.Body)
 	err := decoder.Decode(model)
 	if err != nil {
 		log.Print(err)
-		return nil, &HttpError{Errors: []string{"failed to parse request body"}}
+		return nil, serverModel.NewBadRequestError("failed to validate reque")
 	}
 
 	err = v.validator.Struct(model)
 	if err != nil {
+		validationErrors := err.(validator.ValidationErrors)
 
-		validatorError := &HttpError{
-			Status: http.StatusBadRequest,
-			Errors: make([]string, 0),
-		}
+		errorMessages := make([]string, len(validationErrors))
+		for i, err := range validationErrors {
+			errorMessages[i] = v.formatValidationError(err)
+ 		}
 
-		for _, err := range err.(validator.ValidationErrors) {
-			validatorError.Errors = append(validatorError.Errors, v.formatValidationError(err))
-		}
-
-		return nil, validatorError
+		return nil, serverModel.NewBadRequestError(errorMessages...)
 	}
 
 	return model, nil

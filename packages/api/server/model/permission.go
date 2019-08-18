@@ -1,9 +1,7 @@
-package acl
-
-import "github.com/honerlaw/mentordoc/server"
+package model
 
 type Permission struct {
-	server.Entity
+	Entity
 
 	ResourcePath string `json:"resourcePath"`
 	Action       string `json:"action"`

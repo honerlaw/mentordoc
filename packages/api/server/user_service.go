@@ -2,6 +2,7 @@ package server
 
 import (
 	"database/sql"
+	"github.com/honerlaw/mentordoc/server/model"
 	uuid "github.com/satori/go.uuid"
 	"golang.org/x/crypto/bcrypt"
 	"log"
@@ -33,22 +34,22 @@ func (service *UserService) InjectTransaction(tx *sql.Tx) interface{} {
 		service.transactionManager.InjectTransaction(tx).(*TransactionManager))
 }
 
-func (service *UserService) Create(email string, password string) (*User, error) {
+func (service *UserService) Create(email string, password string) (*model.User, error) {
 	user := service.userRepository.FindByEmail(email)
 	if user != nil {
-		return nil, NewBadRequestError("user already exists")
+		return nil, model.NewBadRequestError("user already exists")
 	}
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		log.Print(err)
-		return nil, NewInternalServerError("failed to create user")
+		return nil, model.NewInternalServerError("failed to create user")
 	}
 
 	resp, err := service.transactionManager.Transact(service, func(injected interface{}) (interface{}, error) {
 		injectedService := injected.(*UserService)
 
-		user = &User{
+		user = &model.User{
 			Email:    email,
 			Password: string(hash),
 		}
@@ -57,7 +58,7 @@ func (service *UserService) Create(email string, password string) (*User, error)
 		user, err = injectedService.userRepository.Insert(user)
 
 		if err != nil {
-			return nil, NewInternalServerError("failed to create user")
+			return nil, model.NewInternalServerError("failed to create user")
 		}
 
 		return user, nil
@@ -67,23 +68,23 @@ func (service *UserService) Create(email string, password string) (*User, error)
 		return nil, err
 	}
 
-	return resp.(*User), nil
+	return resp.(*model.User), nil
 }
 
-func (service *UserService) Authenticate(email string, password string) (*User, error) {
+func (service *UserService) Authenticate(email string, password string) (*model.User, error) {
 	user := service.userRepository.FindByEmail(email)
 	if user == nil {
-		return nil, NewBadRequestError("invalid email or password")
+		return nil, model.NewBadRequestError("invalid email or password")
 	}
 
 	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
-		return nil, NewBadRequestError("invalid email or password")
+		return nil, model.NewBadRequestError("invalid email or password")
 	}
 
 	return user, nil
 }
 
-func (service *UserService) FindByEmail(email string) *User {
+func (service *UserService) FindByEmail(email string) *model.User {
 	return service.userRepository.FindByEmail(email)
 }

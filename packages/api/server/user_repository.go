@@ -3,6 +3,7 @@ package server
 import (
 	"database/sql"
 	"errors"
+	"github.com/honerlaw/mentordoc/server/model"
 	"log"
 	"strings"
 )
@@ -22,7 +23,7 @@ func (repo *UserRepository) InjectTransaction(tx *sql.Tx) interface{} {
 	return NewUserRepository(repo.db, tx)
 }
 
-func (repo *UserRepository) Insert(user *User) (*User, error) {
+func (repo *UserRepository) Insert(user *model.User) (*model.User, error) {
 	user.CreatedAt = NowUnix()
 	user.UpdatedAt = NowUnix()
 
@@ -44,7 +45,7 @@ func (repo *UserRepository) Insert(user *User) (*User, error) {
 	return user, nil;
 }
 
-func (repo *UserRepository) Update(user *User) (*User, error) {
+func (repo *UserRepository) Update(user *model.User) (*model.User, error) {
 	user.UpdatedAt = NowUnix()
 
 	_, err := repo.Exec(
@@ -64,12 +65,12 @@ func (repo *UserRepository) Update(user *User) (*User, error) {
 	return user, nil;
 }
 
-func (repo *UserRepository) FindByEmail(email string) *User {
+func (repo *UserRepository) FindByEmail(email string) *model.User {
 	row := repo.QueryRow(
 		"select id, email, password, created_at, updated_at, deleted_at from user where email = ?",
 		strings.TrimSpace(strings.ToLower(email)),
 	)
-	user := &User{}
+	user := &model.User{}
 	err := row.Scan(&user.Id, &user.Email, &user.Password, &user.CreatedAt, &user.UpdatedAt, &user.DeletedAt)
 	if err != nil {
 		log.Print(err)

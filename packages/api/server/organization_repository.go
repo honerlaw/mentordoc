@@ -3,6 +3,7 @@ package server
 import (
 	"database/sql"
 	"errors"
+	"github.com/honerlaw/mentordoc/server/model"
 	"log"
 )
 
@@ -21,7 +22,7 @@ func (repo *OrganizationRepository) InjectTransaction(tx *sql.Tx) interface{} {
 	return NewOrganizationRepository(repo.db, tx)
 }
 
-func (repo *OrganizationRepository) Insert(org *Organization) (*Organization, error) {
+func (repo *OrganizationRepository) Insert(org *model.Organization) (*model.Organization, error) {
 	org.CreatedAt = NowUnix()
 	org.UpdatedAt = NowUnix()
 
@@ -42,7 +43,7 @@ func (repo *OrganizationRepository) Insert(org *Organization) (*Organization, er
 	return org, nil;
 }
 
-func (repo *OrganizationRepository) Update(org *Organization) (*Organization, error) {
+func (repo *OrganizationRepository) Update(org *model.Organization) (*model.Organization, error) {
 	org.UpdatedAt = NowUnix()
 
 	_, err := repo.Exec(

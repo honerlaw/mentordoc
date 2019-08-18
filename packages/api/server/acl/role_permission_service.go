@@ -3,6 +3,7 @@ package acl
 import (
 	"database/sql"
 	"github.com/honerlaw/mentordoc/server"
+	"github.com/honerlaw/mentordoc/server/model"
 	uuid "github.com/satori/go.uuid"
 )
 
@@ -53,11 +54,11 @@ func (service *RolePermissionService) InitRoles() error {
 	return nil
 }
 
-func (service *RolePermissionService) CreateRoleWithPermissions(roleName string, permissionMap map[string][]string) (*Role, error) {
+func (service *RolePermissionService) CreateRoleWithPermissions(roleName string, permissionMap map[string][]string) (*model.Role, error) {
 	role, err := service.transactionManager.Transact(service, func(injected interface{}) (interface{}, error) {
 		injectedService := injected.(*RolePermissionService)
 
-		role := &Role{}
+		role := &model.Role{}
 		role.Id = uuid.NewV4().String()
 
 		role, err := injectedService.roleRepository.Insert(role)
@@ -67,7 +68,7 @@ func (service *RolePermissionService) CreateRoleWithPermissions(roleName string,
 
 		for path, actions := range permissionMap {
 			for _, action := range actions {
-				permission := &Permission{
+				permission := &model.Permission{
 					ResourcePath: path,
 					Action:       action,
 				}
@@ -86,5 +87,5 @@ func (service *RolePermissionService) CreateRoleWithPermissions(roleName string,
 		return role, nil
 	})
 
-	return role.(*Role), err
+	return role.(*model.Role), err
 }

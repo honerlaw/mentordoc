@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS `role_permission` (
   `permission_id` CHAR(36) NOT NULL,
   PRIMARY KEY (`role_id`, `permission_id`),
   FOREIGN KEY (`role_id`) REFERENCES role(`id`),
-  FOREIGN KEY (`permission`) REFERENCES permission(`id`)
+  FOREIGN KEY (`permission_id`) REFERENCES permission(`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `user_role` (

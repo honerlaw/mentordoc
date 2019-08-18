@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"github.com/honerlaw/mentordoc/server"
+	"github.com/honerlaw/mentordoc/server/model"
 	"log"
 )
 
@@ -26,13 +27,13 @@ func (repo *RoleRepository) InjectTransaction(tx *sql.Tx) interface{} {
 	return NewRoleRepository(repo.db, tx)
 }
 
-func (repo *RoleRepository) Find(name string) *Role {
+func (repo *RoleRepository) Find(name string) *model.Role {
 	row := repo.QueryRow(
 		"select id, name, created_at, updated_at, deleted_at from role where name = ?",
 		name,
 	)
 
-	role := &Role{}
+	role := &model.Role{}
 	err := row.Scan(role.Id, role.Name, role.CreatedAt, role.UpdatedAt, role.DeletedAt)
 	if err != nil {
 		log.Print(err)
@@ -42,7 +43,7 @@ func (repo *RoleRepository) Find(name string) *Role {
 	return role
 }
 
-func (repo *RoleRepository) Insert(role *Role) (*Role, error) {
+func (repo *RoleRepository) Insert(role *model.Role) (*model.Role, error) {
 	existing := repo.Find(role.Name);
 	if existing != nil {
 		return existing, nil

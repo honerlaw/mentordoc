@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"github.com/honerlaw/mentordoc/server"
+	"github.com/honerlaw/mentordoc/server/model"
 	"log"
 )
 
@@ -26,7 +27,7 @@ func (repo *RolePermissionRepository) InjectTransaction(tx *sql.Tx) interface{} 
 	return NewRolePermissionRepository(repo.db, tx)
 }
 
-func (repo *RolePermissionRepository) Link(role *Role, permission *Permission) error {
+func (repo *RolePermissionRepository) Link(role *model.Role, permission *model.Permission) error {
 
 	// check if its already been linked
 	rows, err := repo.Query(
