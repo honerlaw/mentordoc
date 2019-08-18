@@ -36,7 +36,8 @@ func (repo *RolePermissionRepository) Link(role *model.Role, permission *model.P
 		permission.Id,
 	)
 	if err != nil {
-		return err
+		log.Print(err)
+		return errors.New("failed to link permission to role")
 	}
 	defer rows.Close()
 
