@@ -84,10 +84,23 @@ func (repo *UserRoleRepository) Unlink(user model.User, role *model.Role, resour
 	return nil
 }
 
+type ResourceRequest struct {
+	ResourcePath []string
+	ResourceIds  []string
+}
+
+type ResourceResponse struct {
+	PermissionId string
+	UserId       string
+	ResourcePath string
+	ResourceId   string
+	Action       string
+}
+
 /*
 
-In order to find if a person has access to a resource, we need to know the full path to the resource
-e.g. organization:folder:document, we also need to know the parent id for each of those resources. So we would need
+In order to find general information about the resources in relation to the user, we need to know the full path to the
+resource (e.g. organization:folder:document), we also need to know the parent id for each of those resources. So we would need
 to know the id for the document, the id for the folder the document is in, and the id for the organization that the
 folder (containing the document) is in.
 
@@ -99,62 +112,95 @@ encompasses access to a document. So the only way to check that, is if we check 
 
 For example, given the following input
 
-resourcePath := []string{"organization", "folder"}
-resourceIds := []string{"5", "10"}
+resourcePath := []string{"organization", "folder", "document"}
+resourceIds := []string{"5", "10", "15"}
 
 The following where clause would be generated
 
-((resource_path = "organization" AND resource_id = 5") OR (resource_path = "organization:folder" AND resource_id = 5"))
-OR ((resource_path = "organization:folder" AND resource_id = 10"))
+((resource_path = "organization:folder:document" AND resource_id = 5") OR (resource_path = "folder:document" AND resource_id = "10") OR (resource_path = "document" AND resource_id = "10"))
 
 */
-func (repo *UserRoleRepository) CanAccessResource(userId string, resourcePath []string, resourceIds []string, action string) (bool, error) {
+func (repo *UserRoleRepository) GetDataForResources(userId string, requests []ResourceRequest, action *string) ([]*ResourceResponse, error) {
+	params := make([]interface{}, 0)
+	clauses := make([]string, 0)
 
-	// if these aren't the same length, we have a mismatch and could produce an invalid query
-	if len(resourcePath) != len(resourceIds) {
-		return false, errors.New("resource paths and ids must be the same length")
-	}
+	for _, request := range requests {
 
-	// start building the wonderful where clause
-	params := make([]interface{}, 2 * len(resourcePath) * len(resourceIds) + 1)
-	clauses := make([]string, len(resourcePath) * len(resourceIds))
-	for idIndex, id := range resourceIds {
+		// if these aren't the same length, we have a mismatch and could produce an invalid query
+		if len(request.ResourcePath) != len(request.ResourceIds) {
+			return nil, errors.New("resource paths and ids must be the same length")
+		}
 
-		subClauses := make([]string, len(resourcePath))
+		// build all of the where clauses for the given request
+		requestClauses := make([]string, len(request.ResourcePath)*len(request.ResourceIds))
+		for idIndex, id := range request.ResourceIds {
 
-		// so we only want the sub path from the id index to the end of the path (so we are only searching down
-		// the tree instead of potentially up it)
-		for pathIndex := idIndex; pathIndex < len(resourcePath); pathIndex++ {
-			path := strings.Join(resourcePath[pathIndex:cap(resourcePath)], ":")
+			// generate the path which is a slice from the idIndex to the cap
+			path := strings.Join(request.ResourcePath[idIndex:cap(request.ResourcePath)], ":")
 
 			clause := "(p.resource_path = ? AND ur.resource_id = ?)"
 
-			subClauses = append(subClauses, clause)
 			params = append(params, path, id)
+
+			requestClauses = append(requestClauses, clause)
 		}
 
-		clauses = append(clauses, fmt.Sprintf("(%s)", strings.Join(subClauses, " OR ")))
+		clauses = append(clauses, fmt.Sprintf("(%s)", strings.Join(requestClauses, " OR ")))
 	}
-	whereClause := strings.Join(clauses, " OR ")
 
-	// add the action that we are also checking for
-	params = append(params, action, userId)
+	whereClause := fmt.Sprintf("(%s)", strings.Join(clauses, " OR "))
+
+	// add the user id
+	params = append(params, userId)
+	query := fmt.Sprintf("select p.id, p.resource_path, ur.resource_id, p.action, ur.user_id from user_role ur join role_permission rp on rp.role_id = ur.role_id join permission p on p.id = rp.permission_id where %s AND ur.user_id = ?", whereClause);
+
+	// an action was specified, so also filter on that
+	if action != nil {
+		params = append(params, *action)
+		query += " AND action = ?"
+	}
 
 	rows, err := repo.Query(
-		fmt.Sprintf("select p.id, p.resource_path, ur.resource_id, p.action, ur.user_id from user_role ur join role_permission rp on rp.role_id = ur.role_id join permission p on p.id = rp.permission_id where %s AND p.action = ? AND ur.user_id = ?", whereClause),
+		query,
 		params...
 	)
 	if err != nil {
 		log.Print(err)
-		return false, errors.New("failed to check if resource can be accessed")
+		return nil, errors.New("failed to fetch resource data")
 	}
 	defer rows.Close()
 
+	results := make([]*ResourceResponse, 0)
+
 	// basically we just need to check that something was returned
-	count := 0
 	for rows.Next() {
-		count += 1
+
+		res := &ResourceResponse{}
+		err := rows.Scan(res.PermissionId, res.ResourcePath, res.ResourceId, res.Action, res.UserId)
+		if err != nil {
+			log.Print(err)
+			return nil, errors.New("failed to fetch resource data")
+		}
+
+		results = append(results, res)
 	}
 
-	return count > 0, nil
+	return results, nil
+}
+
+func (repo *UserRoleRepository) CanAccessResource(userId string, resourcePath []string, resourceIds []string, action string) (bool, error) {
+	request := []ResourceRequest{
+		{
+			ResourcePath: resourcePath,
+			ResourceIds:  resourceIds,
+		},
+	}
+
+	data, err := repo.GetDataForResources(userId, request, &action)
+
+	if err != nil {
+		return false, err
+	}
+
+	return len(data) > 0, nil
 }

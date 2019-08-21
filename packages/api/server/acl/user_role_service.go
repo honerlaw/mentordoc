@@ -7,7 +7,6 @@ import (
 )
 /**
 TODO
-- we have a way to check for access
 - We need a way to fetch all of the actions for a given resource
 -- this will probably be very similar to checking for access, just excluding the action scope and expanding to allow
 -- an array of an array of paths and ids (e.g. [][]string for both paths and ids), might be better to convert this to a struct
@@ -42,4 +41,8 @@ func (service *UserRoleService) LinkUserToRole(user model.User, roleName string,
 
 func (service *UserRoleService) UserCanAccessResource(user model.User, path []string, ids []string, action string) (bool, error) {
 	return service.userRoleRepository.CanAccessResource(user.Id, path, ids, action)
+}
+
+func (service *UserRoleService) UserActionsForResource() (bool, error) {
+
 }
