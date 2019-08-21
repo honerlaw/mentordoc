@@ -119,6 +119,8 @@ The following where clause would be generated
 
 ((resource_path = "organization:folder:document" AND resource_id = 5") OR (resource_path = "folder:document" AND resource_id = "10") OR (resource_path = "document" AND resource_id = "10"))
 
+@todo clean this method up / split it up
+
 */
 func (repo *UserRoleRepository) GetDataForResources(userId string, requests []ResourceRequest, action *string) ([]*ResourceResponse, error) {
 	params := make([]interface{}, 0)
@@ -186,21 +188,4 @@ func (repo *UserRoleRepository) GetDataForResources(userId string, requests []Re
 	}
 
 	return results, nil
-}
-
-func (repo *UserRoleRepository) CanAccessResource(userId string, resourcePath []string, resourceIds []string, action string) (bool, error) {
-	request := []ResourceRequest{
-		{
-			ResourcePath: resourcePath,
-			ResourceIds:  resourceIds,
-		},
-	}
-
-	data, err := repo.GetDataForResources(userId, request, &action)
-
-	if err != nil {
-		return false, err
-	}
-
-	return len(data) > 0, nil
 }

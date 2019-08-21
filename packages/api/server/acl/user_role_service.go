@@ -40,9 +40,22 @@ func (service *UserRoleService) LinkUserToRole(user model.User, roleName string,
 }
 
 func (service *UserRoleService) UserCanAccessResource(user model.User, path []string, ids []string, action string) (bool, error) {
-	return service.userRoleRepository.CanAccessResource(user.Id, path, ids, action)
+	request := []ResourceRequest{
+		{
+			ResourcePath: path,
+			ResourceIds:  ids,
+		},
+	}
+
+	data, err := service.userRoleRepository.GetDataForResources(user.Id, request, &action)
+
+	if err != nil {
+		return false, err
+	}
+
+	return len(data) > 0, nil
 }
 
-func (service *UserRoleService) UserActionsForResource() (bool, error) {
-
+func (service *UserRoleService) UserActionsForResource() ([]string, error) {
+	return nil, nil
 }
