@@ -10,21 +10,17 @@ import (
 
 type RoleRepository struct {
 	server.Repository
-
-	db *sql.DB
-	tx *sql.Tx
 }
 
 func NewRoleRepository(db *sql.DB, tx *sql.Tx) *RoleRepository {
-	repo := &RoleRepository{
-		db: db,
-		tx: tx,
-	}
+	repo := &RoleRepository{}
+	repo.Db = db
+	repo.Tx = tx
 	return repo
 }
 
 func (repo *RoleRepository) InjectTransaction(tx *sql.Tx) interface{} {
-	return NewRoleRepository(repo.db, tx)
+	return NewRoleRepository(repo.Db, tx)
 }
 
 func (repo *RoleRepository) Find(name string) *model.Role {

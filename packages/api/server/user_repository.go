@@ -14,13 +14,13 @@ type UserRepository struct {
 
 func NewUserRepository(db *sql.DB, tx *sql.Tx) *UserRepository {
 	repo := &UserRepository{}
-	repo.db = db
-	repo.tx = tx
+	repo.Db = db
+	repo.Tx = tx
 	return repo;
 }
 
 func (repo *UserRepository) InjectTransaction(tx *sql.Tx) interface{} {
-	return NewUserRepository(repo.db, tx)
+	return NewUserRepository(repo.Db, tx)
 }
 
 func (repo *UserRepository) Insert(user *model.User) (*model.User, error) {

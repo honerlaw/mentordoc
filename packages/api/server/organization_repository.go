@@ -13,13 +13,13 @@ type OrganizationRepository struct {
 
 func NewOrganizationRepository(db *sql.DB, tx *sql.Tx) *OrganizationRepository {
 	repo := &OrganizationRepository{}
-	repo.db = db
-	repo.tx = tx
+	repo.Db = db
+	repo.Tx = tx
 	return repo
 }
 
 func (repo *OrganizationRepository) InjectTransaction(tx *sql.Tx) interface{} {
-	return NewOrganizationRepository(repo.db, tx)
+	return NewOrganizationRepository(repo.Db, tx)
 }
 
 func (repo *OrganizationRepository) Insert(org *model.Organization) (*model.Organization, error) {

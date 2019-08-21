@@ -11,21 +11,17 @@ import (
 
 type PermissionRepository struct {
 	server.Repository
-
-	db *sql.DB
-	tx *sql.Tx
 }
 
 func NewPermissionRepository(db *sql.DB, tx *sql.Tx) *PermissionRepository {
-	repo := &PermissionRepository{
-		db: db,
-		tx: tx,
-	}
+	repo := &PermissionRepository{}
+	repo.Db = db
+	repo.Tx = tx
 	return repo
 }
 
 func (repo *PermissionRepository) InjectTransaction(tx *sql.Tx) interface{} {
-	return NewPermissionRepository(repo.db, tx)
+	return NewPermissionRepository(repo.Db, tx)
 }
 
 func (repo *PermissionRepository) Find(resourcePath string, action string) *model.Permission {

@@ -12,24 +12,20 @@ import (
 
 type UserRoleRepository struct {
 	server.Repository
-
-	db *sql.DB
-	tx *sql.Tx
 }
 
 func NewUserRoleRepository(db *sql.DB, tx *sql.Tx) *UserRoleRepository {
-	repo := &UserRoleRepository{
-		db: db,
-		tx: tx,
-	}
+	repo := &UserRoleRepository{}
+	repo.Db = db
+	repo.Tx = tx
 	return repo
 }
 
 func (repo *UserRoleRepository) InjectTransaction(tx *sql.Tx) interface{} {
-	return NewUserRoleRepository(repo.db, tx)
+	return NewUserRoleRepository(repo.Db, tx)
 }
 
-func (repo *UserRoleRepository) Link(user model.User, role *model.Role, resourceId string) error {
+func (repo *UserRoleRepository) Link(user *model.User, role *model.Role, resourceId string) error {
 	// check if its already been linked
 	rows, err := repo.Query(
 		"select user_id, role_id, resource_id from user_role where user_id = ? and role_id = ? and resource_id = ?",
@@ -69,7 +65,7 @@ func (repo *UserRoleRepository) Link(user model.User, role *model.Role, resource
 	return nil
 }
 
-func (repo *UserRoleRepository) Unlink(user model.User, role *model.Role, resourceId string) error {
+func (repo *UserRoleRepository) Unlink(user *model.User, role *model.Role, resourceId string) error {
 	_, err := repo.Exec(
 		"delete from user_role where user_id = ? and role_id = ? and resource_id = ?",
 		user.Id,
@@ -84,83 +80,101 @@ func (repo *UserRoleRepository) Unlink(user model.User, role *model.Role, resour
 	return nil
 }
 
-type ResourceRequest struct {
-	ResourcePath []string
-	ResourceIds  []string
-}
-
-type ResourceResponse struct {
-	PermissionId string
-	UserId       string
-	ResourcePath string
-	ResourceId   string
-	Action       string
-}
-
 /*
+There are two types of querys that need to be supported
 
-In order to find general information about the resources in relation to the user, we need to know the full path to the
-resource (e.g. organization:folder:document), we also need to know the parent id for each of those resources. So we would need
-to know the id for the document, the id for the folder the document is in, and the id for the organization that the
-folder (containing the document) is in.
+1. We know the resource (path add ids) and user, but do we have access to it
+2. We know the resource path and user and action, but want to know the resource ids
 
-This means we need the full path, and the correct ids for the hierarchical relationship of the items.
+This method builds the where clause depending on what we are trying to fetch.
 
-From there we can generate a query that basically checks each level (going towards the target resource) and see
-if the correct permission exists for that resource. The reason is that a user may have organization level role that
-encompasses access to a document. So the only way to check that, is if we check the root level for that access.
+1. We can specify a path
+2. We can specify a path and ids
+3. We can specify a path and an action
+4. We can specify a path, ids, and an action
 
-For example, given the following input
+The where clause that is built is fairly straight forward.
 
-resourcePath := []string{"organization", "folder", "document"}
-resourceIds := []string{"5", "10", "15"}
+We know that every resource is denoted by a full path. E.g. for access to a document, its either denoted as
+organization:folder:document, folder:document, or document. So this part of the where clause will always be built out.
 
-The following where clause would be generated
+If a resource ids are also specified, they will be added to the query, if the action is specified, it is added to the
+query.
 
-((resource_path = "organization:folder:document" AND resource_id = 5") OR (resource_path = "folder:document" AND resource_id = "10") OR (resource_path = "document" AND resource_id = "10"))
+Examples based on what is specified:
 
-@todo clean this method up / split it up
+1. a document path ([]string{"organization", "folder", "document"})
 
+((resource_path = "organization:folder:document") OR (resource_path = "folder:document") OR (resource_path = "folder:document")) and userId = "12345"
+
+2. a document path ([]string{"organization", "folder", "document"}) and ids ([]string{"5", "10", "15"})
+
+((resource_path = "organization:folder:document" AND resource_id = "5") OR (resource_path = "folder:document" AND resource_id = "10") OR (resource_path = "folder:document" AND resource_id = "15")) and userId = "12345"
+
+3. a document path ([]string{"organization", "folder", "document"}) and action (string{"view"})
+
+((resource_path = "organization:folder:document" AND action = "view") OR (resource_path = "folder:document" AND action = "view") OR (resource_path = "folder:document" AND action = "view")) and userId = "12345"
+
+4. a document path ([]string{"organization", "folder", "document"}) and ids ([]string{"5", "10", "15"}) and action (string{"view"})
+
+((resource_path = "organization:folder:document" AND resource_id = "5" AND action = "view") OR (resource_path = "folder:document" AND resource_id = "10" AND action = "view") OR (resource_path = "folder:document" AND resource_id = "15" AND action = "view")) and userId = "12345"
+
+Given these various different ways to filter based on a single user, we can then use the resulting data to query for
+the actual data. This allows ACL to be decoupled from the application logic, but at the cost of needing to run a
+minimum of 2 queries (one for the acl data, one for the application data), we could in the future have a single query,
+if there is a need to do so
 */
-func (repo *UserRoleRepository) GetDataForResources(userId string, requests []ResourceRequest, action *string) ([]*ResourceResponse, error) {
+func (repo *UserRoleRepository) buildWhereClause(userId string, requests []ResourceRequest) (*string, []interface{}, error) {
 	params := make([]interface{}, 0)
 	clauses := make([]string, 0)
-
 	for _, request := range requests {
 
 		// if these aren't the same length, we have a mismatch and could produce an invalid query
-		if len(request.ResourcePath) != len(request.ResourceIds) {
-			return nil, errors.New("resource paths and ids must be the same length")
+		if request.ResourceIds != nil && len(request.ResourcePath) != len(request.ResourceIds) {
+			return nil, nil, errors.New("resource paths and ids must be the same length")
 		}
 
 		// build all of the where clauses for the given request
-		requestClauses := make([]string, len(request.ResourcePath)*len(request.ResourceIds))
-		for idIndex, id := range request.ResourceIds {
+		requestClauses := make([]string, 0)
+		for pathIndex := 0; pathIndex < len(request.ResourcePath); pathIndex++ {
 
 			// generate the path which is a slice from the idIndex to the cap
-			path := strings.Join(request.ResourcePath[idIndex:cap(request.ResourcePath)], ":")
+			path := strings.Join(request.ResourcePath[pathIndex:cap(request.ResourcePath)], ":")
 
-			clause := "(p.resource_path = ? AND ur.resource_id = ?)"
+			clause := "p.resource_path = ?"
+			params = append(params, path)
 
-			params = append(params, path, id)
+			if request.ResourceIds != nil {
+				id := request.ResourceIds[pathIndex];
+				clause += " AND ur.resource_id = ?"
+				params = append(params, id)
+			}
 
-			requestClauses = append(requestClauses, clause)
+			if request.Action != nil {
+				clause += " AND p.action = ?"
+				params = append(params, *request.Action)
+			}
+
+			requestClauses = append(requestClauses, fmt.Sprintf("(%s)", clause))
 		}
 
 		clauses = append(clauses, fmt.Sprintf("(%s)", strings.Join(requestClauses, " OR ")))
 	}
 
-	whereClause := fmt.Sprintf("(%s)", strings.Join(clauses, " OR "))
+	clause := fmt.Sprintf("(%s)", strings.Join(clauses, " OR "))
+
+	return &clause, params, nil
+}
+
+func (repo *UserRoleRepository) GetDataForResources(user *model.User, requests []ResourceRequest) ([]*ResourceResponse, error) {
+	whereClause, params, err := repo.buildWhereClause(user.Id, requests)
+	if err != nil {
+		return nil, err
+	}
 
 	// add the user id
-	params = append(params, userId)
-	query := fmt.Sprintf("select p.id, p.resource_path, ur.resource_id, p.action, ur.user_id from user_role ur join role_permission rp on rp.role_id = ur.role_id join permission p on p.id = rp.permission_id where %s AND ur.user_id = ?", whereClause);
-
-	// an action was specified, so also filter on that
-	if action != nil {
-		params = append(params, *action)
-		query += " AND action = ?"
-	}
+	params = append(params, user.Id)
+	query := fmt.Sprintf("select distinct p.id, p.resource_path, ur.resource_id, p.action, ur.user_id from user_role ur join role_permission rp on rp.role_id = ur.role_id join permission p on p.id = rp.permission_id where %s AND ur.user_id = ?", *whereClause);
 
 	rows, err := repo.Query(
 		query,

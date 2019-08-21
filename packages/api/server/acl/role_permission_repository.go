@@ -10,21 +10,17 @@ import (
 
 type RolePermissionRepository struct {
 	server.Repository
-
-	db *sql.DB
-	tx *sql.Tx
 }
 
 func NewRolePermissionRepository(db *sql.DB, tx *sql.Tx) *RolePermissionRepository {
-	repo := &RolePermissionRepository{
-		db: db,
-		tx: tx,
-	}
+	repo := &RolePermissionRepository{}
+	repo.Db = db
+	repo.Tx = tx
 	return repo
 }
 
 func (repo *RolePermissionRepository) InjectTransaction(tx *sql.Tx) interface{} {
-	return NewRolePermissionRepository(repo.db, tx)
+	return NewRolePermissionRepository(repo.Db, tx)
 }
 
 func (repo *RolePermissionRepository) Link(role *model.Role, permission *model.Permission) error {
