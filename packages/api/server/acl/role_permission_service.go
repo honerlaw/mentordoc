@@ -38,7 +38,7 @@ func (service *RolePermissionService) InitRoles() error {
 	_, err := service.CreateRoleWithPermissions("organization:owner", map[string][]string {
 		"organization": {"view", "modify", "create:folder"},
 		"organization:folder": {"view", "modify", "delete", "create:document"},
-		"organization:document": {"view", "modify", "delete"},
+		"organization:folder:document": {"view", "modify", "delete"},
 	});
 	if err != nil {
 		return err
@@ -46,7 +46,7 @@ func (service *RolePermissionService) InitRoles() error {
 	_, err = service.CreateRoleWithPermissions("organization:contributor", map[string][]string {
 		"organization": {"view", "create:folder"},
 		"organization:folder": {"view", "modify", "delete", "create:document"},
-		"organization:document": {"view", "modify", "delete"},
+		"organization:folder:document": {"view", "modify", "delete"},
 	});
 	if err != nil {
 		return err

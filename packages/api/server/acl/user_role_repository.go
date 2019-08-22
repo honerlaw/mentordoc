@@ -191,14 +191,14 @@ func (repo *UserRoleRepository) GetDataForResources(user *model.User, requests [
 	// basically we just need to check that something was returned
 	for rows.Next() {
 
-		res := &ResourceResponse{}
-		err := rows.Scan(res.PermissionId, res.ResourcePath, res.ResourceId, res.Action, res.UserId)
+		var res ResourceResponse
+		err := rows.Scan(&res.PermissionId, &res.ResourcePath, &res.ResourceId, &res.Action, &res.UserId)
 		if err != nil {
 			log.Print(err)
 			return nil, errors.New("failed to fetch resource data")
 		}
 
-		results = append(results, res)
+		results = append(results, &res)
 	}
 
 	return results, nil
