@@ -29,14 +29,14 @@ func (repo *RoleRepository) Find(name string) *model.Role {
 		name,
 	)
 
-	role := &model.Role{}
-	err := row.Scan(role.Id, role.Name, role.CreatedAt, role.UpdatedAt, role.DeletedAt)
+	var role model.Role
+	err := row.Scan(&role.Id, &role.Name, &role.CreatedAt, &role.UpdatedAt, &role.DeletedAt)
 	if err != nil {
 		log.Print(err)
 		return nil
 	}
 
-	return role
+	return &role
 }
 
 func (repo *RoleRepository) Insert(role *model.Role) (*model.Role, error) {

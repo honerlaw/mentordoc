@@ -25,7 +25,7 @@ func (service *UserRoleService) InjectTransaction(tx *sql.Tx) interface{} {
 
 func (service *UserRoleService) LinkUserToRole(user *model.User, roleName string, resourceId string) error {
 	role := service.roleRepository.Find(roleName)
-	if role != nil {
+	if role == nil {
 		return errors.New("failed to find role")
 	}
 

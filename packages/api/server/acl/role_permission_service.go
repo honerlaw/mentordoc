@@ -58,7 +58,9 @@ func (service *RolePermissionService) CreateRoleWithPermissions(roleName string,
 	role, err := service.transactionManager.Transact(service, func(injected interface{}) (interface{}, error) {
 		injectedService := injected.(*RolePermissionService)
 
-		role := &model.Role{}
+		role := &model.Role{
+			Name: roleName,
+		}
 		role.Id = uuid.NewV4().String()
 
 		role, err := injectedService.roleRepository.Insert(role)

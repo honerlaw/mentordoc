@@ -6,7 +6,6 @@ import (
 	"github.com/honerlaw/mentordoc/server"
 	"github.com/honerlaw/mentordoc/server/model"
 	"log"
-	"strings"
 )
 
 type PermissionRepository struct {
@@ -31,14 +30,14 @@ func (repo *PermissionRepository) Find(resourcePath string, action string) *mode
 		action,
 	)
 
-	permission := &model.Permission{}
-	err := row.Scan(permission.Id, permission.ResourcePath, permission.Action, permission.CreatedAt, permission.UpdatedAt, permission.DeletedAt)
+	var permission model.Permission
+	err := row.Scan(&permission.Id, &permission.ResourcePath, &permission.Action, &permission.CreatedAt, &permission.UpdatedAt, &permission.DeletedAt)
 	if err != nil {
 		log.Print(err)
 		return nil
 	}
 
-	return permission
+	return &permission
 }
 
 func (repo *PermissionRepository) Insert(permission *model.Permission) (*model.Permission, error) {
@@ -54,7 +53,7 @@ func (repo *PermissionRepository) Insert(permission *model.Permission) (*model.P
 		"insert into permission (id, resource_path, action, created_at, updated_at, deleted_at) values (?, ?, ?, ?, ?, ?)",
 		permission.Id,
 		permission.ResourcePath,
-		strings.ToLower(permission.Action),
+		permission.Action,
 		permission.CreatedAt,
 		permission.UpdatedAt,
 		permission.DeletedAt,

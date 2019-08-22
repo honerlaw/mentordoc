@@ -3,6 +3,7 @@ package acl
 import (
 	"database/sql"
 	"flag"
+	"github.com/honerlaw/mentordoc/server"
 	"github.com/honerlaw/mentordoc/server/util"
 	"log"
 	"os"
@@ -35,10 +36,15 @@ func TestMain(m *testing.M) {
 		os.Setenv("MIGRATION_DIR", "../../migrations")
 
 		database = util.NewDb()
+
+		service := NewAclService(server.NewTransactionManager(database, nil), database, nil)
+		err = service.Init()
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	result := m.Run()
 
 	os.Exit(result)
 }
-

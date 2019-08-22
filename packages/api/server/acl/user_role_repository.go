@@ -29,9 +29,9 @@ func (repo *UserRoleRepository) Link(user *model.User, role *model.Role, resourc
 	// check if its already been linked
 	rows, err := repo.Query(
 		"select user_id, role_id, resource_id from user_role where user_id = ? and role_id = ? and resource_id = ?",
-		user.Id,
+		&user.Id,
 		role.Id,
-		resourceId,
+		&resourceId,
 	)
 	if err != nil {
 		log.Print(err)

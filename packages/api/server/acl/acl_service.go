@@ -32,6 +32,8 @@ func NewAclService(transactionManager *server.TransactionManager, db *sql.DB, tx
 		rolePermissionService: rolePermissionService,
 		userRoleService:       userRoleService,
 		transactionManager:    transactionManager,
+		db: db,
+		tx: tx,
 	}
 }
 
