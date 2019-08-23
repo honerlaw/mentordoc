@@ -79,3 +79,17 @@ func (repo *UserRepository) FindByEmail(email string) *model.User {
 	}
 	return user
 }
+
+func (repo *UserRepository) FindById(id string) *model.User {
+	row := repo.QueryRow(
+		"select id, email, password, created_at, updated_at, deleted_at from user where id = ?",
+		id,
+	)
+	user := &model.User{}
+	err := row.Scan(&user.Id, &user.Email, &user.Password, &user.CreatedAt, &user.UpdatedAt, &user.DeletedAt)
+	if err != nil {
+		log.Print(err)
+		return nil
+	}
+	return user
+}

@@ -23,6 +23,22 @@ func (repo *OrganizationRepository) InjectTransaction(tx *sql.Tx) interface{} {
 	return NewOrganizationRepository(repo.Db, tx)
 }
 
+func (repo *OrganizationRepository) FindById(id string) *model.Organization {
+	row := repo.QueryRow(
+		"select id, name, created_at, updated_at, deleted_at from organization where id = ?",
+		id,
+	)
+
+	var organization model.Organization
+	err := row.Scan(&organization.Id, &organization.Name, &organization.CreatedAt, &organization.UpdatedAt, &organization.DeletedAt)
+	if err != nil {
+		log.Print(err)
+		return nil
+	}
+
+	return &organization;
+}
+
 func (repo *OrganizationRepository) Insert(org *model.Organization) (*model.Organization, error) {
 	org.CreatedAt = util.NowUnix()
 	org.UpdatedAt = util.NowUnix()

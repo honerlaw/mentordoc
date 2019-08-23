@@ -29,3 +29,7 @@ func (service *OrganizationService) Create(name string) (*model.Organization, er
 
 	return service.organizationRepository.Insert(organization)
 }
+
+func (service *OrganizationService) FindById(id string) *model.Organization {
+	return service.organizationRepository.FindById(id)
+}

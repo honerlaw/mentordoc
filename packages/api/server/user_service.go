@@ -89,3 +89,7 @@ func (service *UserService) Authenticate(email string, password string) (*model.
 func (service *UserService) FindByEmail(email string) *model.User {
 	return service.userRepository.FindByEmail(email)
 }
+
+func (service *UserService) FindById(id string) *model.User {
+	return service.userRepository.FindById(id)
+}

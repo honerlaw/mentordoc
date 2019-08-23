@@ -23,3 +23,17 @@ func NewBadRequestError(message... string) *HttpError {
 		Errors: message,
 	}
 }
+
+func NewForbiddenError(message... string) *HttpError {
+	return &HttpError{
+		Status: http.StatusForbidden,
+		Errors: message,
+	}
+}
+
+func NewUnauthorizedError(message... string) *HttpError {
+	return &HttpError{
+		Status: http.StatusUnauthorized,
+		Errors: message,
+	}
+}

@@ -7,6 +7,7 @@ import (
 	"github.com/go-chi/chi/middleware"
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/golang-migrate/migrate/source/file"
+	"github.com/honerlaw/mentordoc/server/acl"
 	"github.com/honerlaw/mentordoc/server/util"
 	"log"
 	"net/http"
@@ -17,16 +18,28 @@ import (
 func StartServer(waitGroup *sync.WaitGroup) *http.Server {
 	db := util.NewDb()
 
+	// utilities
 	transactionManager := util.NewTransactionManager(db, nil)
-	// aclService := acl.NewAclService(transactionManager, db, nil)
-
+	aclService := acl.NewAclService(transactionManager, db, nil)
 	authenticationService := NewAuthenticationService()
 	validatorService := util.NewValidatorService()
+
+	// repositories
 	organizationRepository := NewOrganizationRepository(db, nil)
-	organizationService := NewOrganizationService(organizationRepository)
 	userRepositoryService := NewUserRepository(db, nil)
+	folderRepository := NewFolderRepository(db, nil)
+
+	// services
+	organizationService := NewOrganizationService(organizationRepository)
 	userService := NewUserService(userRepositoryService, organizationService, transactionManager)
+	folderService := NewFolderService(folderRepository, organizationService, aclService)
+
+	// middlewares
+	authenticationMiddleware := NewAuthenticationMiddleware(authenticationService, userService)
+
+	// controllers
 	userController := NewUserController(userService, validatorService, authenticationService)
+	folderController := NewFolderController(validatorService, folderService, authenticationMiddleware)
 
 	router := chi.NewRouter()
 	router.Use(middleware.RequestID)
@@ -34,7 +47,8 @@ func StartServer(waitGroup *sync.WaitGroup) *http.Server {
 	router.Use(middleware.Logger)
 	router.Use(middleware.Recoverer)
 	router.Route("/v1", func(r chi.Router) {
-		userController.RegisterRoutes(r);
+		userController.RegisterRoutes(r)
+		folderController.RegisterRoutes(r)
 	})
 
 	server := &http.Server{

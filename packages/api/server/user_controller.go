@@ -24,14 +24,13 @@ func NewUserController(userService *UserService,
 }
 
 func (controller *UserController) RegisterRoutes(router chi.Router) {
-	router.Route("/user/auth", func(r chi.Router) {
-		r.Use(controller.validatorService.Middleware(model.UserSigninRequest{}))
-		r.Post("/", controller.signin)
-	})
-	router.Route("/user", func(r chi.Router) {
-		r.Use(controller.validatorService.Middleware(model.UserSignupRequest{}))
-		r.Post("/", controller.signup)
-	})
+	router.
+		With(controller.validatorService.Middleware(model.UserSigninRequest{})).
+		Post("/user/auth", controller.signin)
+
+	router.
+		With(controller.validatorService.Middleware(model.UserSignupRequest{})).
+		Post("/user", controller.signup)
 }
 
 func (controller *UserController) signin(w http.ResponseWriter, req *http.Request) {
