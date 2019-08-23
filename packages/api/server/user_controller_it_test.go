@@ -40,7 +40,7 @@ func post(url string, req interface{}, resp interface{}) (int, interface{}, erro
 }
 
 func TestSigninValidationFailure(t *testing.T) {
-	req := &UserSigninRequest{}
+	req := &model.UserSigninRequest{}
 	status, resp, err := post(GetTestServerAddress("/user/auth"), req, &model.HttpError{})
 	assert.Nil(t, err)
 	assert.Equal(t, status, http.StatusBadRequest)
@@ -48,7 +48,7 @@ func TestSigninValidationFailure(t *testing.T) {
 }
 
 func TestSigninUserDoesntExist(t *testing.T) {
-	req := &UserSigninRequest{
+	req := &model.UserSigninRequest{
 		Email:    "foo@bar.com",
 		Password: "baz",
 	}
@@ -59,7 +59,7 @@ func TestSigninUserDoesntExist(t *testing.T) {
 }
 
 func TestSignupUserDoesntExist(t *testing.T) {
-	req := &UserSignupRequest{
+	req := &model.UserSignupRequest{
 		Email:    "foo@bar.com",
 		Password: "foobarbaz",
 	}
@@ -71,7 +71,7 @@ func TestSignupUserDoesntExist(t *testing.T) {
 }
 
 func TestSignupAndThenSignin(t *testing.T) {
-	req := &UserSignupRequest{
+	req := &model.UserSignupRequest{
 		Email:    "footest@bar.com",
 		Password: "foobarbaz",
 	}
@@ -79,7 +79,7 @@ func TestSignupAndThenSignin(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, status, http.StatusOK)
 
-	signinReq := &UserSigninRequest{
+	signinReq := &model.UserSigninRequest{
 		Email:    "footest@bar.com",
 		Password: "foobarbaz",
 	}

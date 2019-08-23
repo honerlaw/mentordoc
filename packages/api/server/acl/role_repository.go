@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/honerlaw/mentordoc/server"
 	"github.com/honerlaw/mentordoc/server/model"
+	"github.com/honerlaw/mentordoc/server/util"
 	"log"
 )
 
@@ -44,8 +45,8 @@ func (repo *RoleRepository) Insert(role *model.Role) (*model.Role, error) {
 	if existing != nil {
 		return existing, nil
 	}
-	role.CreatedAt = server.NowUnix()
-	role.UpdatedAt = server.NowUnix()
+	role.CreatedAt = util.NowUnix()
+	role.UpdatedAt = util.NowUnix()
 
 	_, err := repo.Exec(
 		"insert into role (id, name, created_at, updated_at, deleted_at) values (?, ?, ?, ?, ?)",

@@ -3,6 +3,7 @@ package server
 import (
 	"database/sql"
 	"github.com/honerlaw/mentordoc/server/model"
+	"github.com/honerlaw/mentordoc/server/util"
 	uuid "github.com/satori/go.uuid"
 	"golang.org/x/crypto/bcrypt"
 	"log"
@@ -11,13 +12,13 @@ import (
 type UserService struct {
 	userRepository        *UserRepository
 	organizationService   *OrganizationService
-	transactionManager    *TransactionManager
+	transactionManager    *util.TransactionManager
 }
 
 func NewUserService(
 	userRepository *UserRepository,
 	organizationService *OrganizationService,
-	transactionManager *TransactionManager) *UserService {
+	transactionManager *util.TransactionManager) *UserService {
 
 	service := &UserService{
 		userRepository:        userRepository,
@@ -31,7 +32,7 @@ func (service *UserService) InjectTransaction(tx *sql.Tx) interface{} {
 	return NewUserService(
 		service.userRepository.InjectTransaction(tx).(*UserRepository),
 		service.organizationService.InjectTransaction(tx).(*OrganizationService),
-		service.transactionManager.InjectTransaction(tx).(*TransactionManager))
+		service.transactionManager.InjectTransaction(tx).(*util.TransactionManager))
 }
 
 func (service *UserService) Create(email string, password string) (*model.User, error) {

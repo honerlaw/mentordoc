@@ -17,9 +17,11 @@ import (
 func StartServer(waitGroup *sync.WaitGroup) *http.Server {
 	db := util.NewDb()
 
+	transactionManager := util.NewTransactionManager(db, nil)
+	// aclService := acl.NewAclService(transactionManager, db, nil)
+
 	authenticationService := NewAuthenticationService()
-	validatorService := NewValidatorService()
-	transactionManager := NewTransactionManager(db, nil)
+	validatorService := util.NewValidatorService()
 	organizationRepository := NewOrganizationRepository(db, nil)
 	organizationService := NewOrganizationService(organizationRepository)
 	userRepositoryService := NewUserRepository(db, nil)

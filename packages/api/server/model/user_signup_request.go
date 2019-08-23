@@ -1,4 +1,4 @@
-package server
+package model
 
 type UserSignupRequest struct {
 	Email string `json:"email" validate:"required,email"`

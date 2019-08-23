@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"github.com/honerlaw/mentordoc/server/model"
+	"github.com/honerlaw/mentordoc/server/util"
 	"log"
 )
 
@@ -23,8 +24,8 @@ func (repo *OrganizationRepository) InjectTransaction(tx *sql.Tx) interface{} {
 }
 
 func (repo *OrganizationRepository) Insert(org *model.Organization) (*model.Organization, error) {
-	org.CreatedAt = NowUnix()
-	org.UpdatedAt = NowUnix()
+	org.CreatedAt = util.NowUnix()
+	org.UpdatedAt = util.NowUnix()
 
 	_, err := repo.Exec(
 		"insert into organization (id, name, created_at, updated_at, deleted_at) values (?, ?, ?, ?, ?)",
@@ -44,7 +45,7 @@ func (repo *OrganizationRepository) Insert(org *model.Organization) (*model.Orga
 }
 
 func (repo *OrganizationRepository) Update(org *model.Organization) (*model.Organization, error) {
-	org.UpdatedAt = NowUnix()
+	org.UpdatedAt = util.NowUnix()
 
 	_, err := repo.Exec(
 		"update organization set name = ?, updated_at = ?, deleted_at = ? where id = ?",

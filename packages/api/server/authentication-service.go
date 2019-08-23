@@ -2,6 +2,7 @@ package server
 
 import (
 	"github.com/dgrijalva/jwt-go"
+	"github.com/honerlaw/mentordoc/server/util"
 	"github.com/pkg/errors"
 	"log"
 	"os"
@@ -33,8 +34,8 @@ func (service *AuthenticationService) GenerateToken(resourceId string, tokenType
 	}
 
 	claims := &jwt.StandardClaims{
-		ExpiresAt: NowUnix() + timeUntilExpire,
-		IssuedAt:  NowUnix(),
+		ExpiresAt: util.NowUnix() + timeUntilExpire,
+		IssuedAt:  util.NowUnix(),
 		Issuer:    issuer,
 		Subject:   resourceId,
 		Audience:  tokenType,
@@ -77,7 +78,7 @@ func (service *AuthenticationService) ParseAndValidateToken(tokenValue string) (
 	}
 
 	// expired
-	if NowUnix()-claims.ExpiresAt > 0 {
+	if util.NowUnix()-claims.ExpiresAt > 0 {
 		return nil, errors.New("expired token")
 	}
 

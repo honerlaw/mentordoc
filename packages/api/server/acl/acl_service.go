@@ -2,14 +2,14 @@ package acl
 
 import (
 	"database/sql"
-	"github.com/honerlaw/mentordoc/server"
 	"github.com/honerlaw/mentordoc/server/model"
+	"github.com/honerlaw/mentordoc/server/util"
 )
 
 type AclService struct {
 	rolePermissionService *RolePermissionService
 	userRoleService       *UserRoleService
-	transactionManager    *server.TransactionManager
+	transactionManager    *util.TransactionManager
 	db *sql.DB
 	tx *sql.Tx
 }
@@ -17,7 +17,7 @@ type AclService struct {
 /**
 ACL should only be accessible through this object and its exposed functions
  */
-func NewAclService(transactionManager *server.TransactionManager, db *sql.DB, tx *sql.Tx) *AclService {
+func NewAclService(transactionManager *util.TransactionManager, db *sql.DB, tx *sql.Tx) *AclService {
 	// setup repositories
 	roleRepository := NewRoleRepository(db, tx)
 	rolePermissionRepository := NewRolePermissionRepository(db, tx)
@@ -38,7 +38,7 @@ func NewAclService(transactionManager *server.TransactionManager, db *sql.DB, tx
 }
 
 func (service *AclService) InjectTransaction(tx *sql.Tx) interface{} {
-	return NewAclService(service.transactionManager.InjectTransaction(tx).(*server.TransactionManager), service.db, tx)
+	return NewAclService(service.transactionManager.InjectTransaction(tx).(*util.TransactionManager), service.db, tx)
 }
 
 func (service *AclService) Init() error {

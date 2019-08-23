@@ -1,8 +1,8 @@
 package acl
 
 import (
-	"github.com/honerlaw/mentordoc/server"
 	"github.com/honerlaw/mentordoc/server/model"
+	"github.com/honerlaw/mentordoc/server/util"
 	uuid "github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -10,7 +10,7 @@ import (
 
 
 func TestUserCanNotAccessWhenDoesNotExist(t *testing.T) {
-	service := NewAclService(server.NewTransactionManager(database, nil), database, nil)
+	service := NewAclService(util.NewTransactionManager(database, nil), database, nil)
 
 	user := &model.User{}
 	user.Id = "5"
@@ -20,7 +20,7 @@ func TestUserCanNotAccessWhenDoesNotExist(t *testing.T) {
 }
 
 func TestUserLinkToRole(t *testing.T) {
-	service := NewAclService(server.NewTransactionManager(database, nil), database, nil)
+	service := NewAclService(util.NewTransactionManager(database, nil), database, nil)
 
 	user := &model.User{}
 	user.Id = uuid.NewV4().String()
@@ -32,7 +32,7 @@ func TestUserLinkToRole(t *testing.T) {
 }
 
 func TestUserAccessToDocumentInOrganization(t *testing.T) {
-	service := NewAclService(server.NewTransactionManager(database, nil), database, nil)
+	service := NewAclService(util.NewTransactionManager(database, nil), database, nil)
 
 	orgId := uuid.NewV4().String()
 
@@ -48,7 +48,7 @@ func TestUserAccessToDocumentInOrganization(t *testing.T) {
 }
 
 func TestUserActionableResourcesByPath(t *testing.T) {
-	service := NewAclService(server.NewTransactionManager(database, nil), database, nil)
+	service := NewAclService(util.NewTransactionManager(database, nil), database, nil)
 
 	orgId := uuid.NewV4().String()
 	user := &model.User{}

@@ -3,7 +3,6 @@ package acl
 import (
 	"database/sql"
 	"flag"
-	"github.com/honerlaw/mentordoc/server"
 	"github.com/honerlaw/mentordoc/server/util"
 	"log"
 	"os"
@@ -37,7 +36,7 @@ func TestMain(m *testing.M) {
 
 		database = util.NewDb()
 
-		service := NewAclService(server.NewTransactionManager(database, nil), database, nil)
+		service := NewAclService(util.NewTransactionManager(database, nil), database, nil)
 		err = service.Init()
 		if err != nil {
 			panic(err)

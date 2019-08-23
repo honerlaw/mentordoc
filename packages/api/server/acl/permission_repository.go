@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/honerlaw/mentordoc/server"
 	"github.com/honerlaw/mentordoc/server/model"
+	"github.com/honerlaw/mentordoc/server/util"
 	"log"
 )
 
@@ -46,8 +47,8 @@ func (repo *PermissionRepository) Insert(permission *model.Permission) (*model.P
 		return existing, nil;
 	}
 
-	permission.CreatedAt = server.NowUnix()
-	permission.UpdatedAt = server.NowUnix()
+	permission.CreatedAt = util.NowUnix()
+	permission.UpdatedAt = util.NowUnix()
 
 	_, err := repo.Exec(
 		"insert into permission (id, resource_path, action, created_at, updated_at, deleted_at) values (?, ?, ?, ?, ?, ?)",

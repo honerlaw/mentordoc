@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"github.com/honerlaw/mentordoc/server/model"
+	"github.com/honerlaw/mentordoc/server/util"
 	"log"
 	"strings"
 )
@@ -24,8 +25,8 @@ func (repo *UserRepository) InjectTransaction(tx *sql.Tx) interface{} {
 }
 
 func (repo *UserRepository) Insert(user *model.User) (*model.User, error) {
-	user.CreatedAt = NowUnix()
-	user.UpdatedAt = NowUnix()
+	user.CreatedAt = util.NowUnix()
+	user.UpdatedAt = util.NowUnix()
 
 	_, err := repo.Exec(
 		"insert into user (id, email, password, created_at, updated_at, deleted_at) values (?, ?, ?, ?, ?, ?)",
@@ -46,7 +47,7 @@ func (repo *UserRepository) Insert(user *model.User) (*model.User, error) {
 }
 
 func (repo *UserRepository) Update(user *model.User) (*model.User, error) {
-	user.UpdatedAt = NowUnix()
+	user.UpdatedAt = util.NowUnix()
 
 	_, err := repo.Exec(
 		"update user set email = ?, password = ?, updated_at = ?, deleted_at = ? where id = ?",

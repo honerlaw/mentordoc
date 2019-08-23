@@ -2,8 +2,8 @@ package acl
 
 import (
 	"database/sql"
-	"github.com/honerlaw/mentordoc/server"
 	"github.com/honerlaw/mentordoc/server/model"
+	"github.com/honerlaw/mentordoc/server/util"
 	uuid "github.com/satori/go.uuid"
 )
 
@@ -11,13 +11,13 @@ type RolePermissionService struct {
 	roleRepository           *RoleRepository
 	permissionRepository     *PermissionRepository
 	rolePermissionRepository *RolePermissionRepository
-	transactionManager       *server.TransactionManager
+	transactionManager       *util.TransactionManager
 }
 
 func NewRolePermissionService(roleRepository *RoleRepository,
 	permissionRepository *PermissionRepository,
 	rolePermissionRepository *RolePermissionRepository,
-	transactionManager *server.TransactionManager) *RolePermissionService {
+	transactionManager *util.TransactionManager) *RolePermissionService {
 
 	return &RolePermissionService{
 		roleRepository:           roleRepository,
@@ -31,7 +31,7 @@ func (service *RolePermissionService) InjectTransaction(tx *sql.Tx) interface{} 
 	return NewRolePermissionService(service.roleRepository.InjectTransaction(tx).(*RoleRepository),
 		service.permissionRepository.InjectTransaction(tx).(*PermissionRepository),
 		service.rolePermissionRepository.InjectTransaction(tx).(*RolePermissionRepository),
-		service.transactionManager.InjectTransaction(tx).(*server.TransactionManager))
+		service.transactionManager.InjectTransaction(tx).(*util.TransactionManager))
 }
 
 func (service *RolePermissionService) InitRoles() error {
