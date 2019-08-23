@@ -17,13 +17,14 @@ import (
 func StartServer(waitGroup *sync.WaitGroup) *http.Server {
 	db := util.NewDb()
 
+	authenticationService := NewAuthenticationService()
 	validatorService := NewValidatorService()
 	transactionManager := NewTransactionManager(db, nil)
 	organizationRepository := NewOrganizationRepository(db, nil)
 	organizationService := NewOrganizationService(organizationRepository)
 	userRepositoryService := NewUserRepository(db, nil)
 	userService := NewUserService(userRepositoryService, organizationService, transactionManager)
-	userController := NewUserController(userService, validatorService)
+	userController := NewUserController(userService, validatorService, authenticationService)
 
 	router := chi.NewRouter()
 	router.Use(middleware.RequestID)

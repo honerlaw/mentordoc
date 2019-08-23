@@ -33,6 +33,7 @@ func TestMain(m *testing.M) {
 		os.Setenv("DATABASE_HOST", "0.0.0.0")
 		os.Setenv("DATABASE_PORT", "33060")
 		os.Setenv("MIGRATION_DIR", "../migrations")
+		os.Setenv("JWT_SIGNING_KEY", "it-test-key")
 
 		server = StartServer(nil)
 	}

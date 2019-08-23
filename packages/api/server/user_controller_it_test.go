@@ -3,9 +3,8 @@ package server
 import (
 	"bytes"
 	"encoding/json"
-	model2 "github.com/honerlaw/mentordoc/server/model"
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
+	"github.com/honerlaw/mentordoc/server/model"
+	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"net/http"
 	"testing"
@@ -42,10 +41,10 @@ func post(url string, req interface{}, resp interface{}) (int, interface{}, erro
 
 func TestSigninValidationFailure(t *testing.T) {
 	req := &UserSigninRequest{}
-	status, model, err := post(GetTestServerAddress("/user/auth"), req, &model2.HttpError{})
-	assert.Assert(t, is.Nil(err))
+	status, resp, err := post(GetTestServerAddress("/user/auth"), req, &model.HttpError{})
+	assert.Nil(t, err)
 	assert.Equal(t, status, http.StatusBadRequest)
-	assert.Assert(t, is.Len(model.(*model2.HttpError).Errors, 2))
+	assert.Len(t, resp.(*model.HttpError).Errors, 2)
 }
 
 func TestSigninUserDoesntExist(t *testing.T) {
@@ -53,10 +52,10 @@ func TestSigninUserDoesntExist(t *testing.T) {
 		Email:    "foo@bar.com",
 		Password: "baz",
 	}
-	status, model, err := post(GetTestServerAddress("/user/auth"), req, &model2.HttpError{})
-	assert.Assert(t, is.Nil(err))
+	status, resp, err := post(GetTestServerAddress("/user/auth"), req, &model.HttpError{})
+	assert.Nil(t, err)
 	assert.Equal(t, status, http.StatusBadRequest)
-	assert.Assert(t, is.Len(model.(*model2.HttpError).Errors, 1))
+	assert.Len(t, resp.(*model.HttpError).Errors, 1)
 }
 
 func TestSignupUserDoesntExist(t *testing.T) {
@@ -64,10 +63,11 @@ func TestSignupUserDoesntExist(t *testing.T) {
 		Email:    "foo@bar.com",
 		Password: "foobarbaz",
 	}
-	status, model, err := post(GetTestServerAddress("/user"), req, &model2.User{})
-	assert.Assert(t, is.Nil(err))
+	status, resp, err := post(GetTestServerAddress("/user"), req, &model.AuthenticationResponse{})
+	assert.Nil(t, err)
 	assert.Equal(t, status, http.StatusOK)
-	assert.Equal(t, model.(*model2.User).Email, req.Email)
+	assert.NotEmpty(t, resp.(*model.AuthenticationResponse).AccessToken)
+	assert.NotEmpty(t, resp.(*model.AuthenticationResponse).RefreshToken)
 }
 
 func TestSignupAndThenSignin(t *testing.T) {
@@ -75,16 +75,18 @@ func TestSignupAndThenSignin(t *testing.T) {
 		Email:    "footest@bar.com",
 		Password: "foobarbaz",
 	}
-	status, model, err := post(GetTestServerAddress("/user"), req, &model2.User{})
-	assert.Assert(t, is.Nil(err))
+	status, resp, err := post(GetTestServerAddress("/user"), req, &model.AuthenticationResponse{})
+	assert.Nil(t, err)
 	assert.Equal(t, status, http.StatusOK)
 
 	signinReq := &UserSigninRequest{
 		Email:    "footest@bar.com",
 		Password: "foobarbaz",
 	}
-	status, model, err = post(GetTestServerAddress("/user/auth"), signinReq, &model2.User{})
-	assert.Assert(t, is.Nil(err))
+	status, resp, err = post(GetTestServerAddress("/user/auth"), signinReq, &model.AuthenticationResponse{})
+	assert.Nil(t, err)
 	assert.Equal(t, status, http.StatusOK)
-	assert.Equal(t, model.(*model2.User).Email, req.Email)
+
+	assert.NotEmpty(t, resp.(*model.AuthenticationResponse).AccessToken)
+	assert.NotEmpty(t, resp.(*model.AuthenticationResponse).RefreshToken)
 }

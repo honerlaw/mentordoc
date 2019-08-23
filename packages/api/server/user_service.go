@@ -9,9 +9,9 @@ import (
 )
 
 type UserService struct {
-	userRepository      *UserRepository
-	organizationService *OrganizationService
-	transactionManager  *TransactionManager
+	userRepository        *UserRepository
+	organizationService   *OrganizationService
+	transactionManager    *TransactionManager
 }
 
 func NewUserService(
@@ -20,9 +20,9 @@ func NewUserService(
 	transactionManager *TransactionManager) *UserService {
 
 	service := &UserService{
-		userRepository:      userRepository,
-		organizationService: organizationService,
-		transactionManager:  transactionManager,
+		userRepository:        userRepository,
+		organizationService:   organizationService,
+		transactionManager:    transactionManager,
 	};
 	return service
 }
