@@ -66,6 +66,6 @@ func (service *AclService) UserActionsForResources(user *model.User, paths [][]s
 	return service.userRoleService.UserActionsForResources(user, paths, ids)
 }
 
-func (service *AclService) Wrap(user *model.User, modelSlice interface{}) ([]*AclWrappedModel, error) {
+func (service *AclService) Wrap(user *model.User, modelSlice interface{}) ([]*model.AclWrappedModel, error) {
 	return service.aclWrapperService.Wrap(user, modelSlice)
 }

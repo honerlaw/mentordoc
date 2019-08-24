@@ -2,6 +2,7 @@ package server
 
 import (
 	"github.com/go-chi/chi"
+	"github.com/honerlaw/mentordoc/server/acl"
 	"github.com/honerlaw/mentordoc/server/model"
 	"github.com/honerlaw/mentordoc/server/util"
 	"net/http"
@@ -11,13 +12,21 @@ type FolderController struct {
 	validatorService         *util.ValidatorService
 	folderService            *FolderService
 	authenticationMiddleware *AuthenticationMiddleware
+	aclService               *acl.AclService
 }
 
-func NewFolderController(validatorService *util.ValidatorService, folderService *FolderService, authenticationMiddleware *AuthenticationMiddleware) *FolderController {
+func NewFolderController(
+	validatorService *util.ValidatorService,
+	folderService *FolderService,
+	authenticationMiddleware *AuthenticationMiddleware,
+	aclService *acl.AclService,
+) *FolderController {
+
 	return &FolderController{
 		validatorService:         validatorService,
 		folderService:            folderService,
 		authenticationMiddleware: authenticationMiddleware,
+		aclService:               aclService,
 	}
 }
 
@@ -33,15 +42,22 @@ func (controller *FolderController) create(w http.ResponseWriter, req *http.Requ
 	request := controller.validatorService.GetModelFromRequest(req).(*model.FolderCreateRequest)
 	user := controller.authenticationMiddleware.GetUserFromRequest(req)
 
+	// create the actual folder
 	folder, err := controller.folderService.Create(user, request.Name, request.OrganizationId, request.ParentFolderId)
 	if err != nil {
 		util.WriteHttpError(w, err)
 		return;
 	}
 
-	util.WriteJsonToResponse(w, http.StatusOK, folder)
+	// wrap the folder with acl information
+	wrapped, err := controller.aclService.Wrap(user, []*model.Folder{folder})
+	if err != nil {
+		util.WriteHttpError(w, model.NewInternalServerError("created folder but failed to find user access"))
+		return
+	}
 
-	// todo we need to merge acl actions with the folder
+	// return the data
+	util.WriteJsonToResponse(w, http.StatusCreated, wrapped)
 }
 
 func (controller *FolderController) list(w http.ResponseWriter, req *http.Request) {

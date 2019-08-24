@@ -16,11 +16,6 @@ type AclWrapperService struct {
 	data       map[string]*modelAclData
 }
 
-type AclWrappedModel struct {
-	Model   interface{} `json:"model"`
-	Actions []string    `json:"actions"`
-}
-
 func NewAclWrapperService(aclService *AclService) *AclWrapperService {
 	return &AclWrapperService{
 		aclService: aclService,
@@ -48,7 +43,7 @@ wraps the given set of organization / folder / document models with the actions 
 to each resource. This way the client will know what info to show, we only need to fetch this data as it is going
 out back to the client
  */
-func (service *AclWrapperService) Wrap(user *model.User, modelSlice interface{}) ([]*AclWrappedModel, error) {
+func (service *AclWrapperService) Wrap(user *model.User, modelSlice interface{}) ([]*model.AclWrappedModel, error) {
 	s := reflect.ValueOf(modelSlice)
 	if s.Kind() != reflect.Slice {
 		return nil, errors.New("a slice of models is required")
@@ -83,10 +78,10 @@ func (service *AclWrapperService) Wrap(user *model.User, modelSlice interface{})
 	}
 
 	// prepopulate the model map with all of the passed models
-	modelMap := make(map[string]*AclWrappedModel)
+	modelMap := make(map[string]*model.AclWrappedModel)
 	for _, m := range models {
 		id := reflect.ValueOf(m).Elem().FieldByName("Id").Interface().(string)
-		modelMap[id] = &AclWrappedModel{
+		modelMap[id] = &model.AclWrappedModel{
 			Model:   m,
 			Actions: make([]string, 0),
 		}
@@ -99,7 +94,7 @@ func (service *AclWrapperService) Wrap(user *model.User, modelSlice interface{})
 	}
 
 	// convert the map to an array
-	modelArray := make([]*AclWrappedModel, 0)
+	modelArray := make([]*model.AclWrappedModel, 0)
 	for _, wrapper := range modelMap {
 		modelArray = append(modelArray, wrapper)
 	}

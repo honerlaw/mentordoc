@@ -50,6 +50,8 @@ func (repo *FolderService) Create(user *model.User, name string, organizationId 
 	}
 	folder.Id = uuid.NewV4().String()
 
+	// we don't care about given this user specific access to this folder, they should keep the access because they have
+	// it from the organization
 	err := repo.folderRepository.Insert(folder)
 	if err != nil {
 		return nil, model.NewInternalServerError("failed to create folder")

@@ -37,7 +37,7 @@ func StartServer(waitGroup *sync.WaitGroup) *http.Server {
 
 	// controllers
 	userController := NewUserController(userService, validatorService, authenticationService)
-	folderController := NewFolderController(validatorService, folderService, authenticationMiddleware)
+	folderController := NewFolderController(validatorService, folderService, authenticationMiddleware, aclService)
 
 	router := chi.NewRouter()
 	router.Use(middleware.RequestID)

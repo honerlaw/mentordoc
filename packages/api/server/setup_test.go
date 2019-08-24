@@ -1,10 +1,14 @@
-package server
+package server_test
 
 import (
+	"bytes"
 	"database/sql"
+	"encoding/json"
 	"flag"
 	"fmt"
+	"github.com/honerlaw/mentordoc/server"
 	"github.com/honerlaw/mentordoc/server/util"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -18,7 +22,7 @@ var itTestDatabaseConnection *sql.DB
 func TestMain(m *testing.M) {
 	flag.Parse()
 
-	var server *http.Server
+	var httpServer *http.Server
 	if *integration {
 		cmd := exec.Command("bash", "-c", "docker kill mentordoc-mysql; docker rm mentordoc-mysql; docker run --name mentordoc-mysql -p 33060:3306 -e MYSQL_USER=userlocal -e MYSQL_ROOT_PASSWORD=password -e MYSQL_PASSWORD=password -e MYSQL_DATABASE=mentor_doc --tmpfs /var/lib/mysql -d mysql:5.7")
 		_, err := cmd.CombinedOutput()
@@ -38,7 +42,7 @@ func TestMain(m *testing.M) {
 		os.Setenv("MIGRATION_DIR", "../migrations")
 		os.Setenv("JWT_SIGNING_KEY", "it-test-key")
 
-		server = StartServer(nil)
+		httpServer = server.StartServer(nil)
 
 		itTestDatabaseConnection = util.NewDb()
 	}
@@ -46,12 +50,39 @@ func TestMain(m *testing.M) {
 	result := m.Run()
 
 	if *integration {
-		StopServer(server)
+		server.StopServer(httpServer)
 	}
 
 	os.Exit(result)
 }
 
-func GetTestServerAddress(path string) string {
-	return fmt.Sprintf("http://%s:%s/v1%s", os.Getenv("HOST"), os.Getenv("PORT"), path)
+func PostItTest(path string, req interface{}, resp interface{}) (int, interface{}, error) {
+	data, err := json.Marshal(req)
+	if err != nil {
+		return -1, nil, err
+	}
+
+	url := fmt.Sprintf("http://%s:%s/v1%s", os.Getenv("HOST"), os.Getenv("PORT"), path)
+
+	response, err := http.Post(url, "application/json", bytes.NewBuffer(data))
+	if err != nil {
+		return -1, nil, err
+	}
+
+	data, err = ioutil.ReadAll(response.Body)
+	if err != nil {
+		return -1, nil, err
+	}
+
+	if resp == true {
+		return response.StatusCode, data, nil
+	}
+
+	err = json.Unmarshal(data, resp)
+	if err != nil {
+		return -1, nil, err
+
+	}
+
+	return response.StatusCode, resp, nil
 }

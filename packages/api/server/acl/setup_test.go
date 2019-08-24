@@ -1,8 +1,9 @@
-package acl
+package acl_test
 
 import (
 	"database/sql"
 	"flag"
+	"github.com/honerlaw/mentordoc/server/acl"
 	"github.com/honerlaw/mentordoc/server/util"
 	"log"
 	"os"
@@ -36,7 +37,7 @@ func TestMain(m *testing.M) {
 
 		itTestDatabaseConnection = util.NewDb()
 
-		service := NewAclService(util.NewTransactionManager(itTestDatabaseConnection, nil), itTestDatabaseConnection, nil)
+		service := acl.NewAclService(util.NewTransactionManager(itTestDatabaseConnection, nil), itTestDatabaseConnection, nil)
 		err = service.Init()
 		if err != nil {
 			panic(err)

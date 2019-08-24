@@ -1,6 +1,7 @@
-package acl
+package acl_test
 
 import (
+	"github.com/honerlaw/mentordoc/server/acl"
 	"github.com/honerlaw/mentordoc/server/model"
 	"github.com/honerlaw/mentordoc/server/util"
 	uuid "github.com/satori/go.uuid"
@@ -8,9 +9,11 @@ import (
 	"testing"
 )
 
-
-func TestUserCanNotAccessWhenDoesNotExist(t *testing.T) {
-	service := NewAclService(util.NewTransactionManager(itTestDatabaseConnection, nil), itTestDatabaseConnection, nil)
+func TestIntegrationUserCanNotAccessWhenDoesNotExist(t *testing.T) {
+	if !*integration {
+		t.Skip("skipping integration test")
+	}
+	service := acl.NewAclService(util.NewTransactionManager(itTestDatabaseConnection, nil), itTestDatabaseConnection, nil)
 
 	user := &model.User{}
 	user.Id = "5"
@@ -19,8 +22,11 @@ func TestUserCanNotAccessWhenDoesNotExist(t *testing.T) {
 	assert.Equal(t, ok, false)
 }
 
-func TestUserLinkToRole(t *testing.T) {
-	service := NewAclService(util.NewTransactionManager(itTestDatabaseConnection, nil), itTestDatabaseConnection, nil)
+func TestIntegrationUserLinkToRole(t *testing.T) {
+	if !*integration {
+		t.Skip("skipping integration test")
+	}
+	service := acl.NewAclService(util.NewTransactionManager(itTestDatabaseConnection, nil), itTestDatabaseConnection, nil)
 
 	user := &model.User{}
 	user.Id = uuid.NewV4().String()
@@ -31,8 +37,11 @@ func TestUserLinkToRole(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func TestUserAccessToDocumentInOrganization(t *testing.T) {
-	service := NewAclService(util.NewTransactionManager(itTestDatabaseConnection, nil), itTestDatabaseConnection, nil)
+func TestIntegrationUserAccessToDocumentInOrganization(t *testing.T) {
+	if !*integration {
+		t.Skip("skipping integration test")
+	}
+	service := acl.NewAclService(util.NewTransactionManager(itTestDatabaseConnection, nil), itTestDatabaseConnection, nil)
 
 	orgId := uuid.NewV4().String()
 
@@ -47,8 +56,11 @@ func TestUserAccessToDocumentInOrganization(t *testing.T) {
 	assert.Equal(t, ok, true)
 }
 
-func TestUserActionableResourcesByPath(t *testing.T) {
-	service := NewAclService(util.NewTransactionManager(itTestDatabaseConnection, nil), itTestDatabaseConnection, nil)
+func TestIntegrationUserActionableResourcesByPath(t *testing.T) {
+	if !*integration {
+		t.Skip("skipping integration test")
+	}
+	service := acl.NewAclService(util.NewTransactionManager(itTestDatabaseConnection, nil), itTestDatabaseConnection, nil)
 
 	orgId := uuid.NewV4().String()
 	user := &model.User{}
@@ -63,8 +75,11 @@ func TestUserActionableResourcesByPath(t *testing.T) {
 	assert.Len(t, results, 1)
 }
 
-func TestWrap(t *testing.T) {
-	service := NewAclService(util.NewTransactionManager(itTestDatabaseConnection, nil), itTestDatabaseConnection, nil)
+func TestIntegrationWrap(t *testing.T) {
+	if !*integration {
+		t.Skip("skipping integration test")
+	}
+	service := acl.NewAclService(util.NewTransactionManager(itTestDatabaseConnection, nil), itTestDatabaseConnection, nil)
 
 	user := &model.User{}
 	user.Id = uuid.NewV4().String()
