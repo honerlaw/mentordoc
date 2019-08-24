@@ -35,9 +35,9 @@ func (manager *TransactionManager) Transact(obj Transactionable, handle func(obj
 	resp, err := handle(injected)
 	
 	if err != nil {
-		err := tx.Rollback()
-		if err != nil {
-			panic(err)
+		rollbackErr := tx.Rollback()
+		if rollbackErr != nil {
+			panic(rollbackErr)
 		}
 		return nil, err
 	}

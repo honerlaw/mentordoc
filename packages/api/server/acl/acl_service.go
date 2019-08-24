@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"github.com/honerlaw/mentordoc/server/model"
 	"github.com/honerlaw/mentordoc/server/util"
+	"log"
 )
 
 type AclService struct {
@@ -54,8 +55,22 @@ func (service *AclService) LinkUserToRole(user *model.User, roleName string, res
 	return service.userRoleService.LinkUserToRole(user, roleName, resourceId)
 }
 
-func (service *AclService) UserCanAccessResource(user *model.User, path []string, ids []string, action string) (bool, error) {
-	return service.userRoleService.UserCanAccessResource(user, path, ids, action)
+func (service *AclService) UserCanAccessResourceByModel(user *model.User, model interface{}, action string) bool {
+	data, err := service.GetResourceDataForModel(model)
+	if err != nil {
+		log.Print(err)
+		return false
+	}
+	return service.UserCanAccessResource(user, data.ResourcePath, data.ResourceIds, action)
+}
+
+func (service *AclService) UserCanAccessResource(user *model.User, path []string, ids []string, action string) bool {
+	canAccess, err := service.userRoleService.UserCanAccessResource(user, path, ids, action)
+	if err != nil {
+		log.Print(err)
+		return false
+	}
+	return canAccess
 }
 
 func (service *AclService) UserActionableResourcesByPath(user *model.User, path []string, action string) ([]ResourceResponse, error) {

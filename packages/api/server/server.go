@@ -14,20 +14,24 @@ import (
 )
 
 type Server struct {
-	HttpServer               *http.Server
-	TransactionManager       *util.TransactionManager
-	AclService               *acl.AclService
-	AuthenticationService    *AuthenticationService
-	ValidatorService         *util.ValidatorService
-	OrganizationRepository   *OrganizationRepository
-	UserRepository           *UserRepository
-	FolderRepository         *FolderRepository
-	OrganizationService      *OrganizationService
-	UserService              *UserService
-	FolderService            *FolderService
-	AuthenticationMiddleware *AuthenticationMiddleware
-	UserController           *UserController
-	FolderController         *FolderController
+	HttpServer                *http.Server
+	TransactionManager        *util.TransactionManager
+	AclService                *acl.AclService
+	AuthenticationService     *AuthenticationService
+	ValidatorService          *util.ValidatorService
+	OrganizationRepository    *OrganizationRepository
+	UserRepository            *UserRepository
+	FolderRepository          *FolderRepository
+	DocumentRepository        *DocumentRepository
+	DocumentContentRepository *DocumentContentRepository
+	OrganizationService       *OrganizationService
+	UserService               *UserService
+	FolderService             *FolderService
+	DocumentService           *DocumentService
+	AuthenticationMiddleware  *AuthenticationMiddleware
+	UserController            *UserController
+	FolderController          *FolderController
+	DocumentController        *DocumentController
 }
 
 func StartServer(waitGroup *sync.WaitGroup) *Server {
@@ -43,11 +47,14 @@ func StartServer(waitGroup *sync.WaitGroup) *Server {
 	organizationRepository := NewOrganizationRepository(db, nil)
 	userRepository := NewUserRepository(db, nil)
 	folderRepository := NewFolderRepository(db, nil)
+	documentRepository := NewDocumentRepository(db, nil)
+	documentContentRepository := NewDocumentContentRepository(db, nil)
 
 	// services
 	organizationService := NewOrganizationService(organizationRepository)
 	userService := NewUserService(userRepository, organizationService, transactionManager)
 	folderService := NewFolderService(folderRepository, organizationService, aclService)
+	documentService := NewDocumentService(documentRepository, documentContentRepository, organizationService, folderService, aclService, transactionManager)
 
 	// middlewares
 	authenticationMiddleware := NewAuthenticationMiddleware(authenticationService, userService)
@@ -55,6 +62,7 @@ func StartServer(waitGroup *sync.WaitGroup) *Server {
 	// controllers
 	userController := NewUserController(userService, validatorService, authenticationService)
 	folderController := NewFolderController(validatorService, folderService, authenticationMiddleware, aclService)
+	documentController := NewDocumentController(validatorService, documentService, authenticationMiddleware, aclService)
 
 	err := aclService.Init()
 	if err != nil {
@@ -69,6 +77,7 @@ func StartServer(waitGroup *sync.WaitGroup) *Server {
 	router.Route("/v1", func(r chi.Router) {
 		userController.RegisterRoutes(r)
 		folderController.RegisterRoutes(r)
+		documentController.RegisterRoutes(r)
 	})
 
 	httpServer := &http.Server{
@@ -89,20 +98,24 @@ func StartServer(waitGroup *sync.WaitGroup) *Server {
 	log.Print("successfully started server")
 
 	return &Server{
-		HttpServer:               httpServer,
-		TransactionManager:       transactionManager,
-		AclService:               aclService,
-		AuthenticationService:    authenticationService,
-		ValidatorService:         validatorService,
-		OrganizationRepository:   organizationRepository,
-		UserRepository:           userRepository,
-		FolderRepository:         folderRepository,
-		OrganizationService:      organizationService,
-		UserService:              userService,
-		FolderService:            folderService,
-		AuthenticationMiddleware: authenticationMiddleware,
-		UserController:           userController,
-		FolderController:         folderController,
+		HttpServer:                httpServer,
+		TransactionManager:        transactionManager,
+		AclService:                aclService,
+		AuthenticationService:     authenticationService,
+		ValidatorService:          validatorService,
+		OrganizationRepository:    organizationRepository,
+		UserRepository:            userRepository,
+		FolderRepository:          folderRepository,
+		DocumentRepository:        documentRepository,
+		DocumentContentRepository: documentContentRepository,
+		OrganizationService:       organizationService,
+		UserService:               userService,
+		FolderService:             folderService,
+		DocumentService:           documentService,
+		AuthenticationMiddleware:  authenticationMiddleware,
+		UserController:            userController,
+		FolderController:          folderController,
+		DocumentController:        documentController,
 	}
 }
 

@@ -17,8 +17,7 @@ func TestIntegrationUserCanNotAccessWhenDoesNotExist(t *testing.T) {
 
 	user := &model.User{}
 	user.Id = "5"
-	ok, err := service.UserCanAccessResource(user, []string{"organization", "folder"}, []string{"1", "2"}, "view")
-	assert.Nil(t, err)
+	ok := service.UserCanAccessResource(user, []string{"organization", "folder"}, []string{"1", "2"}, "view")
 	assert.Equal(t, ok, false)
 }
 
@@ -51,8 +50,7 @@ func TestIntegrationUserAccessToDocumentInOrganization(t *testing.T) {
 	err := service.LinkUserToRole(user, "organization:owner", orgId)
 	assert.Nil(t, err)
 
-	ok, err := service.UserCanAccessResource(user, []string{"organization", "folder", "document"}, []string{orgId, "10", "25"}, "view")
-	assert.Nil(t, err)
+	ok := service.UserCanAccessResource(user, []string{"organization", "folder", "document"}, []string{orgId, "10", "25"}, "view")
 	assert.Equal(t, ok, true)
 }
 

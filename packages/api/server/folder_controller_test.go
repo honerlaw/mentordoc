@@ -25,7 +25,7 @@ func TestIntegrationCreateFolderFailsBecauseNotAuthenticated(t *testing.T) {
 	assert.Equal(t, http.StatusUnauthorized, status)
 }
 
-func TestIntegrationCreateFolderFailsBecauseCanNotCreateFolderInOrganization(t *testing.T) {
+func TestIntegrationCreateFolderFailsBecauseCanNotFindOrganization(t *testing.T) {
 	if !*integration {
 		t.Skip("skipping integration test")
 	}
@@ -33,6 +33,30 @@ func TestIntegrationCreateFolderFailsBecauseCanNotCreateFolderInOrganization(t *
 
 	req := &model.FolderCreateRequest{
 		OrganizationId: "10",
+		Name:           "test-name",
+		ParentFolderId: nil,
+	}
+
+	status, _, err := PostItTest(&PostOptions{
+		Path: "/folder", Headers: map[string]string{
+			"Authorization": fmt.Sprintf("Bearer %s", authData.accessToken),
+		},
+	}, req, &model.AclWrappedModel{})
+	assert.Nil(t, err)
+	assert.Equal(t, http.StatusNotFound, status)
+}
+
+func TestIntegrationCreateFolderFailsBecauseCanNotCreateFolderInOrganization(t *testing.T) {
+	if !*integration {
+		t.Skip("skipping integration test")
+	}
+	authData := SetupAuthentication(t)
+
+	org, err := testServer.OrganizationService.Create("test")
+	assert.Nil(t, err)
+
+	req := &model.FolderCreateRequest{
+		OrganizationId: org.Id,
 		Name:           "test-name",
 		ParentFolderId: nil,
 	}
