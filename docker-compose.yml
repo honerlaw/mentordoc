@@ -24,6 +24,7 @@ services:
       - "DATABASE_HOST=db"
       - "DATABASE_PORT=3306"
       - "MIGRATION_DIR=migrations"
+      - "JWT_SIGNING_KEY=localjwtsigningkey"
       - "PORT=5050"
       - "HOST="
     ports:
