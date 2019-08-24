@@ -9,7 +9,7 @@ import (
 )
 
 type FolderRepository struct {
-	Repository
+	util.Repository
 }
 
 func NewFolderRepository(db *sql.DB, tx *sql.Tx) *FolderRepository {

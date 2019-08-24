@@ -42,7 +42,7 @@ func (middleware *AuthenticationMiddleware) HasAccessToken() func(next http.Hand
 				return
 			}
 
-			// make sure they are using an
+			// make sure they are using an access token
 			if claims.Audience != TokenAccess {
 				util.WriteHttpError(w, model.NewUnauthorizedError("invalid token"))
 				return
@@ -55,6 +55,7 @@ func (middleware *AuthenticationMiddleware) HasAccessToken() func(next http.Hand
 				return
 			}
 
+			// store the user on the request context
 			ctx := context.WithValue(req.Context(), AuthenticatedUserContextKey, user)
 			next.ServeHTTP(w, req.WithContext(ctx))
 		})

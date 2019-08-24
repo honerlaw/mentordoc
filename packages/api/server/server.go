@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
-	_ "github.com/go-sql-driver/mysql"
-	_ "github.com/golang-migrate/migrate/source/file"
 	"github.com/honerlaw/mentordoc/server/acl"
 	"github.com/honerlaw/mentordoc/server/util"
 	"log"

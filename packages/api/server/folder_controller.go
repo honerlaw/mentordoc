@@ -39,6 +39,8 @@ func (controller *FolderController) create(w http.ResponseWriter, req *http.Requ
 		return;
 	}
 
+	util.WriteJsonToResponse(w, http.StatusOK, folder)
+
 	// todo we need to merge acl actions with the folder
 }
 

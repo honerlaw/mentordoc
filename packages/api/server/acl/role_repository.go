@@ -3,14 +3,13 @@ package acl
 import (
 	"database/sql"
 	"errors"
-	"github.com/honerlaw/mentordoc/server"
 	"github.com/honerlaw/mentordoc/server/model"
 	"github.com/honerlaw/mentordoc/server/util"
 	"log"
 )
 
 type RoleRepository struct {
-	server.Repository
+	util.Repository
 }
 
 func NewRoleRepository(db *sql.DB, tx *sql.Tx) *RoleRepository {

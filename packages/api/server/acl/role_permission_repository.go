@@ -3,13 +3,13 @@ package acl
 import (
 	"database/sql"
 	"errors"
-	"github.com/honerlaw/mentordoc/server"
 	"github.com/honerlaw/mentordoc/server/model"
+	"github.com/honerlaw/mentordoc/server/util"
 	"log"
 )
 
 type RolePermissionRepository struct {
-	server.Repository
+	util.Repository
 }
 
 func NewRolePermissionRepository(db *sql.DB, tx *sql.Tx) *RolePermissionRepository {

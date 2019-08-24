@@ -10,7 +10,7 @@ import (
 )
 
 type UserRepository struct {
-	Repository
+	util.Repository
 }
 
 func NewUserRepository(db *sql.DB, tx *sql.Tx) *UserRepository {

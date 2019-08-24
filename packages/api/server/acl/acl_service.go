@@ -10,13 +10,14 @@ type AclService struct {
 	rolePermissionService *RolePermissionService
 	userRoleService       *UserRoleService
 	transactionManager    *util.TransactionManager
-	db *sql.DB
-	tx *sql.Tx
+	aclWrapperService     *AclWrapperService
+	db                    *sql.DB
+	tx                    *sql.Tx
 }
 
 /**
 ACL should only be accessible through this object and its exposed functions
- */
+*/
 func NewAclService(transactionManager *util.TransactionManager, db *sql.DB, tx *sql.Tx) *AclService {
 	// setup repositories
 	roleRepository := NewRoleRepository(db, tx)
@@ -28,13 +29,17 @@ func NewAclService(transactionManager *util.TransactionManager, db *sql.DB, tx *
 	rolePermissionService := NewRolePermissionService(roleRepository, permissionRepository, rolePermissionRepository, transactionManager)
 	userRoleService := NewUserRoleService(roleRepository, userRoleRepository)
 
-	return &AclService{
+	aclService := &AclService{
 		rolePermissionService: rolePermissionService,
 		userRoleService:       userRoleService,
 		transactionManager:    transactionManager,
-		db: db,
-		tx: tx,
+		db:                    db,
+		tx:                    tx,
 	}
+
+	aclService.aclWrapperService = NewAclWrapperService(aclService)
+
+	return aclService
 }
 
 func (service *AclService) InjectTransaction(tx *sql.Tx) interface{} {
@@ -55,4 +60,12 @@ func (service *AclService) UserCanAccessResource(user *model.User, path []string
 
 func (service *AclService) UserActionableResourcesByPath(user *model.User, path []string, action string) ([]*ResourceResponse, error) {
 	return service.userRoleService.UserActionableResourcesByPath(user, path, action)
+}
+
+func (service *AclService) UserActionsForResources(user *model.User, paths [][]string, ids [][]string) ([]*ResourceResponse, error) {
+	return service.userRoleService.UserActionsForResources(user, paths, ids)
+}
+
+func (service *AclService) Wrap(user *model.User, modelSlice interface{}) ([]*AclWrappedModel, error) {
+	return service.aclWrapperService.Wrap(user, modelSlice)
 }

@@ -9,7 +9,7 @@ import (
 )
 
 type OrganizationRepository struct {
-	Repository
+	util.Repository
 }
 
 func NewOrganizationRepository(db *sql.DB, tx *sql.Tx) *OrganizationRepository {

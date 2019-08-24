@@ -1,8 +1,10 @@
 package server
 
 import (
+	"database/sql"
 	"flag"
 	"fmt"
+	"github.com/honerlaw/mentordoc/server/util"
 	"log"
 	"net/http"
 	"os"
@@ -11,6 +13,7 @@ import (
 )
 
 var integration = flag.Bool("it", false, "run integration tests")
+var itTestDatabaseConnection *sql.DB
 
 func TestMain(m *testing.M) {
 	flag.Parse()
@@ -36,6 +39,8 @@ func TestMain(m *testing.M) {
 		os.Setenv("JWT_SIGNING_KEY", "it-test-key")
 
 		server = StartServer(nil)
+
+		itTestDatabaseConnection = util.NewDb()
 	}
 
 	result := m.Run()

@@ -10,7 +10,7 @@ import (
 
 
 func TestUserCanNotAccessWhenDoesNotExist(t *testing.T) {
-	service := NewAclService(util.NewTransactionManager(database, nil), database, nil)
+	service := NewAclService(util.NewTransactionManager(itTestDatabaseConnection, nil), itTestDatabaseConnection, nil)
 
 	user := &model.User{}
 	user.Id = "5"
@@ -20,11 +20,11 @@ func TestUserCanNotAccessWhenDoesNotExist(t *testing.T) {
 }
 
 func TestUserLinkToRole(t *testing.T) {
-	service := NewAclService(util.NewTransactionManager(database, nil), database, nil)
+	service := NewAclService(util.NewTransactionManager(itTestDatabaseConnection, nil), itTestDatabaseConnection, nil)
 
 	user := &model.User{}
 	user.Id = uuid.NewV4().String()
-	database.Exec("insert into user (id, email, password, created_at, updated_at) values (?, ?, 'hash', 0, 0)", user.Id, user.Id)
+	itTestDatabaseConnection.Exec("insert into user (id, email, password, created_at, updated_at) values (?, ?, 'hash', 0, 0)", user.Id, user.Id)
 
 	err := service.LinkUserToRole(user, "organization:owner", uuid.NewV4().String())
 
@@ -32,13 +32,13 @@ func TestUserLinkToRole(t *testing.T) {
 }
 
 func TestUserAccessToDocumentInOrganization(t *testing.T) {
-	service := NewAclService(util.NewTransactionManager(database, nil), database, nil)
+	service := NewAclService(util.NewTransactionManager(itTestDatabaseConnection, nil), itTestDatabaseConnection, nil)
 
 	orgId := uuid.NewV4().String()
 
 	user := &model.User{}
 	user.Id = uuid.NewV4().String()
-	database.Exec("insert into user (id, email, password, created_at, updated_at) values (?, ?, 'hash', 0, 0)", user.Id, user.Id)
+	itTestDatabaseConnection.Exec("insert into user (id, email, password, created_at, updated_at) values (?, ?, 'hash', 0, 0)", user.Id, user.Id)
 	err := service.LinkUserToRole(user, "organization:owner", orgId)
 	assert.Nil(t, err)
 
@@ -48,12 +48,12 @@ func TestUserAccessToDocumentInOrganization(t *testing.T) {
 }
 
 func TestUserActionableResourcesByPath(t *testing.T) {
-	service := NewAclService(util.NewTransactionManager(database, nil), database, nil)
+	service := NewAclService(util.NewTransactionManager(itTestDatabaseConnection, nil), itTestDatabaseConnection, nil)
 
 	orgId := uuid.NewV4().String()
 	user := &model.User{}
 	user.Id = uuid.NewV4().String()
-	database.Exec("insert into user (id, email, password, created_at, updated_at) values (?, ?, 'hash', 0, 0)", user.Id, user.Id)
+	itTestDatabaseConnection.Exec("insert into user (id, email, password, created_at, updated_at) values (?, ?, 'hash', 0, 0)", user.Id, user.Id)
 
 	err := service.LinkUserToRole(user, "organization:owner", orgId)
 	assert.Nil(t, err)
@@ -61,4 +61,25 @@ func TestUserActionableResourcesByPath(t *testing.T) {
 	results, err := service.UserActionableResourcesByPath(user, []string{"organization", "folder", "document"}, "view")
 	assert.Nil(t, err)
 	assert.Len(t, results, 1)
+}
+
+func TestWrap(t *testing.T) {
+	service := NewAclService(util.NewTransactionManager(itTestDatabaseConnection, nil), itTestDatabaseConnection, nil)
+
+	user := &model.User{}
+	user.Id = uuid.NewV4().String()
+	itTestDatabaseConnection.Exec("insert into user (id, email, password, created_at, updated_at) values (?, ?, 'hash', 0, 0)", user.Id, user.Id)
+
+	document := &model.Document{
+		OrganizationId: "12345",
+		FolderId: nil,
+	}
+	document.Id = "54321"
+	documents := []*model.Document{document}
+	data, err := service.Wrap(user, documents);
+
+	assert.Nil(t, err)
+	assert.Len(t, data, 1)
+	assert.Equal(t, data[0].Model.(*model.Document).Id, document.Id)
+	assert.Len(t, data[0].Actions, 0)
 }

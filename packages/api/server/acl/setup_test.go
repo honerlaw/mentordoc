@@ -11,7 +11,7 @@ import (
 )
 
 var integration = flag.Bool("it", false, "run integration tests")
-var database *sql.DB
+var itTestDatabaseConnection *sql.DB
 
 func TestMain(m *testing.M) {
 	flag.Parse()
@@ -34,9 +34,9 @@ func TestMain(m *testing.M) {
 		os.Setenv("DATABASE_PORT", "33060")
 		os.Setenv("MIGRATION_DIR", "../../migrations")
 
-		database = util.NewDb()
+		itTestDatabaseConnection = util.NewDb()
 
-		service := NewAclService(util.NewTransactionManager(database, nil), database, nil)
+		service := NewAclService(util.NewTransactionManager(itTestDatabaseConnection, nil), itTestDatabaseConnection, nil)
 		err = service.Init()
 		if err != nil {
 			panic(err)

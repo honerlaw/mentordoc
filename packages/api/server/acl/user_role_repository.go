@@ -4,14 +4,14 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/honerlaw/mentordoc/server"
 	"github.com/honerlaw/mentordoc/server/model"
+	"github.com/honerlaw/mentordoc/server/util"
 	"log"
 	"strings"
 )
 
 type UserRoleRepository struct {
-	server.Repository
+	util.Repository
 }
 
 func NewUserRoleRepository(db *sql.DB, tx *sql.Tx) *UserRoleRepository {
