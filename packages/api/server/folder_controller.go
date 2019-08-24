@@ -35,7 +35,13 @@ func (controller *FolderController) RegisterRoutes(router chi.Router) {
 		With(controller.validatorService.Middleware(model.FolderCreateRequest{}),
 			controller.authenticationMiddleware.HasAccessToken()).
 		Post("/folder", controller.create)
-	router.Get("/folder", controller.list)
+	router.
+		With(controller.validatorService.Middleware(model.FolderUpdateRequest{}),
+			controller.authenticationMiddleware.HasAccessToken()).
+		Put("/folder/{id}", controller.update)
+	router.
+		With(controller.authenticationMiddleware.HasAccessToken()).
+		Get("/folder/list/{organizationId}", controller.list)
 }
 
 func (controller *FolderController) create(w http.ResponseWriter, req *http.Request) {
@@ -50,7 +56,7 @@ func (controller *FolderController) create(w http.ResponseWriter, req *http.Requ
 	}
 
 	// wrap the folder with acl information
-	wrapped, err := controller.aclService.Wrap(user, []*model.Folder{folder})
+	wrapped, err := controller.aclService.Wrap(user, []model.Folder{*folder})
 	if err != nil {
 		util.WriteHttpError(w, model.NewInternalServerError("created folder but failed to find user access"))
 		return
@@ -60,6 +66,48 @@ func (controller *FolderController) create(w http.ResponseWriter, req *http.Requ
 	util.WriteJsonToResponse(w, http.StatusCreated, wrapped[0])
 }
 
+func (controller *FolderController) update(w http.ResponseWriter, req *http.Request) {
+	request := controller.validatorService.GetModelFromRequest(req).(*model.FolderCreateRequest)
+	user := controller.authenticationMiddleware.GetUserFromRequest(req)
+	id := chi.URLParam(req, "id")
+
+	folder, err := controller.folderService.Update(user, id, request.Name)
+	if err != nil {
+		util.WriteHttpError(w, err)
+		return
+	}
+
+	// wrap the folder with acl information
+	wrapped, err := controller.aclService.Wrap(user, []model.Folder{*folder})
+	if err != nil {
+		util.WriteHttpError(w, model.NewInternalServerError("updated folder but failed to find user access"))
+		return
+	}
+
+	util.WriteJsonToResponse(w, http.StatusOK, wrapped)
+}
+
 func (controller *FolderController) list(w http.ResponseWriter, req *http.Request) {
-	// do nothing
+	user := controller.authenticationMiddleware.GetUserFromRequest(req)
+	organizationId := chi.URLParam(req, "organizationId")
+	queryParentFolderId := req.URL.Query().Get("parentFolderId")
+	pagination := model.NewPagination(req)
+
+	var parentFolderId *string
+	if len(queryParentFolderId) > 0 {
+		parentFolderId = &queryParentFolderId
+	}
+
+	folders, err := controller.folderService.List(user, organizationId, parentFolderId, pagination)
+	if err != nil {
+		util.WriteHttpError(w, err)
+		return
+	}
+
+	wrapped, err := controller.aclService.Wrap(user, folders)
+	if err != nil {
+		util.WriteHttpError(w, model.NewInternalServerError("failed to load user access for folders"))
+	}
+
+	util.WriteJsonToResponse(w, http.StatusOK, wrapped)
 }

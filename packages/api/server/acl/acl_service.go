@@ -58,14 +58,18 @@ func (service *AclService) UserCanAccessResource(user *model.User, path []string
 	return service.userRoleService.UserCanAccessResource(user, path, ids, action)
 }
 
-func (service *AclService) UserActionableResourcesByPath(user *model.User, path []string, action string) ([]*ResourceResponse, error) {
+func (service *AclService) UserActionableResourcesByPath(user *model.User, path []string, action string) ([]ResourceResponse, error) {
 	return service.userRoleService.UserActionableResourcesByPath(user, path, action)
 }
 
-func (service *AclService) UserActionsForResources(user *model.User, paths [][]string, ids [][]string) ([]*ResourceResponse, error) {
+func (service *AclService) UserActionsForResources(user *model.User, paths [][]string, ids [][]string) ([]ResourceResponse, error) {
 	return service.userRoleService.UserActionsForResources(user, paths, ids)
 }
 
-func (service *AclService) Wrap(user *model.User, modelSlice interface{}) ([]*model.AclWrappedModel, error) {
+func (service *AclService) Wrap(user *model.User, modelSlice interface{}) ([]model.AclWrappedModel, error) {
 	return service.aclWrapperService.Wrap(user, modelSlice)
+}
+
+func (service *AclService) GetResourceDataForModel(model interface{}) (*ResourceData, error) {
+	return service.aclWrapperService.GetResourceDataForModel(model)
 }

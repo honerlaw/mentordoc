@@ -36,8 +36,8 @@ func (service *RolePermissionService) InjectTransaction(tx *sql.Tx) interface{} 
 
 func (service *RolePermissionService) InitRoles() error {
 	_, err := service.CreateRoleWithPermissions("organization:owner", map[string][]string {
-		"organization": {"view", "modify", "create:folder"},
-		"organization:folder": {"view", "modify", "delete", "create:document"},
+		"organization": {"view", "modify", "view:folder", "create:folder"},
+		"organization:folder": {"view", "modify", "delete", "view:document", "create:document"},
 		"organization:folder:document": {"view", "modify", "delete"},
 	});
 	if err != nil {

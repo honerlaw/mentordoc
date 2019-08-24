@@ -37,3 +37,10 @@ func NewUnauthorizedError(message... string) *HttpError {
 		Errors: message,
 	}
 }
+
+func NewNotFoundError(message... string) *HttpError {
+	return &HttpError{
+		Status: http.StatusUnauthorized,
+		Errors: message,
+	}
+}

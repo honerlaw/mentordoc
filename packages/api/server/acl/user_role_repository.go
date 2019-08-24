@@ -166,7 +166,7 @@ func (repo *UserRoleRepository) buildWhereClause(userId string, requests []Resou
 	return &clause, params, nil
 }
 
-func (repo *UserRoleRepository) GetDataForResources(user *model.User, requests []ResourceRequest) ([]*ResourceResponse, error) {
+func (repo *UserRoleRepository) GetDataForResources(user *model.User, requests []ResourceRequest) ([]ResourceResponse, error) {
 	whereClause, params, err := repo.buildWhereClause(user.Id, requests)
 	if err != nil {
 		return nil, err
@@ -186,7 +186,7 @@ func (repo *UserRoleRepository) GetDataForResources(user *model.User, requests [
 	}
 	defer rows.Close()
 
-	results := make([]*ResourceResponse, 0)
+	results := make([]ResourceResponse, 0)
 
 	// basically we just need to check that something was returned
 	for rows.Next() {
@@ -198,7 +198,7 @@ func (repo *UserRoleRepository) GetDataForResources(user *model.User, requests [
 			return nil, errors.New("failed to fetch resource data")
 		}
 
-		results = append(results, &res)
+		results = append(results, res)
 	}
 
 	return results, nil

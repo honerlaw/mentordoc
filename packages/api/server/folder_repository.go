@@ -3,9 +3,11 @@ package server
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"github.com/honerlaw/mentordoc/server/model"
 	"github.com/honerlaw/mentordoc/server/util"
 	"log"
+	"strings"
 )
 
 type FolderRepository struct {
@@ -66,54 +68,53 @@ func (repo *FolderRepository) Update(folder *model.Folder) error {
 	return nil;
 }
 
-func (repo *FolderRepository) FindRoots(organizationId string) ([]*model.Folder, error) {
-	rows, err := repo.Query(
-		"select id, name, parent_folder_id, organization_id, created_at, updated_at, deleted_at from folder where organization_id = ?",
-		organizationId,
-	)
+func (repo *FolderRepository) Find(organizationIds []string, folderIds []string, parentFolderId *string, pagination *model.Pagination) ([]model.Folder, error) {
+	query := "select id, name, parent_folder_id, organization_id, created_at, updated_at, deleted_at from folder where"
+
+	params := make([]interface{}, 0)
+
+	// build the in queries
+	inQueries := make([]string, 0)
+	if len(organizationIds) > 0 {
+		inQueries = append(inQueries, fmt.Sprintf("organization_id in (%s)", util.BuildSqlPlaceholderArray(organizationIds)))
+		params = append(params, util.ConvertStringArrayToInterfaceArray(organizationIds)...)
+	}
+	if len(folderIds) > 0 {
+		inQueries = append(inQueries, fmt.Sprintf("id in (%s)", util.BuildSqlPlaceholderArray(folderIds)))
+		params = append(params, util.ConvertStringArrayToInterfaceArray(folderIds)...)
+	}
+
+	// tack on the in query
+	query = fmt.Sprintf("%s (%s)", query, strings.Join(inQueries, " OR "))
+
+	// add the parent folder portion of the where clause
+	if parentFolderId != nil {
+		query = fmt.Sprintf("%s AND parent_folder_id = ?", query)
+		params = append(params, *parentFolderId)
+	}
+
+	// add the pagination portion of the query
+	if pagination != nil {
+		query = fmt.Sprintf("%s LIMIT ?, ?", query)
+		params = append(params, pagination.Page * pagination.Count, pagination.Count)
+	}
+
+	rows, err := repo.Query(query, params...)
 	if err != nil {
 		log.Print(err)
-		return nil, errors.New("failed to find root folders")
+		return nil, errors.New("failed to find folders")
 	}
 	defer rows.Close()
 
-	folders := make([]*model.Folder, 0)
-
+	folders := make([]model.Folder, 0)
 	for rows.Next() {
 		var folder model.Folder
 		err := rows.Scan(&folder.Id, &folder.Name, &folder.ParentFolderId, &folder.OrganizationId, &folder.CreatedAt, &folder.UpdatedAt, &folder.DeletedAt)
 		if err != nil {
 			log.Print(err)
-			return nil, errors.New("failed to parse roots folder")
+			return nil, errors.New("failed to parse folder")
 		}
-		folders = append(folders, &folder)
-	}
-
-	return folders, nil
-}
-
-func (repo *FolderRepository) FindChildren(folderParentId string, organizationId string) ([]*model.Folder, error) {
-	rows, err := repo.Query(
-		"select id, name, parent_folder_id, organization_id, created_at, updated_at, deleted_at from folder where parent_folder_id = ? and organization_id = ?",
-		folderParentId,
-		organizationId,
-	)
-	if err != nil {
-		log.Print(err)
-		return nil, errors.New("failed to find child folders")
-	}
-	defer rows.Close()
-
-	folders := make([]*model.Folder, 0)
-
-	for rows.Next() {
-		var folder model.Folder
-		err := rows.Scan(&folder.Id, &folder.Name, &folder.ParentFolderId, &folder.CreatedAt, &folder.UpdatedAt, &folder.DeletedAt)
-		if err != nil {
-			log.Print(err)
-			return nil, errors.New("failed to parse child folder")
-		}
-		folders = append(folders, &folder)
+		folders = append(folders, folder)
 	}
 
 	return folders, nil

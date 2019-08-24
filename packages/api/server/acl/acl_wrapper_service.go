@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/honerlaw/mentordoc/server/model"
 	"reflect"
+	"strings"
 )
 
 type modelAclData struct {
@@ -22,15 +23,15 @@ func NewAclWrapperService(aclService *AclService) *AclWrapperService {
 
 		// @todo move this data to be on the model itself, then we can just use reflection to get it all
 		data: map[string]*modelAclData{
-			"*model.Organization": {
+			"model.Organization": {
 				Path:         []string{"organization"},
 				StructFields: []string{"Id"},
 			},
-			"*model.Folder": {
+			"model.Folder": {
 				Path:         []string{"organization", "folder"},
 				StructFields: []string{"OrganizationId", "Id"},
 			},
-			"*model.Document": {
+			"model.Document": {
 				Path:         []string{"organization", "folder", "document"},
 				StructFields: []string{"OrganizationId", "FolderId", "Id"},
 			},
@@ -43,7 +44,7 @@ wraps the given set of organization / folder / document models with the actions 
 to each resource. This way the client will know what info to show, we only need to fetch this data as it is going
 out back to the client
  */
-func (service *AclWrapperService) Wrap(user *model.User, modelSlice interface{}) ([]*model.AclWrappedModel, error) {
+func (service *AclWrapperService) Wrap(user *model.User, modelSlice interface{}) ([]model.AclWrappedModel, error) {
 	s := reflect.ValueOf(modelSlice)
 	if s.Kind() != reflect.Slice {
 		return nil, errors.New("a slice of models is required")
@@ -59,16 +60,12 @@ func (service *AclWrapperService) Wrap(user *model.User, modelSlice interface{})
 	ids := make([][]string, len(models))
 
 	for index, m := range models {
-		modelName := reflect.TypeOf(m).String()
-		modelData := service.data[modelName]
-
-		// find the ids needed for the model and paths
-		modelIds, err := service.getIdsForModel(m, modelData)
+		resourceData, err := service.GetResourceDataForModel(m);
 		if err != nil {
 			return nil, err
 		}
-		paths[index] = modelData.Path
-		ids[index] = modelIds
+		paths[index] = resourceData.ResourcePath
+		ids[index] = resourceData.ResourceIds
 	}
 
 	// find all of the actions that can be done on the given model
@@ -78,7 +75,7 @@ func (service *AclWrapperService) Wrap(user *model.User, modelSlice interface{})
 	}
 
 	// wrap the model with the acl data
-	wrappedSlice := make([]*model.AclWrappedModel, 0)
+	wrappedSlice := make([]model.AclWrappedModel, 0)
 	for index, m := range models {
 
 		wrapper := &model.AclWrappedModel{
@@ -95,10 +92,28 @@ func (service *AclWrapperService) Wrap(user *model.User, modelSlice interface{})
 			}
 		}
 
-		wrappedSlice = append(wrappedSlice, wrapper)
+		wrappedSlice = append(wrappedSlice, *wrapper)
 	}
 
 	return wrappedSlice, nil
+}
+
+func (service *AclWrapperService) GetResourceDataForModel(m interface{}) (*ResourceData, error) {
+	modelName := reflect.TypeOf(m).String()
+	modelData, ok := service.data[strings.ReplaceAll(modelName, "*", "")]
+
+	if !ok {
+		return nil, errors.New("could not find data for model")
+	}
+
+	modelIds, err := service.getIdsForModel(m, modelData)
+	if err != nil {
+		return nil, err
+	}
+	return &ResourceData{
+		ResourceIds: modelIds,
+		ResourcePath: modelData.Path,
+	}, nil
 }
 
 /**
@@ -106,11 +121,15 @@ Grab the values of the id fields off the model to be used with the acl service
 */
 func (service *AclWrapperService) getIdsForModel(model interface{}, data *modelAclData) ([]string, error) {
 	value := reflect.ValueOf(model)
-	if value.Kind() != reflect.Ptr || value.Elem().Kind() != reflect.Struct {
-		return nil, errors.New("model must be pointer to struct")
+
+	derefValue := value
+	if value.Kind() == reflect.Ptr {
+		derefValue = value.Elem()
 	}
 
-	derefValue := value.Elem()
+	if derefValue.Kind() != reflect.Struct {
+		return nil, errors.New("model must be a struct")
+	}
 
 	ids := make([]string, len(data.StructFields))
 

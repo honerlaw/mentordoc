@@ -90,11 +90,11 @@ func TestIntegrationWrap(t *testing.T) {
 		FolderId: nil,
 	}
 	document.Id = "54321"
-	documents := []*model.Document{document}
+	documents := []model.Document{*document}
 	data, err := service.Wrap(user, documents);
 
 	assert.Nil(t, err)
 	assert.Len(t, data, 1)
-	assert.Equal(t, data[0].Model.(*model.Document).Id, document.Id)
+	assert.Equal(t, data[0].Model.(model.Document).Id, document.Id)
 	assert.Len(t, data[0].Actions, 0)
 }

@@ -5,6 +5,8 @@ import (
 	"github.com/honerlaw/mentordoc/server/model"
 	"log"
 	"net/http"
+	"reflect"
+	"strings"
 	"time"
 )
 
@@ -14,14 +16,18 @@ func NowUnix() int64 {
 }
 
 func WriteJsonToResponse(w http.ResponseWriter, status int, model interface{}) {
-	data, err := json.Marshal(model)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	var data []byte
+	if model != nil {
+		byteArr, err := json.Marshal(model)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		data = byteArr
 	}
 
 	w.WriteHeader(status)
 	w.Header().Set("Content-Type", "application/json")
-	_, err = w.Write(data)
+	_, err := w.Write(data)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -35,4 +41,27 @@ func WriteHttpError(w http.ResponseWriter, err interface{}) {
 			Errors: []string{err.(error).Error()},
 		})
 	}
+}
+
+func BuildSqlPlaceholderArray(slice interface{}) string {
+	s := reflect.ValueOf(slice)
+	if s.Kind() != reflect.Slice {
+		panic("a slice is required")
+	}
+
+	// convert the passed models to an interface array so we can work with it...
+	placeholders := make([]string, s.Len())
+	for i := 0; i < s.Len(); i++ {
+		placeholders[i] = "?"
+	}
+
+	return strings.Join(placeholders, ", ")
+}
+
+func ConvertStringArrayToInterfaceArray(slice []string) []interface{} {
+	newSlice := make([]interface{}, len(slice))
+	for i := 0; i < len(slice); i++ {
+		newSlice[i] = slice[i]
+	}
+	return newSlice
 }
