@@ -91,6 +91,41 @@ type PostOptions struct {
 	Headers map[string]string
 }
 
+func GetItTest(options *PostOptions, resp interface{}) (int, interface{}, error) {
+	url := fmt.Sprintf("http://%s:%s/v1%s", os.Getenv("HOST"), os.Getenv("PORT"), options.Path)
+
+	req, err := http.NewRequest("GET", url, bytes.NewBuffer([]byte{}))
+	if err != nil {
+		return -1, nil, err
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	for key, value := range options.Headers {
+		req.Header.Set(key, value)
+	}
+
+	response, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return -1, nil, err
+	}
+
+	data, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return -1, nil, err
+	}
+
+	if resp == true {
+		return response.StatusCode, data, nil
+	}
+
+	err = json.Unmarshal(data, resp)
+	if err != nil {
+		return -1, nil, err
+	}
+
+	return response.StatusCode, resp, nil
+}
+
 func PostItTest(options *PostOptions, body interface{}, resp interface{}) (int, interface{}, error) {
 	data, err := json.Marshal(body)
 	if err != nil {
@@ -126,7 +161,6 @@ func PostItTest(options *PostOptions, body interface{}, resp interface{}) (int, 
 	err = json.Unmarshal(data, resp)
 	if err != nil {
 		return -1, nil, err
-
 	}
 
 	return response.StatusCode, resp, nil
