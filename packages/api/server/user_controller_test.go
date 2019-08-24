@@ -12,7 +12,7 @@ func TestIntegrationSigninValidationFailure(t *testing.T) {
 		t.Skip("skipping integration test")
 	}
 	req := &model.UserSigninRequest{}
-	status, resp, err := PostItTest("/user/auth", req, &model.HttpError{})
+	status, resp, err := PostItTest(&PostOptions{Path: "/user/auth"}, req, &model.HttpError{})
 	assert.Nil(t, err)
 	assert.Equal(t, status, http.StatusBadRequest)
 	assert.Len(t, resp.(*model.HttpError).Errors, 2)
@@ -26,7 +26,7 @@ func TestIntegrationSigninUserDoesntExist(t *testing.T) {
 		Email:    "foo@bar.com",
 		Password: "baz",
 	}
-	status, resp, err := PostItTest("/user/auth", req, &model.HttpError{})
+	status, resp, err := PostItTest(&PostOptions{Path: "/user/auth"}, req, &model.HttpError{})
 	assert.Nil(t, err)
 	assert.Equal(t, status, http.StatusBadRequest)
 	assert.Len(t, resp.(*model.HttpError).Errors, 1)
@@ -40,7 +40,7 @@ func TestIntegrationSignupUserDoesntExist(t *testing.T) {
 		Email:    "foo@bar.com",
 		Password: "foobarbaz",
 	}
-	status, resp, err := PostItTest("/user", req, &model.AuthenticationResponse{})
+	status, resp, err := PostItTest(&PostOptions{Path: "/user"}, req, &model.AuthenticationResponse{})
 	assert.Nil(t, err)
 	assert.Equal(t, status, http.StatusOK)
 	assert.NotEmpty(t, resp.(*model.AuthenticationResponse).AccessToken)
@@ -55,7 +55,7 @@ func TestIntegrationSignupAndThenSignin(t *testing.T) {
 		Email:    "footest@bar.com",
 		Password: "foobarbaz",
 	}
-	status, resp, err := PostItTest("/user", req, &model.AuthenticationResponse{})
+	status, resp, err := PostItTest(&PostOptions{Path: "/user"}, req, &model.AuthenticationResponse{})
 	assert.Nil(t, err)
 	assert.Equal(t, status, http.StatusOK)
 
@@ -63,7 +63,7 @@ func TestIntegrationSignupAndThenSignin(t *testing.T) {
 		Email:    "footest@bar.com",
 		Password: "foobarbaz",
 	}
-	status, resp, err = PostItTest("/user/auth", signinReq, &model.AuthenticationResponse{})
+	status, resp, err = PostItTest(&PostOptions{Path: "/user/auth"}, signinReq, &model.AuthenticationResponse{})
 	assert.Nil(t, err)
 	assert.Equal(t, status, http.StatusOK)
 

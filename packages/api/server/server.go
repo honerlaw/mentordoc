@@ -13,7 +13,24 @@ import (
 	"sync"
 )
 
-func StartServer(waitGroup *sync.WaitGroup) *http.Server {
+type Server struct {
+	HttpServer               *http.Server
+	TransactionManager       *util.TransactionManager
+	AclService               *acl.AclService
+	AuthenticationService    *AuthenticationService
+	ValidatorService         *util.ValidatorService
+	OrganizationRepository   *OrganizationRepository
+	UserRepository           *UserRepository
+	FolderRepository         *FolderRepository
+	OrganizationService      *OrganizationService
+	UserService              *UserService
+	FolderService            *FolderService
+	AuthenticationMiddleware *AuthenticationMiddleware
+	UserController           *UserController
+	FolderController         *FolderController
+}
+
+func StartServer(waitGroup *sync.WaitGroup) *Server {
 	db := util.NewDb()
 
 	// utilities
@@ -24,12 +41,12 @@ func StartServer(waitGroup *sync.WaitGroup) *http.Server {
 
 	// repositories
 	organizationRepository := NewOrganizationRepository(db, nil)
-	userRepositoryService := NewUserRepository(db, nil)
+	userRepository := NewUserRepository(db, nil)
 	folderRepository := NewFolderRepository(db, nil)
 
 	// services
 	organizationService := NewOrganizationService(organizationRepository)
-	userService := NewUserService(userRepositoryService, organizationService, transactionManager)
+	userService := NewUserService(userRepository, organizationService, transactionManager)
 	folderService := NewFolderService(folderRepository, organizationService, aclService)
 
 	// middlewares
@@ -38,6 +55,11 @@ func StartServer(waitGroup *sync.WaitGroup) *http.Server {
 	// controllers
 	userController := NewUserController(userService, validatorService, authenticationService)
 	folderController := NewFolderController(validatorService, folderService, authenticationMiddleware, aclService)
+
+	err := aclService.Init()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	router := chi.NewRouter()
 	router.Use(middleware.RequestID)
@@ -49,8 +71,8 @@ func StartServer(waitGroup *sync.WaitGroup) *http.Server {
 		folderController.RegisterRoutes(r)
 	})
 
-	server := &http.Server{
-		Addr: fmt.Sprintf("%s:%s", os.Getenv("HOST"), os.Getenv("PORT")),
+	httpServer := &http.Server{
+		Addr:    fmt.Sprintf("%s:%s", os.Getenv("HOST"), os.Getenv("PORT")),
 		Handler: router,
 	}
 
@@ -58,7 +80,7 @@ func StartServer(waitGroup *sync.WaitGroup) *http.Server {
 		if waitGroup != nil {
 			defer waitGroup.Done()
 		}
-		err := server.ListenAndServe()
+		err := httpServer.ListenAndServe()
 		if err != http.ErrServerClosed {
 			log.Fatalf("ListenAndServe(): %s", err)
 		}
@@ -66,11 +88,26 @@ func StartServer(waitGroup *sync.WaitGroup) *http.Server {
 
 	log.Print("successfully started server")
 
-	return server
+	return &Server{
+		HttpServer:               httpServer,
+		TransactionManager:       transactionManager,
+		AclService:               aclService,
+		AuthenticationService:    authenticationService,
+		ValidatorService:         validatorService,
+		OrganizationRepository:   organizationRepository,
+		UserRepository:           userRepository,
+		FolderRepository:         folderRepository,
+		OrganizationService:      organizationService,
+		UserService:              userService,
+		FolderService:            folderService,
+		AuthenticationMiddleware: authenticationMiddleware,
+		UserController:           userController,
+		FolderController:         folderController,
+	}
 }
 
-func StopServer(server *http.Server) {
-	err := server.Shutdown(context.Background());
+func StopServer(server *Server) {
+	err := server.HttpServer.Shutdown(context.Background());
 	if err != nil {
 		panic(err)
 	}

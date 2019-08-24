@@ -59,3 +59,17 @@ CREATE TABLE IF NOT EXISTS `user_role` (
   UNIQUE KEY `uk_user_role_user_id_role_id_resource_id` (`user_id`, `role_id`, `resource_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE IF NOT EXISTS `folder` (
+  `id` CHAR(36) NOT NULL,
+  `created_at` BIGINT NOT NULL,
+  `updated_at` BIGINT NOT NULL,
+  `deleted_at` BIGINT NULL DEFAULT NULL,
+  `name` varchar(255) NOT NULL,
+  `organization_id` CHAR(36) NOT NULL,
+  `parent_folder_id` CHAR(36) NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  FOREIGN KEY (`organization_id`) REFERENCES organization(`id`),
+  FOREIGN KEY (`parent_folder_id`) REFERENCES folder(`id`),
+  KEY `idx_user_deleted_at` (`deleted_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+

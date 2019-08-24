@@ -57,7 +57,7 @@ func (controller *FolderController) create(w http.ResponseWriter, req *http.Requ
 	}
 
 	// return the data
-	util.WriteJsonToResponse(w, http.StatusCreated, wrapped)
+	util.WriteJsonToResponse(w, http.StatusCreated, wrapped[0])
 }
 
 func (controller *FolderController) list(w http.ResponseWriter, req *http.Request) {

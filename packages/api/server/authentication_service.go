@@ -2,18 +2,18 @@ package server
 
 import (
 	"github.com/dgrijalva/jwt-go"
-	"github.com/honerlaw/mentordoc/server/util"
 	"github.com/pkg/errors"
 	"log"
 	"os"
+	"time"
 )
 
 const TokenRefresh = "refresh_token";
 
 const TokenAccess = "access_token";
 
-const tokenAccessExpireTime int64 = 60 * 60 * 1000           // 1 hour
-const tokenRefreshExpireTime int64 = 7 * 24 * 60 * 60 * 1000 // 1 week
+const tokenAccessExpireTime = time.Hour
+const tokenRefreshExpireTime = 7 * 24 * time.Hour // 7 days
 const issuer = "mentordoc"
 
 type AuthenticationService struct{}
@@ -27,15 +27,15 @@ func (service *AuthenticationService) GenerateToken(resourceId string, tokenType
 		return nil, errors.New("invalid token type")
 	}
 
-	// change how long the token lives for based on the type of token we are issuing
+	// change how long the token lives for based on the type of token we are isssuing
 	timeUntilExpire := tokenAccessExpireTime
 	if tokenType == TokenRefresh {
 		timeUntilExpire = tokenRefreshExpireTime
 	}
 
 	claims := &jwt.StandardClaims{
-		ExpiresAt: util.NowUnix() + timeUntilExpire,
-		IssuedAt:  util.NowUnix(),
+		ExpiresAt: time.Now().Add(timeUntilExpire).Unix(),
+		IssuedAt:  time.Now().Unix(),
 		Issuer:    issuer,
 		Subject:   resourceId,
 		Audience:  tokenType,
@@ -58,28 +58,26 @@ func (service *AuthenticationService) ParseAndValidateToken(tokenValue string) (
 	})
 
 	if err != nil {
-		log.Print(err)
+		log.Print("failed to parse jwt", err)
 		return nil, errors.New("invalid token")
 	}
 
 	claims, ok := token.Claims.(*jwt.StandardClaims);
 	if !ok || !token.Valid {
+		log.Print("claims is not a standard claims struct or token is not valid")
 		return nil, errors.New("invalid token")
 	}
 
 	// unsupported token type
 	if claims.Audience != TokenAccess && claims.Audience != TokenRefresh {
+		log.Print("invalid audience on JWT", claims.Audience)
 		return nil, errors.New("invalid token")
 	}
 
 	// bad issuer
 	if claims.Issuer != issuer {
+		log.Print("invalid issuer on JWT", claims.Issuer)
 		return nil, errors.New("invalid token")
-	}
-
-	// expired
-	if util.NowUnix()-claims.ExpiresAt > 0 {
-		return nil, errors.New("expired token")
 	}
 
 	return claims, nil

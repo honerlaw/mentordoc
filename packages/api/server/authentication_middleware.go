@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/honerlaw/mentordoc/server/model"
 	"github.com/honerlaw/mentordoc/server/util"
+	"log"
 	"net/http"
 	"strings"
 )
@@ -34,7 +35,7 @@ func (middleware *AuthenticationMiddleware) HasAccessToken() func(next http.Hand
 			}
 
 			pieces := strings.Split(header, "Bearer ")
-			token := pieces[0]
+			token := pieces[1]
 
 			claims, err := middleware.authenticationService.ParseAndValidateToken(token)
 			if err != nil {
@@ -44,6 +45,7 @@ func (middleware *AuthenticationMiddleware) HasAccessToken() func(next http.Hand
 
 			// make sure they are using an access token
 			if claims.Audience != TokenAccess {
+				log.Print("attempted to use refresh token instead of access token")
 				util.WriteHttpError(w, model.NewUnauthorizedError("invalid token"))
 				return
 			}
@@ -51,6 +53,7 @@ func (middleware *AuthenticationMiddleware) HasAccessToken() func(next http.Hand
 			// lookup the user
 			user := middleware.userService.FindById(claims.Subject)
 			if user == nil {
+				log.Print("failed to find the user for subject", claims.Subject)
 				util.WriteHttpError(w, model.NewUnauthorizedError("invalid token"))
 				return
 			}

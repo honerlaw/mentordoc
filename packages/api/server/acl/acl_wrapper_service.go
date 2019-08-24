@@ -77,30 +77,28 @@ func (service *AclWrapperService) Wrap(user *model.User, modelSlice interface{})
 		return nil, err
 	}
 
-	// prepopulate the model map with all of the passed models
-	modelMap := make(map[string]*model.AclWrappedModel)
-	for _, m := range models {
-		id := reflect.ValueOf(m).Elem().FieldByName("Id").Interface().(string)
-		modelMap[id] = &model.AclWrappedModel{
+	// wrap the model with the acl data
+	wrappedSlice := make([]*model.AclWrappedModel, 0)
+	for index, m := range models {
+
+		wrapper := &model.AclWrappedModel{
 			Model:   m,
 			Actions: make([]string, 0),
 		}
+
+		// go over the responses and see if any belong to this modedl
+		for _, res := range resp {
+			for _, id := range ids[index] {
+				if id == res.ResourceId {
+					wrapper.Actions = append(wrapper.Actions, res.Action)
+				}
+			}
+		}
+
+		wrappedSlice = append(wrappedSlice, wrapper)
 	}
 
-	// merge the actions together with the model
-	for _, res := range resp {
-		wrapper := modelMap[res.ResourceId]
-		wrapper.Actions = append(wrapper.Actions, res.Action)
-	}
-
-	// convert the map to an array
-	modelArray := make([]*model.AclWrappedModel, 0)
-	for _, wrapper := range modelMap {
-		modelArray = append(modelArray, wrapper)
-	}
-
-	return modelArray, nil
-
+	return wrappedSlice, nil
 }
 
 /**
