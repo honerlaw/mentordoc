@@ -18,7 +18,7 @@ func TestMain(m *testing.M) {
 	flag.Parse()
 
 	if *integration {
-		cmd := exec.Command("bash", "-c", "docker kill mentordoc-mysql; docker rm mentordoc-mysql; docker run --name mentordoc-mysql -p 33060:3306 -e MYSQL_USER=userlocal -e MYSQL_ROOT_PASSWORD=password -e MYSQL_PASSWORD=password -e MYSQL_DATABASE=mentor_doc --tmpfs /var/lib/mysql -d mysql:5.7")
+		cmd := exec.Command("bash", "-c", "docker kill mentordoc-mysql-acl; docker rm mentordoc-mysql-acl; docker run --name mentordoc-mysql-acl -p 33066:3306 -e MYSQL_USER=userlocal -e MYSQL_ROOT_PASSWORD=password -e MYSQL_PASSWORD=password -e MYSQL_DATABASE=mentor_doc --tmpfs /var/lib/mysql -d mysql:5.7")
 		_, err := cmd.CombinedOutput()
 		if err != nil {
 			log.Fatal(err)
@@ -32,7 +32,7 @@ func TestMain(m *testing.M) {
 		os.Setenv("DATABASE_USERNAME", "userlocal")
 		os.Setenv("DATABASE_PASSWORD", "password")
 		os.Setenv("DATABASE_HOST", "0.0.0.0")
-		os.Setenv("DATABASE_PORT", "33060")
+		os.Setenv("DATABASE_PORT", "33066")
 		os.Setenv("MIGRATION_DIR", "../../migrations")
 
 		itTestDatabaseConnection = util.NewDb()

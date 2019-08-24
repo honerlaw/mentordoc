@@ -2,9 +2,7 @@
 
 test:
 	go clean -testcache
-	go test ./core/repository/
-	go test ./user/service/
-	go test ./payment/service/
+	go test ./server/... -it
 
 run:
 	docker kill mentordoc-mysql; docker rm mentordoc-mysql; docker run --name mentordoc-mysql -p 3306:3306 -e MYSQL_USER=userlocal -e MYSQL_ROOT_PASSWORD=password -e MYSQL_PASSWORD=password -e MYSQL_DATABASE=mentor_doc -d mysql:5.7
