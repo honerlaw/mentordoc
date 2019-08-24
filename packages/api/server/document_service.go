@@ -162,7 +162,7 @@ func (service *DocumentService) List(user *model.User, organizationId string, fo
 		}
 	}
 
-	documents, err := service.documentRepository.Find(organizationIds, folderIds, documentIds, pagination)
+	documents, err := service.documentRepository.Find(organizationIds, folderIds, documentIds, folderId, pagination)
 	if err != nil {
 		return nil, model.NewInternalServerError("failed to find folders")
 	}
@@ -172,7 +172,7 @@ func (service *DocumentService) List(user *model.User, organizationId string, fo
 
 func (service *DocumentService) hasAccessToOrganizationOrFolder(user *model.User, organizationId string, folderId *string, action string) (string, *string, error) {
 	org := service.organizationService.FindById(organizationId)
-	if org != nil {
+	if org == nil {
 		return "", nil, model.NewNotFoundError("could not find organization")
 	}
 

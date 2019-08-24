@@ -1,10 +1,12 @@
 package server
 
 import (
+	"encoding/json"
 	"github.com/go-chi/chi"
 	"github.com/honerlaw/mentordoc/server/acl"
 	"github.com/honerlaw/mentordoc/server/model"
 	"github.com/honerlaw/mentordoc/server/util"
+	"log"
 	"net/http"
 )
 
@@ -70,7 +72,7 @@ func (controller *DocumentController) create(w http.ResponseWriter, req *http.Re
 		return
 	}
 
-	util.WriteJsonToResponse(w, http.StatusOK, wrapped)
+	util.WriteJsonToResponse(w, http.StatusCreated, wrapped[0])
 }
 
 func (controller *DocumentController) update(w http.ResponseWriter, req *http.Request) {
@@ -89,7 +91,7 @@ func (controller *DocumentController) update(w http.ResponseWriter, req *http.Re
 		return
 	}
 
-	util.WriteJsonToResponse(w, http.StatusOK, wrapped)
+	util.WriteJsonToResponse(w, http.StatusOK, wrapped[0])
 }
 
 func (controller *DocumentController) list(w http.ResponseWriter, req *http.Request) {
@@ -114,11 +116,19 @@ func (controller *DocumentController) list(w http.ResponseWriter, req *http.Requ
 		return
 	}
 
-	wrapped, err := controller.aclService.Wrap(user, documents)
-	if err != nil {
-		util.WriteHttpError(w, model.NewInternalServerError("created folder but failed to find user access"))
+	if len(documents) == 0 {
+		util.WriteJsonToResponse(w, http.StatusOK, documents)
 		return
 	}
+
+	wrapped, err := controller.aclService.Wrap(user, documents)
+	if err != nil {
+		util.WriteHttpError(w, model.NewInternalServerError("found documents but failed to find user access"))
+		return
+	}
+
+	data, _ := json.Marshal(wrapped)
+	log.Print(string(data))
 
 	util.WriteJsonToResponse(w, http.StatusOK, wrapped)
 }

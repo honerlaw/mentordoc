@@ -167,6 +167,10 @@ func (repo *UserRoleRepository) buildWhereClause(userId string, requests []Resou
 }
 
 func (repo *UserRoleRepository) GetDataForResources(user *model.User, requests []ResourceRequest) ([]ResourceResponse, error) {
+	if len(requests) == 0 {
+		return nil, errors.New("must supply at least one resource request")
+	}
+
 	whereClause, params, err := repo.buildWhereClause(user.Id, requests)
 	if err != nil {
 		return nil, err
@@ -181,7 +185,7 @@ func (repo *UserRoleRepository) GetDataForResources(user *model.User, requests [
 		params...
 	)
 	if err != nil {
-		log.Print(err)
+		log.Print(err, query)
 		return nil, errors.New("failed to fetch resource data")
 	}
 	defer rows.Close()

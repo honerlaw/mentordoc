@@ -104,6 +104,11 @@ func (controller *FolderController) list(w http.ResponseWriter, req *http.Reques
 		return
 	}
 
+	if len(folders) == 0 {
+		util.WriteJsonToResponse(w, http.StatusOK, folders)
+		return
+	}
+
 	wrapped, err := controller.aclService.Wrap(user, folders)
 	if err != nil {
 		util.WriteHttpError(w, model.NewInternalServerError("failed to load user access for folders"))

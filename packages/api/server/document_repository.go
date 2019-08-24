@@ -40,8 +40,8 @@ func (repo *DocumentRepository) FindById(id string) *model.Document {
 	return &document
 }
 
-func (repo *DocumentRepository) Find(organizationIds []string, folderIds []string, documentIds []string, pagination *model.Pagination) ([]model.Document, error) {
-	query := "select id, name, folder_id, organization_id, created_at, updated_at, deleted_at from document where"
+func (repo *DocumentRepository) Find(organizationIds []string, folderIds []string, documentIds []string, folderId *string, pagination *model.Pagination) ([]model.Document, error) {
+	query := "select distinct id, name, folder_id, organization_id, created_at, updated_at, deleted_at from document where"
 
 	params := make([]interface{}, 0)
 
@@ -62,6 +62,16 @@ func (repo *DocumentRepository) Find(organizationIds []string, folderIds []strin
 
 	// tack on the in query
 	query = fmt.Sprintf("%s (%s)", query, strings.Join(inQueries, " OR "))
+
+	// add the specific check for a specific folder
+	if folderId != nil {
+		query = fmt.Sprintf("%s AND folder_id = ?", query)
+		params = append(params, *folderId)
+	} else {
+		query = fmt.Sprintf("%s AND folder_id is null", query)
+	}
+
+	query = fmt.Sprintf("%s ORDER BY name ASC", query)
 
 	// add the pagination portion of the query
 	if pagination != nil {

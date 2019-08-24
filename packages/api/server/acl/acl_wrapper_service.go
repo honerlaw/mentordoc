@@ -53,7 +53,7 @@ func (service *AclWrapperService) Wrap(user *model.User, modelSlice interface{})
 	// convert the passed models to an interface array so we can work with it...
 	models := make([]interface{}, s.Len())
 	for i := 0; i < s.Len(); i++ {
-		models[i] = s.Index(0).Interface()
+		models[i] = s.Index(i).Interface()
 	}
 
 	paths := make([][]string, len(models))
@@ -67,6 +67,7 @@ func (service *AclWrapperService) Wrap(user *model.User, modelSlice interface{})
 		paths[index] = resourceData.ResourcePath
 		ids[index] = resourceData.ResourceIds
 	}
+
 
 	// find all of the actions that can be done on the given model
 	resp, err := service.aclService.UserActionsForResources(user, paths, ids)

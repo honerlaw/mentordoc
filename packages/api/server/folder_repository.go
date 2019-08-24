@@ -91,7 +91,11 @@ func (repo *FolderRepository) Find(organizationIds []string, folderIds []string,
 	if parentFolderId != nil {
 		query = fmt.Sprintf("%s AND parent_folder_id = ?", query)
 		params = append(params, *parentFolderId)
+	} else {
+		query = fmt.Sprintf("%s AND parent_folder_id is null", query)
 	}
+
+	query = fmt.Sprintf("%s ORDER BY name ASC", query)
 
 	// add the pagination portion of the query
 	if pagination != nil {

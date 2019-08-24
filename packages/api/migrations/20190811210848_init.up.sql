@@ -80,7 +80,7 @@ CREATE TABLE IF NOT EXISTS `document` (
   `deleted_at` BIGINT NULL DEFAULT NULL,
   `name` varchar(255) NOT NULL,
   `organization_id` CHAR(36) NOT NULL,
-  `folder_id` CHAR(36) NOT NULL,
+  `folder_id` CHAR(36) NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   FOREIGN KEY (`organization_id`) REFERENCES organization(`id`),
   FOREIGN KEY (`folder_id`) REFERENCES folder(`id`),

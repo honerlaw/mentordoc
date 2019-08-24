@@ -25,7 +25,7 @@ func (repo *DocumentContentRepository) InjectTransaction(tx *sql.Tx) interface{}
 
 func (repo *DocumentContentRepository) FindByDocumentId(documentId string) *model.DocumentContent {
 	row := repo.QueryRow(
-		"select id, content, document_id, created_at, updated_at, deleted_at from content where document_id = ?",
+		"select id, content, document_id, created_at, updated_at, deleted_at from document_content where document_id = ?",
 		documentId,
 	)
 
@@ -43,7 +43,7 @@ func (repo *DocumentContentRepository) Insert(content *model.DocumentContent) er
 	content.UpdatedAt = util.NowUnix()
 
 	_, err := repo.Exec(
-		"insert into content (id, content, document_id, created_at, updated_at, deleted_at) values (?, ?, ?, ?, ?, ?)",
+		"insert into document_content (id, content, document_id, created_at, updated_at, deleted_at) values (?, ?, ?, ?, ?, ?)",
 		content.Id,
 		content.Content,
 		content.DocumentId,
@@ -64,7 +64,7 @@ func (repo *DocumentContentRepository) Update(document *model.DocumentContent) e
 	document.UpdatedAt = util.NowUnix()
 
 	_, err := repo.Exec(
-		"update document set content = ?, updated_at = ?, deleted_at = ? where id = ?",
+		"update document_content set content = ?, updated_at = ?, deleted_at = ? where id = ?",
 		document.Content,
 		document.UpdatedAt,
 		document.DeletedAt,
