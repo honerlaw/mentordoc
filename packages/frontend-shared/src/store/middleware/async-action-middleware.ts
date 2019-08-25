@@ -9,11 +9,11 @@ export function AsyncActionMiddleware(...args: any[]): Middleware {
     return (api: MiddlewareAPI): NextFunction => {
         return (next: Dispatch<AnyAction>): ActionFunction<AnyAction> => {
             return (action: AnyAction): AnyAction | Promise<AnyAction>  => {
-                if (typeof action === 'function') {
+                if (typeof action === "function") {
                     return (action as AsyncActionHandler)(api, args);
                 }
                 return next(action);
             };
-        }
-    }
+        };
+    };
 }

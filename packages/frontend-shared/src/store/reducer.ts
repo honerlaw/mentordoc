@@ -1,19 +1,23 @@
-import {ReducerType} from "./model/reducer-type";
 import {Action, AnyAction, Reducer} from "redux";
+import {ReducerType} from "./model/reducer-type";
 
 export type ActionHandler<S = any, A extends Action = AnyAction> = (state: S, action: A) => S;
 
-type ActionHandlerMap = {
+interface IActionHandlerMap {
     [actionType: string]: ActionHandler<any, any>;
 }
 
-type ReducerActionHandlerMap = {
-    [reducerType: string]: ActionHandlerMap;
+interface IReducerActionHandlerMap {
+    [reducerType: string]: IActionHandlerMap;
 }
 
-const handlers: ReducerActionHandlerMap = {};
+const handlers: IReducerActionHandlerMap = {};
 
-export function RegisterActionHandler<S, A extends Action = AnyAction>(reducerType: ReducerType, actionType: string, handler: ActionHandler<S, A>): void {
+export function RegisterActionHandler<S, A extends Action = AnyAction>(
+    reducerType: ReducerType,
+    actionType: string,
+    handler: ActionHandler<S, A>,
+): void {
     if (handlers[reducerType] === undefined) {
         handlers[reducerType] = {};
     }
@@ -31,7 +35,7 @@ export function CreateReducer<S, A extends Action = AnyAction>(reducerType: Redu
             state = initialState;
         }
 
-        const actionHandlerMap: ActionHandlerMap | undefined = handlers[reducerType];
+        const actionHandlerMap: IActionHandlerMap | undefined = handlers[reducerType];
         if (actionHandlerMap) {
             const handler: ActionHandler<S, A> | undefined = actionHandlerMap[action.type];
             if (handler) {
@@ -40,5 +44,5 @@ export function CreateReducer<S, A extends Action = AnyAction>(reducerType: Redu
         }
 
         return state;
-    }
+    };
 }

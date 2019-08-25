@@ -4,5 +4,5 @@ export enum ReducerType {
     ORGANIZATION = "organization",
     FOLDER = "folder",
     DOCUMENT = "document",
-    REQUEST_STATUS = "request_status"
+    REQUEST_STATUS = "request_status",
 }

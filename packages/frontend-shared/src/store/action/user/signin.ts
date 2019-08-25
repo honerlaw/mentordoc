@@ -8,7 +8,6 @@ export class SigninImpl extends AsyncAction<void> {
         super(SIGNIN_TYPE);
     }
 
-
     protected async fetch(): Promise<void> {
         // do nothing
     }

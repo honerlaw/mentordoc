@@ -1,12 +1,12 @@
-import {GenericAction} from "./generic-action";
-import {IWrappedAction} from "../model/wrapped-action";
-import {ReducerType} from "../model/reducer-type";
-import {RegisterActionHandler} from "../reducer";
-import {IRootState} from "../model/root-state";
 import {Dispatch} from "redux";
+import {ReducerType} from "../model/reducer-type";
+import {IRootState} from "../model/root-state";
+import {IWrappedAction} from "../model/wrapped-action";
+import {RegisterActionHandler} from "../reducer";
+import {GenericAction} from "./generic-action";
 
-export type SelectorMap<T> = { [key: string]: T | null }
-export type DispatchMap<Request> = { [key: string]: ActionDispatchFunction<Request> };
+export interface ISelectorMap<T = any> { [key: string]: T | null; }
+export interface IDispatchMap<Request = any> { [key: string]: ActionDispatchFunction<Request>; }
 export type ActionDispatchFunction<Request> = (req?: Request) => void;
 
 export abstract class SyncAction<State, Request, SelectorValue> extends GenericAction {
@@ -22,7 +22,7 @@ export abstract class SyncAction<State, Request, SelectorValue> extends GenericA
     public action(req?: Request): IWrappedAction<Request> {
         return {
             type: this.type,
-            payload: req
+            payload: req,
         };
     }
 
@@ -30,9 +30,7 @@ export abstract class SyncAction<State, Request, SelectorValue> extends GenericA
         return state;
     }
 
-    public abstract selector(state: IRootState): SelectorMap<SelectorValue>;
-    public abstract dispatch(dispatch: Dispatch): DispatchMap<Request>;
+    public abstract selector(state: IRootState): ISelectorMap<SelectorValue>;
+    public abstract dispatch(dispatch: Dispatch): IDispatchMap<Request>;
 
 }
-
-

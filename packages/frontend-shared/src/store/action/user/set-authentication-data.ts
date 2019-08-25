@@ -1,11 +1,11 @@
-import {SyncAction} from "../sync-action";
-import {IUserState} from "../../model/user/user-state";
-import {AuthenticationData} from "../../model/user/authentication-data";
-import {ReducerType} from "../../model/reducer-type";
-import {IWrappedAction} from "../../model/wrapped-action";
 import {cloneDeep} from "lodash";
 import {AnyAction, Dispatch} from "redux";
+import {ReducerType} from "../../model/reducer-type";
 import {IRootState} from "../../model/root-state";
+import {AuthenticationData} from "../../model/user/authentication-data";
+import {IUserState} from "../../model/user/user-state";
+import {IWrappedAction} from "../../model/wrapped-action";
+import {IDispatchMap, ISelectorMap, SyncAction} from "../sync-action";
 
 const SET_AUTHENTICATION_DATA_TYPE = "set_authentication_data_type";
 
@@ -13,19 +13,18 @@ export interface ISetAuthenticationData {
     data: AuthenticationData;
 }
 
-export type AuthenticationDataSelector = {
+export interface IAuthenticationDataSelector extends ISelectorMap {
     authenticationData: AuthenticationData | null;
-};
-
-export type AuthenticationDataDispatch = {
-    setAuthenticationData: (req?: ISetAuthenticationData) => void;
 }
 
+export interface IAuthenticationDataDispatch extends IDispatchMap {
+    setAuthenticationData: (req?: ISetAuthenticationData) => void;
+}
 
 class SetAuthenticationDataImpl extends SyncAction<IUserState, ISetAuthenticationData, AuthenticationData> {
 
     public constructor() {
-        super(ReducerType.USER, SET_AUTHENTICATION_DATA_TYPE)
+        super(ReducerType.USER, SET_AUTHENTICATION_DATA_TYPE);
     }
 
     public handle(state: IUserState, action: IWrappedAction<ISetAuthenticationData>): IUserState {
@@ -36,15 +35,15 @@ class SetAuthenticationDataImpl extends SyncAction<IUserState, ISetAuthenticatio
         return state;
     }
 
-    dispatch(dispatch: Dispatch<AnyAction>): AuthenticationDataDispatch {
+    public dispatch(dispatch: Dispatch<AnyAction>): IAuthenticationDataDispatch {
         return {
-            setAuthenticationData: (req?: ISetAuthenticationData) => dispatch(this.action(req))
+            setAuthenticationData: (req?: ISetAuthenticationData) => dispatch(this.action(req)),
         };
     }
 
-    selector(state: IRootState): AuthenticationDataSelector {
+    public selector(state: IRootState): IAuthenticationDataSelector {
         return {
-            authenticationData: state.user.authenticationData
+            authenticationData: state.user.authenticationData,
         };
     }
 

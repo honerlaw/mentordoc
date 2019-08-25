@@ -1,10 +1,10 @@
-import {IWrappedAction} from "../model/wrapped-action";
-import {AsyncActionHandler} from "../middleware/async-action-middleware";
 import {MiddlewareAPI} from "redux";
-import {GenericAction} from "./generic-action";
-import {SetRequestStatus} from "./request-status/set-request-status";
+import {AsyncActionHandler} from "../middleware/async-action-middleware";
 import {RequestStatus} from "../model/request-status/request-status";
+import {IWrappedAction} from "../model/wrapped-action";
+import {GenericAction} from "./generic-action";
 import {SetRequestError} from "./request-status/set-request-error";
+import {SetRequestStatus} from "./request-status/set-request-status";
 
 export abstract class AsyncAction<Request> extends GenericAction {
 
@@ -12,12 +12,12 @@ export abstract class AsyncAction<Request> extends GenericAction {
         return async (api: MiddlewareAPI, ...args: any[]): Promise<void> => {
             api.dispatch(SetRequestError.action({
                 actionType: this.type,
-                error: null
+                error: null,
             }));
 
             api.dispatch(SetRequestStatus.action({
                 actionType: this.type,
-                status: RequestStatus.FETCHING
+                status: RequestStatus.FETCHING,
             }));
 
             try {
@@ -25,7 +25,7 @@ export abstract class AsyncAction<Request> extends GenericAction {
 
                 api.dispatch(SetRequestStatus.action({
                     actionType: this.type,
-                    status: RequestStatus.SUCCESS
+                    status: RequestStatus.SUCCESS,
                 }));
             } catch (err) {
                 api.dispatch(SetRequestStatus.action({

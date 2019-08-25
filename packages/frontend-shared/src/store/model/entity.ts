@@ -1,5 +1,3 @@
-
-
 abstract class Entity {
 
     public id: string;

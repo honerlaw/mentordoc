@@ -1,11 +1,11 @@
-import {SyncAction} from "../sync-action";
-import {IRequestStatusState} from "../../model/request-status/request-status-state";
-import {HttpError} from "../../model/request-status/http-error";
 import {cloneDeep} from "lodash";
-import {ReducerType} from "../../model/reducer-type";
-import {IWrappedAction} from "../../model/wrapped-action";
 import {AnyAction, Dispatch} from "redux";
+import {ReducerType} from "../../model/reducer-type";
+import {HttpError} from "../../model/request-status/http-error";
+import {IRequestStatusState} from "../../model/request-status/request-status-state";
 import {IRootState} from "../../model/root-state";
+import {IWrappedAction} from "../../model/wrapped-action";
+import {IDispatchMap, ISelectorMap, SyncAction} from "../sync-action";
 
 export const SET_REQUEST_ERROR_TYPE: string = "set_request_ERROR_type";
 
@@ -16,11 +16,11 @@ export interface ISetRequestError {
 
 type SelectorValue = (type: string) => HttpError | null;
 
-export type RequestErrorSelector = {
+export interface IRequestErrorSelector extends ISelectorMap {
     requestError: SelectorValue;
 }
 
-export type RequestErrorDispatch = {
+export interface IRequestErrorDispatch extends IDispatchMap {
     setRequestError: (req?: ISetRequestError) => void;
 }
 
@@ -38,15 +38,15 @@ class SetRequestErrorImpl extends SyncAction<IRequestStatusState, ISetRequestErr
         return state;
     }
 
-    dispatch(dispatch: Dispatch<AnyAction>): RequestErrorDispatch {
+    public dispatch(dispatch: Dispatch<AnyAction>): IRequestErrorDispatch {
         return {
-            setRequestError: (req?: ISetRequestError) => dispatch(this.action(req))
+            setRequestError: (req?: ISetRequestError) => dispatch(this.action(req)),
         };
     }
 
-    selector(state: IRootState): RequestErrorSelector {
+    public selector(state: IRootState): IRequestErrorSelector {
         return {
-            requestError: (type: string) => state.requestStatus.errorMap[type]
+            requestError: (type: string) => state.requestStatus.errorMap[type],
         };
     }
 
