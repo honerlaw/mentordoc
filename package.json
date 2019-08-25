@@ -1,0 +1,25 @@
+{
+  "name": "@honerlawd/mentordoc",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "lerna": "lerna",
+    "start": "docker-compose up",
+    "stop": "docker-compose down",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/honerlaw/mentordoc.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/honerlaw/mentordoc/issues"
+  },
+  "homepage": "https://github.com/honerlaw/mentordoc#readme",
+  "devDependencies": {
+    "lerna": "^3.16.4"
+  }
+}

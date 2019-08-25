@@ -1,0 +1,30 @@
+{
+  "name": "@honerlawd/mentordoc-frontend-shared",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "clean": "rm -rf ./dist",
+    "build": "tsc -p ./tsconfig.json",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/lodash": "^4.14.137",
+    "class-transformer": "^0.2.3",
+    "class-validator": "^0.10.0",
+    "lodash": "^4.17.15",
+    "react": "^16.9.0",
+    "react-redux": "^7.1.0",
+    "react-router": "^5.0.1",
+    "redux": "^4.0.4"
+  },
+  "devDependencies": {
+    "@types/react": "^16.9.2",
+    "@types/react-redux": "^7.1.2",
+    "@types/react-router": "^5.0.3",
+    "tslint": "^5.19.0",
+    "typescript": "^3.5.3"
+  }
+}

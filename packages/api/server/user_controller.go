@@ -8,18 +8,23 @@ import (
 )
 
 type UserController struct {
-	userService           *UserService
-	validatorService      *util.ValidatorService
-	authenticationService *AuthenticationService
+	userService              *UserService
+	validatorService         *util.ValidatorService
+	authenticationService    *AuthenticationService
+	authenticationMiddleware *AuthenticationMiddleware
 }
 
-func NewUserController(userService *UserService,
+func NewUserController(
+	userService *UserService,
 	validatorService *util.ValidatorService,
-	authenticationService *AuthenticationService) *UserController {
+	authenticationService *AuthenticationService,
+	authenticationMiddleware *AuthenticationMiddleware,
+) *UserController {
 	return &UserController{
-		userService:           userService,
-		validatorService:      validatorService,
-		authenticationService: authenticationService,
+		userService:              userService,
+		validatorService:         validatorService,
+		authenticationService:    authenticationService,
+		authenticationMiddleware: authenticationMiddleware,
 	}
 }
 
@@ -31,6 +36,16 @@ func (controller *UserController) RegisterRoutes(router chi.Router) {
 	router.
 		With(controller.validatorService.Middleware(model.UserSignupRequest{})).
 		Post("/user", controller.signup)
+
+	router.
+		With(controller.authenticationMiddleware.HasAccessToken()).
+		Get("/user", controller.get)
+}
+
+func (controller *UserController) get(w http.ResponseWriter, req *http.Request) {
+	user := controller.authenticationMiddleware.GetUserFromRequest(req)
+
+	util.WriteJsonToResponse(w, http.StatusOK, user)
 }
 
 func (controller *UserController) signin(w http.ResponseWriter, req *http.Request) {

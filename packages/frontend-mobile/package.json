@@ -1,9 +1,11 @@
 {
-  "name": "frontend-lib",
+  "name": "@honerlawd/mentordoc-frontend-mobile",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
+    "clean": "rm -rf ./dist",
+    "build": "tsc -p ./tsconfig.json",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
