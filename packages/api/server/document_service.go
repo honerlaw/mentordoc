@@ -53,40 +53,42 @@ func (service *DocumentService) Create(user *model.User, organizationId string, 
 		return nil, err
 	}
 
-	res, err := service.transactionManager.Transact(service, func(injected interface{}) (interface{}, error) {
-		injectedService := injected.(*DocumentService)
+	document := &model.Document{
+		Name:           name,
+		OrganizationId: organizationId,
+		FolderId:       folderId,
+	}
+	document.Id = uuid.NewV4().String()
 
-		document := &model.Document{
-			Name:           name,
-			OrganizationId: organizationId,
-			FolderId:       folderId,
-		}
-		document.Id = uuid.NewV4().String()
+	documentContent := &model.DocumentContent{
+		DocumentId: document.Id,
+		Content:    content,
+	}
+	documentContent.Id = uuid.NewV4().String()
+
+	_, err = service.transactionManager.Transact(service, func(injected interface{}) (interface{}, error) {
+		injectedService := injected.(*DocumentService)
 
 		err := injectedService.documentRepository.Insert(document)
 		if err != nil {
 			return nil, err
 		}
 
-		documentContent := &model.DocumentContent{
-			DocumentId: document.Id,
-			Content:    content,
-		}
-		documentContent.Id = uuid.NewV4().String()
-
 		err = injectedService.documentContentRepository.Insert(documentContent)
 		if err != nil {
 			return nil, err
 		}
 
-		return document, nil
+		return nil, nil
 	})
 
 	if err != nil {
 		return nil, model.NewInternalServerError("failed to create document")
 	}
 
-	return res.(*model.Document), nil
+	document.Content = documentContent
+
+	return document, nil
 }
 
 func (service *DocumentService) Update(user *model.User, documentId string, name string, content string) (*model.Document, error) {
@@ -119,6 +121,8 @@ func (service *DocumentService) Update(user *model.User, documentId string, name
 		if err != nil {
 			return nil, err
 		}
+
+		document.Content = documentContent
 
 		return document, nil
 	})

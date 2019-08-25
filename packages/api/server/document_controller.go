@@ -1,12 +1,10 @@
 package server
 
 import (
-	"encoding/json"
 	"github.com/go-chi/chi"
 	"github.com/honerlaw/mentordoc/server/acl"
 	"github.com/honerlaw/mentordoc/server/model"
 	"github.com/honerlaw/mentordoc/server/util"
-	"log"
 	"net/http"
 )
 
@@ -126,9 +124,6 @@ func (controller *DocumentController) list(w http.ResponseWriter, req *http.Requ
 		util.WriteHttpError(w, model.NewInternalServerError("found documents but failed to find user access"))
 		return
 	}
-
-	data, _ := json.Marshal(wrapped)
-	log.Print(string(data))
 
 	util.WriteJsonToResponse(w, http.StatusOK, wrapped)
 }

@@ -94,7 +94,7 @@ func TestIntegrationCreateDocumentInOrganization(t *testing.T) {
 
 	status, resp, err := Request(&RequestOptions{
 		Method: "POST",
-		Path: "/document",
+		Path:   "/document",
 		Headers: map[string]string{
 			"Authorization": fmt.Sprintf("Bearer %s", authData.accessToken),
 		},
@@ -179,7 +179,7 @@ func TestIntegrationListDocumentInOrganization(t *testing.T) {
 	aclWrappedModels := make([]model.AclWrappedModel, 0)
 	status, resp, err := Request(&RequestOptions{
 		Method: "GET",
-		Path: fmt.Sprintf("/document/list/%s", org.Id),
+		Path:   fmt.Sprintf("/document/list/%s", org.Id),
 		Headers: map[string]string{
 			"Authorization": fmt.Sprintf("Bearer %s", authData.accessToken),
 		},
@@ -224,7 +224,7 @@ func TestIntegrationListDocumentInOrganizationAndSpecificFolder(t *testing.T) {
 	aclWrappedModels := make([]model.AclWrappedModel, 0)
 	status, resp, err := Request(&RequestOptions{
 		Method: "GET",
-		Path: fmt.Sprintf("/document/list/%s?folderId=%s", org.Id, folder.Id),
+		Path:   fmt.Sprintf("/document/list/%s?folderId=%s", org.Id, folder.Id),
 		Headers: map[string]string{
 			"Authorization": fmt.Sprintf("Bearer %s", authData.accessToken),
 		},
@@ -293,7 +293,7 @@ func TestIntegrationListDocumentInOrganizationAndSpecificFolderWithPaginaton(t *
 	// fetch the next page
 	status, resp, err = Request(&RequestOptions{
 		Method: "GET",
-		Path: fmt.Sprintf("/document/list/%s?folderId=%s&page=1&count=5", org.Id, folder.Id),
+		Path:   fmt.Sprintf("/document/list/%s?folderId=%s&page=1&count=5", org.Id, folder.Id),
 		Headers: map[string]string{
 			"Authorization": fmt.Sprintf("Bearer %s", authData.accessToken),
 		},
@@ -328,5 +328,27 @@ func TestIntegrationUpdateDocument(t *testing.T) {
 	assert.Nil(t, err)
 
 	assert.Equal(t, document.Name, "test document")
+	assert.Equal(t, document.Content.Content, "test content")
 
+	status, resp, err := Request(&RequestOptions{
+		Method: "PUT",
+		Path:   "/document",
+		Headers: map[string]string{
+			"Authorization": fmt.Sprintf("Bearer %s", authData.accessToken),
+		},
+		Body: &model.DocumentUpdateRequest{
+			DocumentId: document.Id,
+			Name:       "new name",
+			Content:    "new content",
+		},
+		ResponseModel: &model.AclWrappedModel{},
+	})
+	assert.Nil(t, err)
+	assert.Equal(t, http.StatusOK, status)
+
+	r := resp.(*model.AclWrappedModel)
+
+	assert.Equal(t, document.Id, r.Model.(map[string]interface{})["id"])
+	assert.Equal(t, "new name", r.Model.(map[string]interface{})["name"])
+	assert.Equal(t, "new content", r.Model.(map[string]interface{})["content"].(map[string]interface{})["content"])
 }
