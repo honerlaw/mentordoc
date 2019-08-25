@@ -12,15 +12,16 @@ func TestIntegrationCreateFolderFailsBecauseNotAuthenticated(t *testing.T) {
 	if !*integration {
 		t.Skip("skipping integration test")
 	}
-	req := &model.FolderCreateRequest{
-		OrganizationId: "10",
-		Name:           "test-name",
-		ParentFolderId: nil,
-	}
-
-	status, _, err := PostItTest(&PostOptions{
-		Path: "/folder",
-	}, req, &model.AclWrappedModel{})
+	status, _, err := Request(&RequestOptions{
+		Method: "POST",
+		Path:   "/folder",
+		Body: &model.FolderCreateRequest{
+			OrganizationId: "10",
+			Name:           "test-name",
+			ParentFolderId: nil,
+		},
+		ResponseModel: &model.AclWrappedModel{},
+	})
 	assert.Nil(t, err)
 	assert.Equal(t, http.StatusUnauthorized, status)
 }
@@ -31,17 +32,19 @@ func TestIntegrationCreateFolderFailsBecauseCanNotFindOrganization(t *testing.T)
 	}
 	authData := SetupAuthentication(t)
 
-	req := &model.FolderCreateRequest{
-		OrganizationId: "10",
-		Name:           "test-name",
-		ParentFolderId: nil,
-	}
-
-	status, _, err := PostItTest(&PostOptions{
-		Path: "/folder", Headers: map[string]string{
+	status, _, err := Request(&RequestOptions{
+		Method: "POST",
+		Path:   "/folder",
+		Headers: map[string]string{
 			"Authorization": fmt.Sprintf("Bearer %s", authData.accessToken),
 		},
-	}, req, &model.AclWrappedModel{})
+		Body: &model.FolderCreateRequest{
+			OrganizationId: "10",
+			Name:           "test-name",
+			ParentFolderId: nil,
+		},
+		ResponseModel: &model.AclWrappedModel{},
+	})
 	assert.Nil(t, err)
 	assert.Equal(t, http.StatusNotFound, status)
 }
@@ -55,17 +58,19 @@ func TestIntegrationCreateFolderFailsBecauseCanNotCreateFolderInOrganization(t *
 	org, err := testServer.OrganizationService.Create("test")
 	assert.Nil(t, err)
 
-	req := &model.FolderCreateRequest{
-		OrganizationId: org.Id,
-		Name:           "test-name",
-		ParentFolderId: nil,
-	}
-
-	status, _, err := PostItTest(&PostOptions{
-		Path: "/folder", Headers: map[string]string{
+	status, _, err := Request(&RequestOptions{
+		Method: "POST",
+		Path:   "/folder",
+		Headers: map[string]string{
 			"Authorization": fmt.Sprintf("Bearer %s", authData.accessToken),
 		},
-	}, req, &model.AclWrappedModel{})
+		Body: &model.FolderCreateRequest{
+			OrganizationId: org.Id,
+			Name:           "test-name",
+			ParentFolderId: nil,
+		},
+		ResponseModel: &model.AclWrappedModel{},
+	})
 	assert.Nil(t, err)
 	assert.Equal(t, http.StatusForbidden, status)
 }
@@ -76,7 +81,6 @@ func TestIntegrationCreateFolder(t *testing.T) {
 	}
 	authData := SetupAuthentication(t)
 
-
 	// create a new org
 	org, err := testServer.OrganizationService.Create("test")
 	assert.Nil(t, err)
@@ -85,17 +89,19 @@ func TestIntegrationCreateFolder(t *testing.T) {
 	err = testServer.AclService.LinkUserToRole(authData.user, "organization:owner", org.Id)
 	assert.Nil(t, err)
 
-	req := &model.FolderCreateRequest{
-		OrganizationId: org.Id,
-		Name:           "test-name",
-		ParentFolderId: nil,
-	}
-
-	status, resp, err := PostItTest(&PostOptions{
-		Path: "/folder", Headers: map[string]string{
+	status, resp, err := Request(&RequestOptions{
+		Method: "POST",
+		Path:   "/folder",
+		Headers: map[string]string{
 			"Authorization": fmt.Sprintf("Bearer %s", authData.accessToken),
 		},
-	}, req, &model.AclWrappedModel{})
+		Body: &model.FolderCreateRequest{
+			OrganizationId: org.Id,
+			Name:           "test-name",
+			ParentFolderId: nil,
+		},
+		ResponseModel: &model.AclWrappedModel{},
+	})
 	assert.Nil(t, err)
 	assert.Equal(t, http.StatusCreated, status)
 
@@ -109,7 +115,6 @@ func TestIntegrationListFolders(t *testing.T) {
 	}
 	authData := SetupAuthentication(t)
 	authDataTwo := SetupAuthentication(t)
-
 
 	// create a new org, that we will add the accessible folder to
 	org, err := testServer.OrganizationService.Create("test")
@@ -128,12 +133,14 @@ func TestIntegrationListFolders(t *testing.T) {
 	assert.Nil(t, err)
 
 	aclWrappedModels := make([]model.AclWrappedModel, 0)
-	status, resp, err := GetItTest(&PostOptions{
-		Path: fmt.Sprintf("/folder/list/%s", org.Id),
+	status, resp, err := Request(&RequestOptions{
+		Method: "GET",
+		Path:   fmt.Sprintf("/folder/list/%s", org.Id),
 		Headers: map[string]string{
 			"Authorization": fmt.Sprintf("Bearer %s", authData.accessToken),
 		},
-	}, &aclWrappedModels)
+		ResponseModel: &aclWrappedModels,
+	})
 	assert.Nil(t, err)
 	assert.Equal(t, http.StatusOK, status)
 

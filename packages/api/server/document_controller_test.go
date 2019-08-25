@@ -12,16 +12,17 @@ func TestIntegrationCreateDocumentFailsBecauseNotAuthenticated(t *testing.T) {
 	if !*integration {
 		t.Skip("skipping integration test")
 	}
-	req := &model.DocumentCreateRequest{
-		OrganizationId: "10",
-		Name:           "test-name",
-		Content:        "some content",
-		FolderId:       nil,
-	}
-
-	status, _, err := PostItTest(&PostOptions{
-		Path: "/document",
-	}, req, &model.AclWrappedModel{})
+	status, _, err := Request(&RequestOptions{
+		Method: "POST",
+		Path:   "/document",
+		Body: &model.DocumentCreateRequest{
+			OrganizationId: "10",
+			Name:           "test-name",
+			Content:        "some content",
+			FolderId:       nil,
+		},
+		ResponseModel: &model.HttpError{},
+	})
 	assert.Nil(t, err)
 	assert.Equal(t, http.StatusUnauthorized, status)
 }
@@ -32,18 +33,20 @@ func TestIntegrationCreateDocumentFailsBecauseCanNotFindOrganization(t *testing.
 	}
 	authData := SetupAuthentication(t)
 
-	req := &model.DocumentCreateRequest{
-		OrganizationId: "10",
-		Name:           "test-name",
-		Content:        "test content",
-		FolderId:       nil,
-	}
-
-	status, _, err := PostItTest(&PostOptions{
-		Path: "/document", Headers: map[string]string{
+	status, _, err := Request(&RequestOptions{
+		Method: "POST",
+		Path:   "/document",
+		Headers: map[string]string{
 			"Authorization": fmt.Sprintf("Bearer %s", authData.accessToken),
 		},
-	}, req, &model.AclWrappedModel{})
+		Body: &model.DocumentCreateRequest{
+			OrganizationId: "10",
+			Name:           "test-name",
+			Content:        "test content",
+			FolderId:       nil,
+		},
+		ResponseModel: &model.HttpError{},
+	})
 	assert.Nil(t, err)
 	assert.Equal(t, http.StatusNotFound, status)
 }
@@ -57,18 +60,20 @@ func TestIntegrationCreateDocumentFailsBecauseCanNotCreateFolderInOrganization(t
 	org, err := testServer.OrganizationService.Create("test")
 	assert.Nil(t, err)
 
-	req := &model.DocumentCreateRequest{
-		OrganizationId: org.Id,
-		Name:           "test-name",
-		Content:        "test",
-		FolderId:       nil,
-	}
-
-	status, _, err := PostItTest(&PostOptions{
-		Path: "/document", Headers: map[string]string{
+	status, _, err := Request(&RequestOptions{
+		Method: "POST",
+		Path:   "/document",
+		Headers: map[string]string{
 			"Authorization": fmt.Sprintf("Bearer %s", authData.accessToken),
 		},
-	}, req, &model.AclWrappedModel{})
+		Body: &model.DocumentCreateRequest{
+			OrganizationId: org.Id,
+			Name:           "test-name",
+			Content:        "test",
+			FolderId:       nil,
+		},
+		ResponseModel: &model.HttpError{},
+	})
 	assert.Nil(t, err)
 	assert.Equal(t, http.StatusForbidden, status)
 }
@@ -87,18 +92,20 @@ func TestIntegrationCreateDocumentInOrganization(t *testing.T) {
 	err = testServer.AclService.LinkUserToRole(authData.user, "organization:owner", org.Id)
 	assert.Nil(t, err)
 
-	req := &model.DocumentCreateRequest{
-		OrganizationId: org.Id,
-		Name:           "test-name",
-		Content:        "test content",
-		FolderId:       nil,
-	}
-
-	status, resp, err := PostItTest(&PostOptions{
-		Path: "/document", Headers: map[string]string{
+	status, resp, err := Request(&RequestOptions{
+		Method: "POST",
+		Path: "/document",
+		Headers: map[string]string{
 			"Authorization": fmt.Sprintf("Bearer %s", authData.accessToken),
 		},
-	}, req, &model.AclWrappedModel{})
+		Body: &model.DocumentCreateRequest{
+			OrganizationId: org.Id,
+			Name:           "test-name",
+			Content:        "test content",
+			FolderId:       nil,
+		},
+		ResponseModel: &model.AclWrappedModel{},
+	})
 	assert.Nil(t, err)
 	assert.Equal(t, http.StatusCreated, status)
 
@@ -124,18 +131,20 @@ func TestIntegrationCreateDocumentInFolder(t *testing.T) {
 	folder, err := testServer.FolderService.Create(authData.user, "test", org.Id, nil)
 	assert.Nil(t, err)
 
-	req := &model.DocumentCreateRequest{
-		OrganizationId: org.Id,
-		Name:           "test-name",
-		Content:        "test content",
-		FolderId:       &folder.Id,
-	}
-
-	status, resp, err := PostItTest(&PostOptions{
-		Path: "/document", Headers: map[string]string{
+	status, resp, err := Request(&RequestOptions{
+		Method: "POST",
+		Path:   "/document",
+		Headers: map[string]string{
 			"Authorization": fmt.Sprintf("Bearer %s", authData.accessToken),
 		},
-	}, req, &model.AclWrappedModel{})
+		Body: &model.DocumentCreateRequest{
+			OrganizationId: org.Id,
+			Name:           "test-name",
+			Content:        "test content",
+			FolderId:       &folder.Id,
+		},
+		ResponseModel: &model.AclWrappedModel{},
+	})
 	assert.Nil(t, err)
 	assert.Equal(t, http.StatusCreated, status)
 
@@ -168,12 +177,14 @@ func TestIntegrationListDocumentInOrganization(t *testing.T) {
 	assert.Nil(t, err)
 
 	aclWrappedModels := make([]model.AclWrappedModel, 0)
-	status, resp, err := GetItTest(&PostOptions{
+	status, resp, err := Request(&RequestOptions{
+		Method: "GET",
 		Path: fmt.Sprintf("/document/list/%s", org.Id),
 		Headers: map[string]string{
 			"Authorization": fmt.Sprintf("Bearer %s", authData.accessToken),
 		},
-	}, &aclWrappedModels)
+		ResponseModel: &aclWrappedModels,
+	})
 	assert.Nil(t, err)
 	assert.Equal(t, http.StatusOK, status)
 
@@ -211,12 +222,14 @@ func TestIntegrationListDocumentInOrganizationAndSpecificFolder(t *testing.T) {
 	assert.Nil(t, err)
 
 	aclWrappedModels := make([]model.AclWrappedModel, 0)
-	status, resp, err := GetItTest(&PostOptions{
+	status, resp, err := Request(&RequestOptions{
+		Method: "GET",
 		Path: fmt.Sprintf("/document/list/%s?folderId=%s", org.Id, folder.Id),
 		Headers: map[string]string{
 			"Authorization": fmt.Sprintf("Bearer %s", authData.accessToken),
 		},
-	}, &aclWrappedModels)
+		ResponseModel: &aclWrappedModels,
+	})
 	assert.Nil(t, err)
 	assert.Equal(t, http.StatusOK, status)
 
@@ -257,12 +270,14 @@ func TestIntegrationListDocumentInOrganizationAndSpecificFolderWithPaginaton(t *
 	assert.Nil(t, err)
 
 	aclWrappedModels := make([]model.AclWrappedModel, 0)
-	status, resp, err := GetItTest(&PostOptions{
-		Path: fmt.Sprintf("/document/list/%s?folderId=%s&page=0&count=5", org.Id, folder.Id),
+	status, resp, err := Request(&RequestOptions{
+		Method: "GET",
+		Path:   fmt.Sprintf("/document/list/%s?folderId=%s&page=0&count=5", org.Id, folder.Id),
 		Headers: map[string]string{
 			"Authorization": fmt.Sprintf("Bearer %s", authData.accessToken),
 		},
-	}, &aclWrappedModels)
+		ResponseModel: &aclWrappedModels,
+	})
 	assert.Nil(t, err)
 	assert.Equal(t, http.StatusOK, status)
 
@@ -276,12 +291,14 @@ func TestIntegrationListDocumentInOrganizationAndSpecificFolderWithPaginaton(t *
 	assert.Equal(t, "test document 12", r[4].Model.(map[string]interface{})["name"])
 
 	// fetch the next page
-	status, resp, err = GetItTest(&PostOptions{
+	status, resp, err = Request(&RequestOptions{
+		Method: "GET",
 		Path: fmt.Sprintf("/document/list/%s?folderId=%s&page=1&count=5", org.Id, folder.Id),
 		Headers: map[string]string{
 			"Authorization": fmt.Sprintf("Bearer %s", authData.accessToken),
 		},
-	}, &aclWrappedModels)
+		ResponseModel: &aclWrappedModels,
+	})
 	assert.Nil(t, err)
 	assert.Equal(t, http.StatusOK, status)
 
@@ -293,4 +310,23 @@ func TestIntegrationListDocumentInOrganizationAndSpecificFolderWithPaginaton(t *
 	assert.Equal(t, "test document 15", r[2].Model.(map[string]interface{})["name"])
 	assert.Equal(t, "test document 16", r[3].Model.(map[string]interface{})["name"])
 	assert.Equal(t, "test document 17", r[4].Model.(map[string]interface{})["name"])
+}
+
+func TestIntegrationUpdateDocument(t *testing.T) {
+	if !*integration {
+		t.Skip("skipping integration test")
+	}
+	authData := SetupAuthentication(t)
+
+	org, err := testServer.OrganizationService.Create("test")
+	assert.Nil(t, err)
+	err = testServer.AclService.LinkUserToRole(authData.user, "organization:owner", org.Id)
+	assert.Nil(t, err)
+	folder, err := testServer.FolderService.Create(authData.user, "test folder", org.Id, nil)
+	assert.Nil(t, err)
+	document, err := testServer.DocumentService.Create(authData.user, org.Id, &folder.Id, "test document", "test content")
+	assert.Nil(t, err)
+
+	assert.Equal(t, document.Name, "test document")
+
 }

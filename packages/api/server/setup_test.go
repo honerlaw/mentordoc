@@ -86,82 +86,68 @@ func SetupAuthentication(t *testing.T) *AuthData {
 	}
 }
 
-type PostOptions struct {
+type RequestOptions struct {
+	Method string
 	Path    string
 	Headers map[string]string
+	Body interface{}
+	ResponseModel interface{}
 }
 
-func GetItTest(options *PostOptions, resp interface{}) (int, interface{}, error) {
+/**
+Utility method to make an http request and get the response body
+ */
+func Request(options *RequestOptions) (int, interface{}, error) {
+
+	// attempt to convert the body to byte array
+	var data []byte
+	if options.Body != nil {
+		marshalled, err := json.Marshal(options.Body)
+		if err != nil {
+			return -1, nil, err
+		}
+		data = marshalled
+	}
+
+	// build the url
 	url := fmt.Sprintf("http://%s:%s/v1%s", os.Getenv("HOST"), os.Getenv("PORT"), options.Path)
 
-	req, err := http.NewRequest("GET", url, bytes.NewBuffer([]byte{}))
+	// create the request
+	req, err := http.NewRequest(options.Method, url, bytes.NewBuffer(data))
 	if err != nil {
+		log.Print(err)
 		return -1, nil, err
 	}
 
+	// set headers
 	req.Header.Set("Content-Type", "application/json")
 	for key, value := range options.Headers {
 		req.Header.Set(key, value)
 	}
 
+	// do the request
 	response, err := http.DefaultClient.Do(req)
 	if err != nil {
+		log.Print(err)
 		return -1, nil, err
 	}
 
-	data, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		return -1, nil, err
-	}
-
-	if resp == true {
-		return response.StatusCode, data, nil
-	}
-
-	err = json.Unmarshal(data, resp)
-	if err != nil {
-		return -1, nil, err
-	}
-
-	return response.StatusCode, resp, nil
-}
-
-func PostItTest(options *PostOptions, body interface{}, resp interface{}) (int, interface{}, error) {
-	data, err := json.Marshal(body)
-	if err != nil {
-		return -1, nil, err
-	}
-
-	url := fmt.Sprintf("http://%s:%s/v1%s", os.Getenv("HOST"), os.Getenv("PORT"), options.Path)
-
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(data))
-	if err != nil {
-		return -1, nil, err
-	}
-
-	req.Header.Set("Content-Type", "application/json")
-	for key, value := range options.Headers {
-		req.Header.Set(key, value)
-	}
-
-	response, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return -1, nil, err
-	}
-
+	// read the content in
 	data, err = ioutil.ReadAll(response.Body)
 	if err != nil {
+		log.Print(err)
 		return -1, nil, err
 	}
 
-	if resp == true {
+	if len(data) == 0 || options.ResponseModel == true {
 		return response.StatusCode, data, nil
 	}
 
-	err = json.Unmarshal(data, resp)
+	err = json.Unmarshal(data, options.ResponseModel)
 	if err != nil {
+		log.Print(err)
 		return -1, nil, err
 	}
 
-	return response.StatusCode, resp, nil
+	return response.StatusCode, options.ResponseModel, nil
 }

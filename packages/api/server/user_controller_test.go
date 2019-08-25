@@ -11,8 +11,12 @@ func TestIntegrationSigninValidationFailure(t *testing.T) {
 	if !*integration {
 		t.Skip("skipping integration test")
 	}
-	req := &model.UserSigninRequest{}
-	status, resp, err := PostItTest(&PostOptions{Path: "/user/auth"}, req, &model.HttpError{})
+	status, resp, err := Request(&RequestOptions{
+		Method:        "POST",
+		Path:          "/user/auth",
+		Body:          &model.UserSigninRequest{},
+		ResponseModel: &model.HttpError{},
+	})
 	assert.Nil(t, err)
 	assert.Equal(t, status, http.StatusBadRequest)
 	assert.Len(t, resp.(*model.HttpError).Errors, 2)
@@ -22,11 +26,15 @@ func TestIntegrationSigninUserDoesntExist(t *testing.T) {
 	if !*integration {
 		t.Skip("skipping integration test")
 	}
-	req := &model.UserSigninRequest{
-		Email:    "foo@bar.com",
-		Password: "baz",
-	}
-	status, resp, err := PostItTest(&PostOptions{Path: "/user/auth"}, req, &model.HttpError{})
+	status, resp, err := Request(&RequestOptions{
+		Method: "POST",
+		Path:   "/user/auth",
+		Body: &model.UserSigninRequest{
+			Email:    "foo@bar.com",
+			Password: "baz",
+		},
+		ResponseModel: &model.HttpError{},
+	})
 	assert.Nil(t, err)
 	assert.Equal(t, status, http.StatusBadRequest)
 	assert.Len(t, resp.(*model.HttpError).Errors, 1)
@@ -36,11 +44,14 @@ func TestIntegrationSignupUserDoesntExist(t *testing.T) {
 	if !*integration {
 		t.Skip("skipping integration test")
 	}
-	req := &model.UserSignupRequest{
-		Email:    "foo@bar.com",
-		Password: "foobarbaz",
-	}
-	status, resp, err := PostItTest(&PostOptions{Path: "/user"}, req, &model.AuthenticationResponse{})
+	status, resp, err := Request(&RequestOptions{
+		Method: "POST",
+		Path:   "/user",
+		Body: &model.UserSignupRequest{
+			Email:    "foo@bar.com",
+			Password: "foobarbaz",
+		}, ResponseModel: &model.AuthenticationResponse{},
+	})
 	assert.Nil(t, err)
 	assert.Equal(t, status, http.StatusOK)
 	assert.NotEmpty(t, resp.(*model.AuthenticationResponse).AccessToken)
@@ -51,19 +62,27 @@ func TestIntegrationSignupAndThenSignin(t *testing.T) {
 	if !*integration {
 		t.Skip("skipping integration test")
 	}
-	req := &model.UserSignupRequest{
-		Email:    "footest@bar.com",
-		Password: "foobarbaz",
-	}
-	status, resp, err := PostItTest(&PostOptions{Path: "/user"}, req, &model.AuthenticationResponse{})
+	status, resp, err := Request(&RequestOptions{
+		Method: "POST",
+		Path:   "/user",
+		Body: &model.UserSignupRequest{
+			Email:    "footest@bar.com",
+			Password: "foobarbaz",
+		},
+		ResponseModel: &model.AuthenticationResponse{},
+	})
 	assert.Nil(t, err)
 	assert.Equal(t, status, http.StatusOK)
 
-	signinReq := &model.UserSigninRequest{
-		Email:    "footest@bar.com",
-		Password: "foobarbaz",
-	}
-	status, resp, err = PostItTest(&PostOptions{Path: "/user/auth"}, signinReq, &model.AuthenticationResponse{})
+	status, resp, err = Request(&RequestOptions{
+		Method: "POST",
+		Path:   "/user/auth",
+		Body: &model.UserSigninRequest{
+			Email:    "footest@bar.com",
+			Password: "foobarbaz",
+		},
+		ResponseModel: &model.AuthenticationResponse{},
+	})
 	assert.Nil(t, err)
 	assert.Equal(t, status, http.StatusOK)
 
