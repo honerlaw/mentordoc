@@ -6,7 +6,7 @@ import {GenericAction} from "./generic-action";
 import {SetRequestError} from "./request-status/set-request-error";
 import {SetRequestStatus} from "./request-status/set-request-status";
 
-export abstract class AsyncAction<Request> extends GenericAction {
+export abstract class AsyncAction<Request> extends GenericAction<Request> {
 
     public action(req?: Request): AsyncActionHandler<void> {
         return async (api: MiddlewareAPI, ...args: any[]): Promise<void> => {

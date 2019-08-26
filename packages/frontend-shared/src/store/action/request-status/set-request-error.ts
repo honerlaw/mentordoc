@@ -5,7 +5,8 @@ import {HttpError} from "../../model/request-status/http-error";
 import {IRequestStatusState} from "../../model/request-status/request-status-state";
 import {IRootState} from "../../model/root-state";
 import {IWrappedAction} from "../../model/wrapped-action";
-import {IDispatchMap, ISelectorMap, SyncAction} from "../sync-action";
+import {ISelectorMap, SyncAction} from "../sync-action";
+import {IDispatchMap} from "../generic-action";
 
 export const SET_REQUEST_ERROR_TYPE: string = "set_request_ERROR_type";
 
@@ -27,7 +28,7 @@ export interface IRequestErrorDispatch extends IDispatchMap {
 class SetRequestErrorImpl extends SyncAction<IRequestStatusState, ISetRequestError, SelectorValue> {
 
     public constructor() {
-        super(ReducerType.REQUEST_STATUS, SET_REQUEST_ERROR_TYPE);
+        super(ReducerType.REQUEST_STATUS, SET_REQUEST_ERROR_TYPE, "requestError", "setRequestError");
     }
 
     public handle(state: IRequestStatusState, action: IWrappedAction<ISetRequestError>): IRequestStatusState {
@@ -38,16 +39,8 @@ class SetRequestErrorImpl extends SyncAction<IRequestStatusState, ISetRequestErr
         return state;
     }
 
-    public dispatch(dispatch: Dispatch<AnyAction>): IRequestErrorDispatch {
-        return {
-            setRequestError: (req?: ISetRequestError) => dispatch(this.action(req)),
-        };
-    }
-
-    public selector(state: IRootState): IRequestErrorSelector {
-        return {
-            requestError: (type: string) => state.requestStatus.errorMap[type],
-        };
+    getSelectorValue(state: IRootState): ((type: string) => (HttpError | null)) | null {
+        return (type: string): HttpError | null => state.requestStatus.errorMap[type];
     }
 
 }

@@ -1,0 +1,31 @@
+@mixin transform($args...) {
+  -webkit-transform: $args;
+  -moz-transform: $args;
+  -ms-transform: $args;
+  -o-transform: $args;
+  transform: $args;
+}
+
+@mixin box-shadow($args...) {
+  -webkit-box-shadow: $args;
+  -moz-box-shadow: $args;
+  box-shadow: $args;
+}
+
+@mixin box-sizing($args...) {
+  -webkit-box-sizing: $args;
+  -moz-box-sizing: $args;
+  box-sizing: $args;
+}
+
+@mixin smartphones() {
+  @media only screen and (min-device-width : 320px) and (max-device-width : 480px) {
+    @content;
+  }
+}
+
+@mixin tablets() {
+  @media only screen and (min-device-width : 768px) and (max-device-width : 1024px) {
+    @content;
+  }
+}

@@ -5,7 +5,8 @@ import {IRootState} from "../../model/root-state";
 import {AuthenticationData} from "../../model/user/authentication-data";
 import {IUserState} from "../../model/user/user-state";
 import {IWrappedAction} from "../../model/wrapped-action";
-import {IDispatchMap, ISelectorMap, SyncAction} from "../sync-action";
+import {ISelectorMap, SyncAction} from "../sync-action";
+import {IDispatchMap} from "../generic-action";
 
 const SET_AUTHENTICATION_DATA_TYPE = "set_authentication_data_type";
 
@@ -24,7 +25,7 @@ export interface IAuthenticationDataDispatch extends IDispatchMap {
 class SetAuthenticationDataImpl extends SyncAction<IUserState, ISetAuthenticationData, AuthenticationData> {
 
     public constructor() {
-        super(ReducerType.USER, SET_AUTHENTICATION_DATA_TYPE);
+        super(ReducerType.USER, SET_AUTHENTICATION_DATA_TYPE, "authenticationData", "setAuthenticationData");
     }
 
     public handle(state: IUserState, action: IWrappedAction<ISetAuthenticationData>): IUserState {
@@ -35,16 +36,8 @@ class SetAuthenticationDataImpl extends SyncAction<IUserState, ISetAuthenticatio
         return state;
     }
 
-    public dispatch(dispatch: Dispatch<AnyAction>): IAuthenticationDataDispatch {
-        return {
-            setAuthenticationData: (req?: ISetAuthenticationData) => dispatch(this.action(req)),
-        };
-    }
-
-    public selector(state: IRootState): IAuthenticationDataSelector {
-        return {
-            authenticationData: state.user.authenticationData,
-        };
+    public getSelectorValue(state: IRootState): AuthenticationData | null {
+        return state.user.authenticationData;
     }
 
 }

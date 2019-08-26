@@ -16,12 +16,16 @@ interface IDefaultPropMap {
     [key: string]: any;
 }
 
-interface ISelectorPropMap<T = IDefaultPropMap> {
+export interface ISelectorPropMap<T = IDefaultPropMap> {
     selector: T;
 }
 
-interface IDispatchPropMap<T = IDefaultPropMap> {
+export interface IDispatchPropMap<T = IDefaultPropMap> {
     dispatch: T;
+}
+
+interface IMap {
+    [key: string]: any;
 }
 
 export function ConnectProps(
@@ -33,28 +37,30 @@ export function ConnectProps(
 
 export function CombineSelectors(...selectors: Selector[]): (state: IRootState) => ISelectorPropMap {
     return (state: IRootState): ISelectorPropMap => {
-        const map: ISelectorPropMap = {
-            selector: {},
+        return {
+            selector: selectors.map((selector: Selector): IMap => {
+                return selector(state);
+            }).reduce((one: IMap, two: IMap): IMap => {
+                return {
+                    ...one,
+                    ...two,
+                }
+            }, {})
         };
-
-        selectors.map((selector: Selector): { [key: string]: any } => {
-            return selector(state);
-        });
-
-        return map;
     };
 }
 
 export function CombineDispatchers(...dispatchers: Dispatcher[]): (dispatch: Dispatch<AnyAction>) => IDispatchPropMap {
     return (dispatch: Dispatch<AnyAction>): IDispatchPropMap => {
-        const map: IDispatchPropMap = {
-            dispatch: {},
+        return {
+            dispatch: dispatchers.map((dispatcher: Dispatcher): IMap => {
+                return dispatcher(dispatch);
+            }).reduce((one: IMap, two: IMap): IMap => {
+                return {
+                    ...one,
+                    ...two,
+                }
+            }, {})
         };
-
-        dispatchers.map((dispatcher: Dispatcher): { [key: string]: any } => {
-            return dispatcher(dispatch);
-        });
-
-        return map;
     };
 }

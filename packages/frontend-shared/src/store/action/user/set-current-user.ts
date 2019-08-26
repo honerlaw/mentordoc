@@ -6,7 +6,8 @@ import {IRootState} from "../../model/root-state";
 import {User} from "../../model/user/user";
 import {IUserState} from "../../model/user/user-state";
 import {IWrappedAction} from "../../model/wrapped-action";
-import {IDispatchMap, ISelectorMap, SyncAction} from "../sync-action";
+import {ISelectorMap, SyncAction} from "../sync-action";
+import {IDispatchMap} from "../generic-action";
 
 const SET_CURRENT_USER_TYPE = "set_current_user_type";
 
@@ -25,7 +26,7 @@ export interface ICurrentUserDispatch extends IDispatchMap {
 class SetCurrentUserImpl extends SyncAction<IUserState, ISetCurrentUser, User> {
 
     public constructor() {
-        super(ReducerType.USER, SET_CURRENT_USER_TYPE);
+        super(ReducerType.USER, SET_CURRENT_USER_TYPE, "currentUser", "setCurrentUser");
     }
 
     public handle(state: IUserState, action: IWrappedAction<ISetCurrentUser>): IUserState {
@@ -36,16 +37,8 @@ class SetCurrentUserImpl extends SyncAction<IUserState, ISetCurrentUser, User> {
         return state;
     }
 
-    public dispatch(dispatch: Dispatch<AnyAction>): ICurrentUserDispatch {
-        return {
-            setCurrentUser: (req?: ISetCurrentUser) => dispatch(this.action(req)),
-        };
-    }
-
-    public selector(state: IRootState): ICurrentUserSelector {
-        return {
-            currentUser: state.user.currentUser,
-        };
+    public getSelectorValue(state: IRootState): User | null {
+        return state.user.currentUser;
     }
 
 }

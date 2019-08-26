@@ -1,0 +1,10 @@
+@import "../constant";
+
+@mixin rounded-dark-button() {
+  background-color: $blue;
+  color: $white;
+  border: none;
+  border-radius: $default-border-radius;
+  padding: 10px 30px;
+  font-size: .9rem;
+}

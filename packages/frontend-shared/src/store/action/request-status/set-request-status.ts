@@ -5,7 +5,8 @@ import {RequestStatus} from "../../model/request-status/request-status";
 import {IRequestStatusState} from "../../model/request-status/request-status-state";
 import {IRootState} from "../../model/root-state";
 import {IWrappedAction} from "../../model/wrapped-action";
-import {IDispatchMap, ISelectorMap, SyncAction} from "../sync-action";
+import {ISelectorMap, SyncAction} from "../sync-action";
+import {IDispatchMap} from "../generic-action";
 
 export const SET_REQUEST_STATUS_TYPE: string = "set_request_status_type";
 
@@ -27,7 +28,7 @@ export interface IRequestStatusDispatch extends IDispatchMap {
 class SetRequestStatusImpl extends SyncAction<IRequestStatusState, ISetRequestStatus, SelectorValue> {
 
     public constructor() {
-        super(ReducerType.REQUEST_STATUS, SET_REQUEST_STATUS_TYPE);
+        super(ReducerType.REQUEST_STATUS, SET_REQUEST_STATUS_TYPE, "requestStatus", "setRequestStatus");
     }
 
     public handle(state: IRequestStatusState, action: IWrappedAction<ISetRequestStatus>): IRequestStatusState {
@@ -38,16 +39,8 @@ class SetRequestStatusImpl extends SyncAction<IRequestStatusState, ISetRequestSt
         return state;
     }
 
-    public dispatch(dispatch: Dispatch<AnyAction>): IRequestStatusDispatch {
-        return {
-            setRequestStatus: (req?: ISetRequestStatus) => dispatch(this.action(req)),
-        };
-    }
-
-    public selector(state: IRootState): IRequestStatusSelector {
-        return {
-            requestStatus: (type: string): RequestStatus => state.requestStatus.statusMap[type],
-        };
+    getSelectorValue(state: IRootState): ((type: string) => RequestStatus) | null {
+        return (type: string): RequestStatus => state.requestStatus.statusMap[type];
     }
 
 }

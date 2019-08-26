@@ -1,11 +1,22 @@
 import {AsyncAction} from "../async-action";
+import {AnyAction, Dispatch} from "redux";
+import {IDispatchMap} from "../generic-action";
 
 const SIGNIN_TYPE = "signin_type";
 
-export class SigninImpl extends AsyncAction<void> {
+export interface ISignin {
+    email: string;
+    password: string;
+}
+
+export interface SigninDispatchMap extends IDispatchMap {
+    signin: (req?: ISignin) => Promise<void>;
+}
+
+export class SigninImpl extends AsyncAction<ISignin> {
 
     public constructor() {
-        super(SIGNIN_TYPE);
+        super(SIGNIN_TYPE, "signin");
     }
 
     protected async fetch(): Promise<void> {

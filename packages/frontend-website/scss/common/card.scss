@@ -1,0 +1,9 @@
+@import "../constant";
+@import "../mixin";
+
+@mixin card() {
+  padding: 30px;
+  background-color: $white;
+  border-radius: $default-border-radius;
+  @include box-shadow(0 0 2px $grey);
+}
