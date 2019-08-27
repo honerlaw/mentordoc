@@ -1,5 +1,9 @@
 import {AsyncAction} from "../async-action";
 import {IDispatchMap} from "../generic-action";
+import {request} from "../../../util/request";
+import {AuthenticationData} from "../../model/user/authentication-data";
+import {MiddlewareAPI} from "redux";
+import {SetAuthenticationData} from "./set-authentication-data";
 
 const SIGNUP_TYPE = "signup_type";
 
@@ -19,8 +23,17 @@ export class SignupImpl extends AsyncAction<ISignup> {
         super(SIGNUP_TYPE, "signup");
     }
 
-    protected async fetch(req: ISignup): Promise<void> {
-        console.log(process.env.API_PORT, process.env.API_HOST);
+    protected async fetch(api: MiddlewareAPI, req: ISignup): Promise<void> {
+        const authData: AuthenticationData | null = await request({
+            method: "POST",
+            path: "/user",
+            model: AuthenticationData,
+            body: req
+        });
+
+        api.dispatch(SetAuthenticationData.action({
+            data: authData
+        }));
     }
 
 }

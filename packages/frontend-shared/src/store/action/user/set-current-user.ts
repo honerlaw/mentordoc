@@ -12,7 +12,7 @@ import {IDispatchMap} from "../generic-action";
 const SET_CURRENT_USER_TYPE = "set_current_user_type";
 
 export interface ISetCurrentUser {
-    currentUser: User;
+    currentUser: User | null;
 }
 
 export interface ICurrentUserSelector extends ISelectorMap {

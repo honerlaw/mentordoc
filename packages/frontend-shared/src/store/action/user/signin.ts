@@ -1,5 +1,5 @@
 import {AsyncAction} from "../async-action";
-import {AnyAction, Dispatch} from "redux";
+import {MiddlewareAPI} from "redux";
 import {IDispatchMap} from "../generic-action";
 
 const SIGNIN_TYPE = "signin_type";
@@ -19,7 +19,7 @@ export class SigninImpl extends AsyncAction<ISignin> {
         super(SIGNIN_TYPE, "signin");
     }
 
-    protected async fetch(): Promise<void> {
+    protected async fetch(api: MiddlewareAPI): Promise<void> {
         console.log(process.env.API_PORT, process.env.API_HOST);
     }
 

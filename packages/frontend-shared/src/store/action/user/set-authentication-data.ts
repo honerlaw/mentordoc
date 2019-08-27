@@ -11,7 +11,7 @@ import {IDispatchMap} from "../generic-action";
 const SET_AUTHENTICATION_DATA_TYPE = "set_authentication_data_type";
 
 export interface ISetAuthenticationData {
-    data: AuthenticationData;
+    data: AuthenticationData | null;
 }
 
 export interface IAuthenticationDataSelector extends ISelectorMap {

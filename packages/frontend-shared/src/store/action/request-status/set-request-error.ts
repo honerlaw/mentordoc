@@ -8,7 +8,7 @@ import {IWrappedAction} from "../../model/wrapped-action";
 import {ISelectorMap, SyncAction} from "../sync-action";
 import {IDispatchMap} from "../generic-action";
 
-export const SET_REQUEST_ERROR_TYPE: string = "set_request_ERROR_type";
+export const SET_REQUEST_ERROR_TYPE: string = "set_request_error_type";
 
 export interface ISetRequestError {
     actionType: string;
