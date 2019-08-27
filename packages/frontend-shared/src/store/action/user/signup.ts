@@ -1,5 +1,4 @@
 import {AsyncAction} from "../async-action";
-import {AnyAction, Dispatch} from "redux";
 import {IDispatchMap} from "../generic-action";
 
 const SIGNUP_TYPE = "signup_type";
@@ -21,7 +20,7 @@ export class SignupImpl extends AsyncAction<ISignup> {
     }
 
     protected async fetch(req: ISignup): Promise<void> {
-        // do nothing
+        console.log(process.env.API_PORT, process.env.API_HOST);
     }
 
 }

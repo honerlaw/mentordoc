@@ -1,5 +1,9 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const EnvironmentPlugin = require('webpack').EnvironmentPlugin;
+const dotenv = require('dotenv');
+
+dotenv.config();
 
 module.exports = {
     mode: 'development',
@@ -15,11 +19,20 @@ module.exports = {
         port: 9000,
         historyApiFallback: true
     },
+    watchOptions: {
+
+        // watch frontend-shared for changes and recompile
+        ignored: [
+            /node_modules([\\]+|\/)+(?!@honerlawd\/mentordoc-frontend-shared)/,
+            /\@honerlawd\/mentordoc-frontend-shared([\\]+|\/)node_modules/
+        ]
+    },
     resolve: {
         // Add `.ts` and `.tsx` as a resolvable extension.
         extensions: [".ts", ".tsx", ".js"]
     },
     plugins: [
+        new EnvironmentPlugin(Object.keys(process.env)),
         new HtmlWebpackPlugin({
             title: "mentordoc",
             meta: {

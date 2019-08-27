@@ -10,6 +10,7 @@ require (
 	github.com/go-sql-driver/mysql v1.4.1
 	github.com/golang-migrate/migrate v3.5.4+incompatible
 	github.com/google/go-cmp v0.3.1 // indirect
+	github.com/joho/godotenv v1.3.0
 	github.com/leodido/go-urn v1.1.0 // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/satori/go.uuid v1.2.0

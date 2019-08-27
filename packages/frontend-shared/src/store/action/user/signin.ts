@@ -20,7 +20,7 @@ export class SigninImpl extends AsyncAction<ISignin> {
     }
 
     protected async fetch(): Promise<void> {
-        // do nothing
+        console.log(process.env.API_PORT, process.env.API_HOST);
     }
 
 }

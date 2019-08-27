@@ -9,6 +9,7 @@ import (
 	"github.com/honerlaw/mentordoc/server"
 	"github.com/honerlaw/mentordoc/server/model"
 	"github.com/honerlaw/mentordoc/server/util"
+	"github.com/joho/godotenv"
 	uuid "github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
@@ -26,6 +27,8 @@ var testServer *server.Server
 func TestMain(m *testing.M) {
 	flag.Parse()
 
+	_ = godotenv.Load(".env.test")
+
 	if *integration {
 		cmd := exec.Command("bash", "-c", "docker kill mentordoc-mysql; docker rm mentordoc-mysql; docker run --name mentordoc-mysql -p 33060:3306 -e MYSQL_USER=userlocal -e MYSQL_ROOT_PASSWORD=password -e MYSQL_PASSWORD=password -e MYSQL_DATABASE=mentor_doc --tmpfs /var/lib/mysql -d mysql:5.7")
 		_, err := cmd.CombinedOutput()
@@ -33,17 +36,7 @@ func TestMain(m *testing.M) {
 			log.Fatal(err)
 		}
 
-		// set envs required for everything to work
-		// @todo these should be loaded from a dotenv or something similarish
-		os.Setenv("HOST", "localhost")
-		os.Setenv("PORT", "9000")
-		os.Setenv("DATABASE_NAME", "mentor_doc")
-		os.Setenv("DATABASE_USERNAME", "userlocal")
-		os.Setenv("DATABASE_PASSWORD", "password")
-		os.Setenv("DATABASE_HOST", "0.0.0.0")
-		os.Setenv("DATABASE_PORT", "33060")
-		os.Setenv("MIGRATION_DIR", "../migrations")
-		os.Setenv("JWT_SIGNING_KEY", "it-test-key")
+		_ = os.Setenv("MIGRATION_DIR", "../migrations")
 
 		testServer = server.StartServer(nil)
 
@@ -110,7 +103,7 @@ func Request(options *RequestOptions) (int, interface{}, error) {
 	}
 
 	// build the url
-	url := fmt.Sprintf("http://%s:%s/v1%s", os.Getenv("HOST"), os.Getenv("PORT"), options.Path)
+	url := fmt.Sprintf("http://%s:%s/v1%s", os.Getenv("API_HOST"), os.Getenv("API_PORT"), options.Path)
 
 	// create the request
 	req, err := http.NewRequest(options.Method, url, bytes.NewBuffer(data))

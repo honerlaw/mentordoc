@@ -81,7 +81,7 @@ func StartServer(waitGroup *sync.WaitGroup) *Server {
 	})
 
 	httpServer := &http.Server{
-		Addr:    fmt.Sprintf("%s:%s", os.Getenv("HOST"), os.Getenv("PORT")),
+		Addr:    fmt.Sprintf("%s:%s", os.Getenv("API_HOST"), os.Getenv("API_PORT")),
 		Handler: router,
 	}
 

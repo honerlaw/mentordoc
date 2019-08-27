@@ -68,13 +68,10 @@ export class SignupPage extends React.Component<IProps, IState> {
     private async onSubmit(event: React.FormEvent): Promise<void> {
         event.preventDefault();
 
-        console.log(this.props);
-
         await this.props.dispatch.signup({
             fullName: this.state.fullName,
             email: this.state.email,
             password: this.state.password,
         });
-
     }
 }
