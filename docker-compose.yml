@@ -33,5 +33,12 @@ services:
       - ./:/opt/server
     depends_on:
       - db
+  website:
+    image: node:10.13.0
+    command: ["/bin/bash", "-c", "cd /opt/mentordoc && npm rebuild node-sass && cd /opt/mentordoc/packages/frontend-website && npm run start"]
+    ports:
+      - "9000:9000"
+    volumes:
+      - ${CURDIR}:/opt/mentordoc
 volumes:
   mentor-doc-db:

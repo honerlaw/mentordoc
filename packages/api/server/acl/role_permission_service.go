@@ -89,5 +89,9 @@ func (service *RolePermissionService) CreateRoleWithPermissions(roleName string,
 		return role, nil
 	})
 
-	return role.(*model.Role), err
+	if err != nil {
+		return nil, err
+	}
+
+	return role.(*model.Role), nil
 }

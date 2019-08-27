@@ -60,7 +60,7 @@ func StartServer(waitGroup *sync.WaitGroup) *Server {
 	authenticationMiddleware := NewAuthenticationMiddleware(authenticationService, userService)
 
 	// controllers
-	userController := NewUserController(userService, validatorService, authenticationService)
+	userController := NewUserController(userService, validatorService, authenticationService, authenticationMiddleware)
 	folderController := NewFolderController(validatorService, folderService, authenticationMiddleware, aclService)
 	documentController := NewDocumentController(validatorService, documentService, authenticationMiddleware, aclService)
 

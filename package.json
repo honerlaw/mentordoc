@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "lerna": "lerna",
-    "start": "docker-compose up",
-    "stop": "docker-compose down",
+    "start": "npm run stop && CURDIR=$(pwd) docker-compose up",
+    "stop": "CURDIR=$(pwd) docker-compose down",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
