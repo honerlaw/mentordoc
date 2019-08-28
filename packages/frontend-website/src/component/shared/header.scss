@@ -1,0 +1,16 @@
+@import "../../../scss/constant";
+
+#header {
+  display: flex;
+  height: 60px;
+  background-color: $blue;
+  width: 100%;
+  align-items: center;
+  padding: 0 30px;
+  .logo {
+    font-size: 1.3rem;
+    color: $white;
+    font-family: $font-family-custom;
+    text-decoration: none;
+  }
+}

@@ -5,7 +5,7 @@ import "./main.scss";
 import {SigninPage} from "./auth/signin-page";
 import {SignupPage} from "./auth/signup-page";
 
-export class Main extends React.Component<{}, {}> {
+export class Main extends React.PureComponent<{}, {}> {
 
     public render(): JSX.Element | null {
         return <Switch>

@@ -15,17 +15,19 @@ export interface ISetRequestError {
     error: HttpError | null;
 }
 
-type SelectorValue = (type: string) => HttpError | null;
+interface ISelectorValue {
+    [actionType: string]: HttpError | null;
+}
 
 export interface IRequestErrorSelector extends ISelectorMap {
-    requestError: SelectorValue;
+    requestError: ISelectorValue;
 }
 
 export interface IRequestErrorDispatch extends IDispatchMap {
     setRequestError: (req?: ISetRequestError) => void;
 }
 
-class SetRequestErrorImpl extends SyncAction<IRequestStatusState, ISetRequestError, SelectorValue> {
+class SetRequestErrorImpl extends SyncAction<IRequestStatusState, ISetRequestError, ISelectorValue> {
 
     public constructor() {
         super(ReducerType.REQUEST_STATUS, SET_REQUEST_ERROR_TYPE, "requestError", "setRequestError");
@@ -39,8 +41,8 @@ class SetRequestErrorImpl extends SyncAction<IRequestStatusState, ISetRequestErr
         return state;
     }
 
-    getSelectorValue(state: IRootState): ((type: string) => (HttpError | null)) | null {
-        return (type: string): HttpError | null => state.requestStatus.errorMap[type];
+    public getSelectorValue(state: IRootState): ISelectorValue {
+        return state.requestStatus.errorMap;
     }
 
 }

@@ -2,7 +2,8 @@
 @import "../mixin";
 
 @mixin input() {
-  border: 1px solid $grey;
+  border: none;
+  border-bottom: 1px solid $grey;
   margin: 10px 0;
   padding: 10px;
   font-size: 1rem;
