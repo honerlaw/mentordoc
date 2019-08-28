@@ -6,14 +6,20 @@ import {GenericAction} from "./generic-action";
 import {SetRequestError} from "./request-status/set-request-error";
 import {SetRequestStatus} from "./request-status/set-request-status";
 import {HttpError} from "../model/request-status/http-error";
+import {ClearAlerts} from "./alert/clear-alerts";
+import {AddAlert} from "./alert/add-alert";
+import {Alert, AlertType} from "../model/alert/alert";
+import {plainToClass} from "class-transformer";
 
 export abstract class AsyncAction<Request> extends GenericAction<Request> {
 
     public action(req?: Request): AsyncActionHandler<void> {
         return async (api: MiddlewareAPI, ...args: any[]): Promise<void> => {
+            api.dispatch(ClearAlerts.action());
+
             api.dispatch(SetRequestError.action({
                 actionType: this.type,
-                error: null,
+                error: null
             }));
 
             api.dispatch(SetRequestStatus.action({
@@ -29,6 +35,8 @@ export abstract class AsyncAction<Request> extends GenericAction<Request> {
                     status: RequestStatus.SUCCESS,
                 }));
             } catch (err) {
+                err = err instanceof HttpError ? err : new HttpError("something went wrong");
+
                 api.dispatch(SetRequestStatus.action({
                     actionType: this.type,
                     status: RequestStatus.FAILED,
@@ -36,8 +44,17 @@ export abstract class AsyncAction<Request> extends GenericAction<Request> {
 
                 api.dispatch(SetRequestError.action({
                     actionType: this.type,
-                    error: err instanceof HttpError ? err : new HttpError("something went wrong")
-                }))
+                    error: err
+                }));
+
+                err.errors.forEach((error: string): void => {
+                    api.dispatch(AddAlert.action({
+                        alert: plainToClass(Alert,{
+                            type: AlertType.ERROR,
+                            message: error
+                        })
+                    }));
+                });
             }
         };
     }

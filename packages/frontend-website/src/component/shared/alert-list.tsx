@@ -4,44 +4,32 @@ import {
     ConnectProps,
     ISelectorPropMap
 } from "@honerlawd/mentordoc-frontend-shared/dist/store/decorator/connect-props";
-import {
-    IRequestErrorSelector,
-    SetRequestError
-} from "@honerlawd/mentordoc-frontend-shared/dist/store/action/request-status/set-request-error";
-import {HttpError} from "@honerlawd/mentordoc-frontend-shared/dist/store/model/request-status/http-error";
+import {AddAlert, IAddAlertSelector} from "@honerlawd/mentordoc-frontend-shared/dist/store/action/alert/add-alert";
+import {Alert} from "@honerlawd/mentordoc-frontend-shared/dist/store/model/alert/alert";
 
-interface IProps extends Partial<ISelectorPropMap<IRequestErrorSelector>> {
+interface IProps extends Partial<ISelectorPropMap<IAddAlertSelector>> {
 
 }
 
-@ConnectProps(CombineSelectors(SetRequestError.selector))
+@ConnectProps(CombineSelectors(AddAlert.selector))
 export class AlertList extends React.PureComponent<IProps, {}> {
 
     public render(): JSX.Element {
         return <div className={"alert-list"}>
-            {this.renderErrors()}
+            {this.renderAlerts()}
         </div>;
     }
 
-    private renderErrors(): JSX.Element[] {
-        const errors: JSX.Element[] = [];
-
-        if (!this.props.selector!.requestError) {
-            return errors;
+    private renderAlerts(): JSX.Element[] {
+        if (!this.props.selector!.alerts) {
+            return [];
         }
 
-        Object.keys(this.props.selector!.requestError).forEach((key: string): void => {
-            const error: HttpError | null = this.props.selector!.requestError[key];
-            if (error === null) {
-                return;
-            }
-
-            error.errors.forEach((error: string): void => {
-                errors.push(<div>{error}</div>);
-            });
+        return this.props.selector!.alerts.map((alert: Alert): JSX.Element => {
+            return <div key={alert.getKey()}>
+                {alert.message}
+            </div>;
         });
-
-        return errors;
     }
 
 }

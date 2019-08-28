@@ -5,4 +5,5 @@ export enum ReducerType {
     FOLDER = "folder",
     DOCUMENT = "document",
     REQUEST_STATUS = "requestStatus",
+    ALERT = "alert"
 }
