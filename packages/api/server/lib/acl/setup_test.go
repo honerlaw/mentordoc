@@ -1,4 +1,4 @@
-package server_test
+package acl_test
 
 import (
 	"github.com/honerlaw/mentordoc/server/test"
@@ -8,7 +8,7 @@ import (
 var testData *test.GlobalTestData
 
 func TestMain(m *testing.M) {
-	testData = test.InitTestData("../.env.test", "../migrations")
+	testData = test.InitTestData("../../../.env.test", "../../../migrations")
 
 	test.RunTests(m, testData)
 }

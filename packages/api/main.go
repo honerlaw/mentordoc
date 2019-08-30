@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/honerlaw/mentordoc/server"
+	"github.com/honerlaw/mentordoc/server/http"
 	"github.com/joho/godotenv"
 	"log"
 	"sync"
@@ -16,7 +16,7 @@ func main() {
 	waitGroup := &sync.WaitGroup{}
 	waitGroup.Add(1)
 
-	server.StartServer(waitGroup)
+	http.StartServer(waitGroup)
 
 	waitGroup.Wait()
 }

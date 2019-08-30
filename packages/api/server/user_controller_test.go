@@ -1,91 +1,94 @@
 package server_test
 
 import (
-	"github.com/honerlaw/mentordoc/server/model"
+	"github.com/honerlaw/mentordoc/server/http/request"
+	"github.com/honerlaw/mentordoc/server/http/response"
+	"github.com/honerlaw/mentordoc/server/lib/shared"
+	"github.com/honerlaw/mentordoc/server/test"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"testing"
 )
 
 func TestIntegrationSigninValidationFailure(t *testing.T) {
-	if !*integration {
+	if !*testData.Integration {
 		t.Skip("skipping integration test")
 	}
-	status, resp, err := Request(&RequestOptions{
+	status, resp, err := test.Request(&test.RequestOptions{
 		Method:        "POST",
 		Path:          "/user/auth",
-		Body:          &model.UserSigninRequest{},
-		ResponseModel: &model.HttpError{},
+		Body:          &request.UserSigninRequest{},
+		ResponseModel: &shared.HttpError{},
 	})
 	assert.Nil(t, err)
 	assert.Equal(t, status, http.StatusBadRequest)
-	assert.Len(t, resp.(*model.HttpError).Errors, 2)
+	assert.Len(t, resp.(*shared.HttpError).Errors, 2)
 }
 
 func TestIntegrationSigninUserDoesntExist(t *testing.T) {
-	if !*integration {
+	if !*testData.Integration {
 		t.Skip("skipping integration test")
 	}
-	status, resp, err := Request(&RequestOptions{
+	status, resp, err := test.Request(&test.RequestOptions{
 		Method: "POST",
 		Path:   "/user/auth",
-		Body: &model.UserSigninRequest{
+		Body: &request.UserSigninRequest{
 			Email:    "foo@bar.com",
 			Password: "baz",
 		},
-		ResponseModel: &model.HttpError{},
+		ResponseModel: &shared.HttpError{},
 	})
 	assert.Nil(t, err)
 	assert.Equal(t, status, http.StatusBadRequest)
-	assert.Len(t, resp.(*model.HttpError).Errors, 1)
+	assert.Len(t, resp.(*shared.HttpError).Errors, 1)
 }
 
 func TestIntegrationSignupUserDoesntExist(t *testing.T) {
-	if !*integration {
+	if !*testData.Integration {
 		t.Skip("skipping integration test")
 	}
-	status, resp, err := Request(&RequestOptions{
+	status, resp, err := test.Request(&test.RequestOptions{
 		Method: "POST",
 		Path:   "/user",
-		Body: &model.UserSignupRequest{
+		Body: &request.UserSignupRequest{
 			Email:    "foo@bar.com",
 			Password: "foobarbaz",
-		}, ResponseModel: &model.AuthenticationResponse{},
+		}, ResponseModel: &response.AuthenticationResponse{},
 	})
 	assert.Nil(t, err)
 	assert.Equal(t, status, http.StatusOK)
-	assert.NotEmpty(t, resp.(*model.AuthenticationResponse).AccessToken)
-	assert.NotEmpty(t, resp.(*model.AuthenticationResponse).RefreshToken)
+	assert.NotEmpty(t, resp.(*response.AuthenticationResponse).AccessToken)
+	assert.NotEmpty(t, resp.(*response.AuthenticationResponse).RefreshToken)
 }
 
 func TestIntegrationSignupAndThenSignin(t *testing.T) {
-	if !*integration {
+	if !*testData.Integration {
 		t.Skip("skipping integration test")
 	}
-	status, resp, err := Request(&RequestOptions{
+	status, resp, err := test.Request(&test.RequestOptions{
 		Method: "POST",
 		Path:   "/user",
-		Body: &model.UserSignupRequest{
+		Body: &request.UserSignupRequest{
 			Email:    "footest@bar.com",
 			Password: "foobarbaz",
 		},
-		ResponseModel: &model.AuthenticationResponse{},
+		ResponseModel: &response.AuthenticationResponse{},
 	})
 	assert.Nil(t, err)
 	assert.Equal(t, status, http.StatusOK)
 
-	status, resp, err = Request(&RequestOptions{
+	status, resp, err = test.Request(&test.RequestOptions{
 		Method: "POST",
 		Path:   "/user/auth",
-		Body: &model.UserSigninRequest{
+		Body: &request.UserSigninRequest{
 			Email:    "footest@bar.com",
 			Password: "foobarbaz",
 		},
-		ResponseModel: &model.AuthenticationResponse{},
+		ResponseModel: &response.AuthenticationResponse{},
 	})
 	assert.Nil(t, err)
 	assert.Equal(t, status, http.StatusOK)
 
-	assert.NotEmpty(t, resp.(*model.AuthenticationResponse).AccessToken)
-	assert.NotEmpty(t, resp.(*model.AuthenticationResponse).RefreshToken)
+	assert.NotEmpty(t, resp.(*response.AuthenticationResponse).AccessToken)
+	assert.NotEmpty(t, resp.(*response.AuthenticationResponse).RefreshToken)
 }
