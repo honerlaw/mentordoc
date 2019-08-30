@@ -16,6 +16,10 @@
 
     @include smartphones {
       width: calc(240px);
+      position: relative;
+      top: 10px;
+      left: 50%;
+      @include transform(translate(-50%, 0%));
     }
 
     h1 {

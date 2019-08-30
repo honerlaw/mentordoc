@@ -1,0 +1,29 @@
+@import "../../../scss/constant";
+@import "../../../scss/common/button";
+
+.alert-list {
+  .alert-list-item {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    color: $white;
+    margin: 10px;
+    padding: 10px;
+    font-size: .9rem;
+    span {
+      flex: 9;
+    }
+    button {
+      width: 30px;
+      @include plain-button();
+      color: $white;
+    }
+    &.success {
+      background-color: $green;
+    }
+    &.error {
+      background-color: $red;
+    }
+  }
+}

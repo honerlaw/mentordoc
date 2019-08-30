@@ -7,4 +7,12 @@
   border-radius: $default-border-radius;
   padding: 10px 30px;
   font-size: .9rem;
+  cursor: pointer;
+}
+
+@mixin plain-button() {
+  background-color: transparent;
+  border: none;
+  color: $dark-blue;
+  cursor: pointer;
 }

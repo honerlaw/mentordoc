@@ -73,6 +73,8 @@ func (v *ValidatorService) formatValidationError(err validator.FieldError) strin
 		return strings.ToLower(fmt.Sprintf("%s is required", err.Field()))
 	case "email":
 		return strings.ToLower(fmt.Sprintf("%s must be an email address", err.Field()))
+	case "min":
+		return strings.ToLower(fmt.Sprintf("%s must be at least %s characters long", err.Field(), err.Param()))
 	default:
 		log.Printf("unhandled validator type of %s", err.Tag())
 		return "validation failed"

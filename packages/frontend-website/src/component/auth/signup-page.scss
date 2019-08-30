@@ -14,8 +14,12 @@
     text-align: center;
     width: 300px;
 
-    @include smartphones {
+    @include smartphones() {
       width: calc(240px);
+      position: relative;
+      top: 50px;
+      left: 50%;
+      @include transform(translate(-50%, 0%));
     }
 
     h1 {

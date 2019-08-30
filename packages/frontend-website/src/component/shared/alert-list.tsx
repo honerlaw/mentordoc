@@ -6,9 +6,11 @@ import {
 } from "@honerlawd/mentordoc-frontend-shared/dist/store/decorator/connect-props";
 import {AddAlert, IAddAlertSelector} from "@honerlawd/mentordoc-frontend-shared/dist/store/action/alert/add-alert";
 import {Alert} from "@honerlawd/mentordoc-frontend-shared/dist/store/model/alert/alert";
+import "./alert-list.scss";
+import {AlertListItem} from "./alert-list-item";
 
 interface IProps extends Partial<ISelectorPropMap<IAddAlertSelector>> {
-
+    target?: string;
 }
 
 @ConnectProps(CombineSelectors(AddAlert.selector))
@@ -25,11 +27,16 @@ export class AlertList extends React.PureComponent<IProps, {}> {
             return [];
         }
 
-        return this.props.selector!.alerts.map((alert: Alert): JSX.Element => {
-            return <div key={alert.getKey()}>
-                {alert.message}
-            </div>;
+        const alerts: JSX.Element[] = [];
+        this.props.selector!.alerts.forEach((alert: Alert): void => {
+            if (alert.target !== this.props.target) {
+                return;
+            }
+
+            alerts.push(<AlertListItem key={alert.getKey()} alert={alert} />);
         });
+
+        return alerts;
     }
 
 }

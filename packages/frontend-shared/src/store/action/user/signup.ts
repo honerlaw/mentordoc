@@ -4,10 +4,11 @@ import {request} from "../../../util/request";
 import {AuthenticationData} from "../../model/user/authentication-data";
 import {MiddlewareAPI} from "redux";
 import {SetAuthenticationData} from "./set-authentication-data";
+import {IGenericActionRequest} from "../generic-action-request";
 
 const SIGNUP_TYPE = "signup_type";
 
-export interface ISignup {
+export interface ISignup extends IGenericActionRequest {
     fullName: string;
     email: string;
     password: string;

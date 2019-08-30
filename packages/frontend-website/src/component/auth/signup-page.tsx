@@ -8,6 +8,7 @@ import {
 } from "@honerlawd/mentordoc-frontend-shared/dist/store/decorator/connect-props";
 import {ISignupDispatchMap, Signup} from "@honerlawd/mentordoc-frontend-shared/dist/store/action/user/signup";
 import {Page} from "../shared/page";
+import {AlertList} from "../shared/alert-list";
 
 interface IState {
     fullName: string;
@@ -18,6 +19,8 @@ interface IState {
 interface IProps extends IDispatchPropMap<ISignupDispatchMap> {
 
 }
+
+const ALERT_TARGET: string = "signup-page-target";
 
 @ConnectProps(null, CombineDispatchers(Signup.dispatch))
 export class SignupPage extends React.PureComponent<IProps, IState> {
@@ -40,6 +43,8 @@ export class SignupPage extends React.PureComponent<IProps, IState> {
                 <div className={"container"}>
                     <h1>Sign Up</h1>
 
+                    <AlertList target={ALERT_TARGET} />
+
                     <form onSubmit={this.onSubmit}>
                         <input type={"text"}
                                placeholder={"full name"}
@@ -56,7 +61,7 @@ export class SignupPage extends React.PureComponent<IProps, IState> {
                                value={this.state.password}
                                onChange={onChangeSetState<IState>("password", this)}/>
 
-                        <button>sign up</button>
+                        <button type={"submit"}>sign up</button>
                     </form>
 
                     <div className={"options"}>
@@ -75,6 +80,11 @@ export class SignupPage extends React.PureComponent<IProps, IState> {
             fullName: this.state.fullName,
             email: this.state.email,
             password: this.state.password,
+            options: {
+                alerts: {
+                    target: ALERT_TARGET
+                }
+            }
         });
     }
 }

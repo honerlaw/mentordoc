@@ -10,8 +10,9 @@ import {ClearAlerts} from "./alert/clear-alerts";
 import {AddAlert} from "./alert/add-alert";
 import {Alert, AlertType} from "../model/alert/alert";
 import {plainToClass} from "class-transformer";
+import {IGenericActionRequest} from "./generic-action-request";
 
-export abstract class AsyncAction<Request> extends GenericAction<Request> {
+export abstract class AsyncAction<Request extends IGenericActionRequest> extends GenericAction<Request> {
 
     public action(req?: Request): AsyncActionHandler<void> {
         return async (api: MiddlewareAPI, ...args: any[]): Promise<void> => {
@@ -48,11 +49,17 @@ export abstract class AsyncAction<Request> extends GenericAction<Request> {
                 }));
 
                 err.errors.forEach((error: string): void => {
+                    const alert: Partial<Alert> = {
+                        type: AlertType.ERROR,
+                        message: error
+                    };
+
+                    if (req && req.options && req.options.alerts) {
+                        alert.target = req.options.alerts.target
+                    }
+
                     api.dispatch(AddAlert.action({
-                        alert: plainToClass(Alert,{
-                            type: AlertType.ERROR,
-                            message: error
-                        })
+                        alert: plainToClass(Alert, alert)
                     }));
                 });
             }

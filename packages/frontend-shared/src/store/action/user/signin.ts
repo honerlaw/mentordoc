@@ -1,10 +1,14 @@
 import {AsyncAction} from "../async-action";
 import {MiddlewareAPI} from "redux";
 import {IDispatchMap} from "../generic-action";
+import {IGenericActionRequest} from "../generic-action-request";
+import {AuthenticationData} from "../../model/user/authentication-data";
+import {request} from "../../../util/request";
+import {SetAuthenticationData} from "./set-authentication-data";
 
 const SIGNIN_TYPE = "signin_type";
 
-export interface ISignin {
+export interface ISignin extends IGenericActionRequest {
     email: string;
     password: string;
 }
@@ -19,8 +23,17 @@ export class SigninImpl extends AsyncAction<ISignin> {
         super(SIGNIN_TYPE, "signin");
     }
 
-    protected async fetch(api: MiddlewareAPI): Promise<void> {
-        console.log(process.env.API_PORT, process.env.API_HOST);
+    protected async fetch(api: MiddlewareAPI, req: ISignin): Promise<void> {
+        const authData: AuthenticationData | null = await request({
+            method: "POST",
+            path: "/user/auth",
+            model: AuthenticationData,
+            body: req
+        });
+
+        api.dispatch(SetAuthenticationData.action({
+            data: authData
+        }));
     }
 
 }

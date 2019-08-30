@@ -1,4 +1,5 @@
 @import "../../../scss/constant";
+@import "../../../scss/mixin";
 
 #header {
   display: flex;
@@ -7,6 +8,7 @@
   width: 100%;
   align-items: center;
   padding: 0 30px;
+  @include box-sizing(border-box);
   .logo {
     font-size: 1.3rem;
     color: $white;

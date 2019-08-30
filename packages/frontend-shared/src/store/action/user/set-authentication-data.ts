@@ -8,7 +8,9 @@ import {IWrappedAction} from "../../model/wrapped-action";
 import {ISelectorMap, SyncAction} from "../sync-action";
 import {IDispatchMap} from "../generic-action";
 
-const SET_AUTHENTICATION_DATA_TYPE = "set_authentication_data_type";
+export const AUTHENTICATION_DATA_KEY: string = "authentication_data";
+
+const SET_AUTHENTICATION_DATA_TYPE: string = "set_authentication_data_type";
 
 export interface ISetAuthenticationData {
     data: AuthenticationData | null;
@@ -32,6 +34,12 @@ class SetAuthenticationDataImpl extends SyncAction<IUserState, ISetAuthenticatio
         state = cloneDeep(state);
         if (action.payload) {
             state.authenticationData = action.payload.data;
+
+            if (!state.authenticationData) {
+                window.localStorage.removeItem(AUTHENTICATION_DATA_KEY);
+            } else {
+                window.localStorage.setItem(AUTHENTICATION_DATA_KEY, JSON.stringify(state.authenticationData));
+            }
         }
         return state;
     }
