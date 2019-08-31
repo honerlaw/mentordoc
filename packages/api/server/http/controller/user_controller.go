@@ -43,30 +43,55 @@ func (controller *UserController) RegisterRoutes(router chi.Router) {
 	router.
 		With(controller.authenticationMiddleware.HasAccessToken()).
 		Get("/user", controller.get)
+
+	router.
+		With(controller.authenticationMiddleware.HasRefreshToken()).
+		Post("/user/auth/refresh", controller.refreshToken)
 }
 
 func (controller *UserController) get(w http.ResponseWriter, req *http.Request) {
-	user := controller.authenticationMiddleware.GetUserFromRequest(req)
+	u := controller.authenticationMiddleware.GetUserFromRequest(req)
 
-	util.WriteJsonToResponse(w, http.StatusOK, user)
+	util.WriteJsonToResponse(w, http.StatusOK, u)
 }
 
-func (controller *UserController) signin(w http.ResponseWriter, req *http.Request) {
-	request := controller.validatorService.GetModelFromRequest(req).(*request.UserSigninRequest)
+func (controller *UserController) refreshToken(w http.ResponseWriter, req *http.Request) {
+	u := controller.authenticationMiddleware.GetUserFromRequest(req)
 
-	user, err := controller.userService.Authenticate(request.Email, request.Password)
-	if err != nil {
-		util.WriteHttpError(w, err)
-		return
-	}
-
-	accessToken, err := controller.tokenService.GenerateToken(user.Id, util.TokenAccess)
+	accessToken, err := controller.tokenService.GenerateToken(u.Id, util.TokenAccess)
 	if err != nil {
 		util.WriteHttpError(w, err)
 		return;
 	}
 
-	refreshToken, err := controller.tokenService.GenerateToken(user.Id, util.TokenRefresh)
+	refreshToken, err := controller.tokenService.GenerateToken(u.Id, util.TokenRefresh)
+	if err != nil {
+		util.WriteHttpError(w, err)
+		return;
+	}
+
+	util.WriteJsonToResponse(w, http.StatusOK, &response.AuthenticationResponse{
+		AccessToken:  *accessToken,
+		RefreshToken: *refreshToken,
+	})
+}
+
+func (controller *UserController) signin(w http.ResponseWriter, req *http.Request) {
+	validReq := controller.validatorService.GetModelFromRequest(req).(*request.UserSigninRequest)
+
+	u, err := controller.userService.Authenticate(validReq.Email, validReq.Password)
+	if err != nil {
+		util.WriteHttpError(w, err)
+		return
+	}
+
+	accessToken, err := controller.tokenService.GenerateToken(u.Id, util.TokenAccess)
+	if err != nil {
+		util.WriteHttpError(w, err)
+		return;
+	}
+
+	refreshToken, err := controller.tokenService.GenerateToken(u.Id, util.TokenRefresh)
 	if err != nil {
 		util.WriteHttpError(w, err)
 		return;
@@ -79,21 +104,21 @@ func (controller *UserController) signin(w http.ResponseWriter, req *http.Reques
 }
 
 func (controller *UserController) signup(w http.ResponseWriter, req *http.Request) {
-	request := controller.validatorService.GetModelFromRequest(req).(*request.UserSignupRequest)
+	validReq := controller.validatorService.GetModelFromRequest(req).(*request.UserSignupRequest)
 
-	user, err := controller.userService.Create(request.Email, request.Password);
+	u, err := controller.userService.Create(validReq.Email, validReq.Password);
 	if err != nil {
 		util.WriteHttpError(w, err)
 		return
 	}
 
-	accessToken, err := controller.tokenService.GenerateToken(user.Id, util.TokenAccess)
+	accessToken, err := controller.tokenService.GenerateToken(u.Id, util.TokenAccess)
 	if err != nil {
 		util.WriteHttpError(w, err)
 		return;
 	}
 
-	refreshToken, err := controller.tokenService.GenerateToken(user.Id, util.TokenRefresh)
+	refreshToken, err := controller.tokenService.GenerateToken(u.Id, util.TokenRefresh)
 	if err != nil {
 		util.WriteHttpError(w, err)
 		return;

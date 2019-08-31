@@ -10,6 +10,14 @@ import {IDispatchMap} from "../generic-action";
 
 export const AUTHENTICATION_DATA_KEY: string = "authentication_data";
 
+export function updateAuthData(authData: AuthenticationData | null): void {
+    if (!authData) {
+        window.localStorage.removeItem(AUTHENTICATION_DATA_KEY);
+    } else {
+        window.localStorage.setItem(AUTHENTICATION_DATA_KEY, JSON.stringify(authData));
+    }
+}
+
 const SET_AUTHENTICATION_DATA_TYPE: string = "set_authentication_data_type";
 
 export interface ISetAuthenticationData {
@@ -35,11 +43,7 @@ class SetAuthenticationDataImpl extends SyncAction<IUserState, ISetAuthenticatio
         if (action.payload) {
             state.authenticationData = action.payload.data;
 
-            if (!state.authenticationData) {
-                window.localStorage.removeItem(AUTHENTICATION_DATA_KEY);
-            } else {
-                window.localStorage.setItem(AUTHENTICATION_DATA_KEY, JSON.stringify(state.authenticationData));
-            }
+            updateAuthData(state.authenticationData);
         }
         return state;
     }

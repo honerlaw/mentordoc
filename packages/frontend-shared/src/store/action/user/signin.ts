@@ -5,6 +5,7 @@ import {IGenericActionRequest} from "../generic-action-request";
 import {AuthenticationData} from "../../model/user/authentication-data";
 import {request} from "../../../util/request";
 import {SetAuthenticationData} from "./set-authentication-data";
+import {FetchCurrentUser} from "./fetch-current-user";
 
 const SIGNIN_TYPE = "signin_type";
 
@@ -34,6 +35,8 @@ export class SigninImpl extends AsyncAction<ISignin> {
         api.dispatch(SetAuthenticationData.action({
             data: authData
         }));
+
+        api.dispatch(FetchCurrentUser.action() as any)
     }
 
 }

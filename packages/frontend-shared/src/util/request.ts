@@ -5,11 +5,12 @@ import {MiddlewareAPI} from "redux";
 import {AuthenticationData} from "../store/model/user/authentication-data";
 import {SetAuthenticationData} from "../store/action/user/set-authentication-data";
 import {Logout} from "../store/action/user/logout";
+import {isArray} from "lodash";
 
 export interface IRequestOptions<T> {
     method: "POST" | "GET" | "PUT" | "DELETE";
     path: string,
-    model?: new () => T,
+    model?: new () => any,
     body?: any;
     api?: MiddlewareAPI,
     useRefreshToken?: boolean;
@@ -56,7 +57,13 @@ export async function request<T>(options: IRequestOptions<T>): Promise<T | null>
 
 async function parseResponse<T>(resp: Response, model: new () => T): Promise<T> {
     try {
-        return plainToClass(model, await resp.json());
+        const json: any = await resp.json();
+        if (isArray(json)) {
+            const items: unknown = json.map((item: any): any => plainToClass(model, item));
+
+            return items as T;
+        }
+        return plainToClass(model, json);
     } catch (err) {
         throw new HttpError("something went wrong");
     }
@@ -68,7 +75,7 @@ function setAuthorizationHeader(headers: Record<string, string>, api?: Middlewar
     }
 
     const state: IRootState = api.getState();
-    const data: AuthenticationData | null = state.user.authenticationData
+    const data: AuthenticationData | null = state.user.authenticationData;
     if (!data) {
         return;
     }

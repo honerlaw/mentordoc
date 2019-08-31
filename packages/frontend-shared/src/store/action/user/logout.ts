@@ -5,6 +5,7 @@ import {IUserState} from "../../model/user/user-state";
 import {IWrappedAction} from "../../model/wrapped-action";
 import {SyncAction} from "../sync-action";
 import {IDispatchMap} from "../generic-action";
+import {updateAuthData} from "./set-authentication-data";
 
 const LOGOUT_TYPE = "logout_type";
 
@@ -22,6 +23,7 @@ class LogoutImpl extends SyncAction<IUserState, void, void> {
         state = cloneDeep(state);
         state.currentUser = null;
         state.authenticationData = null;
+        updateAuthData(state.authenticationData);
         return state;
     }
 

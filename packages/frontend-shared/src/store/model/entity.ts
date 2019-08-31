@@ -1,4 +1,4 @@
-abstract class Entity {
+export abstract class Entity {
 
     public id: string;
 

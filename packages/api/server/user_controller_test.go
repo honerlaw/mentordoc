@@ -1,6 +1,7 @@
 package server_test
 
 import (
+	"fmt"
 	"github.com/honerlaw/mentordoc/server/http/request"
 	"github.com/honerlaw/mentordoc/server/http/response"
 	"github.com/honerlaw/mentordoc/server/lib/shared"
@@ -91,4 +92,24 @@ func TestIntegrationSignupAndThenSignin(t *testing.T) {
 
 	assert.NotEmpty(t, resp.(*response.AuthenticationResponse).AccessToken)
 	assert.NotEmpty(t, resp.(*response.AuthenticationResponse).RefreshToken)
+}
+
+func TestIntegrationGetCurrentUser(t *testing.T) {
+	if !*testData.Integration {
+		t.Skip("skipping integration test")
+	}
+	authData := test.SetupAuthentication(t, testData)
+
+	status, resp, err := test.Request(&test.RequestOptions{
+		Method: "OPTIONS",
+		Path:   "/user",
+		Headers: map[string]string{
+			"Authorization": fmt.Sprintf("Bearer %s", authData.AccessToken),
+		},
+		ResponseModel: true,
+	})
+	assert.Nil(t, err)
+	assert.Equal(t, status, http.StatusOK)
+
+	panic(string(resp.([]byte)))
 }

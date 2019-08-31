@@ -5,18 +5,28 @@ import "./main.scss";
 import {SigninPage} from "./auth/signin-page";
 import {SignupPage} from "./auth/signup-page";
 import {
-    CombineDispatchers,
-    ConnectProps, IDispatchPropMap
+    CombineDispatchers, CombineSelectors,
+    ConnectProps, IDispatchPropMap, ISelectorPropMap
 } from "@honerlawd/mentordoc-frontend-shared/dist/store/decorator/connect-props";
 import {
-    AUTHENTICATION_DATA_KEY, IAuthenticationDataDispatch,
+    AUTHENTICATION_DATA_KEY, IAuthenticationDataDispatch, IAuthenticationDataSelector,
     SetAuthenticationData
 } from "@honerlawd/mentordoc-frontend-shared/dist/store/action/user/set-authentication-data";
 import {UnsecureRoute} from "./shared/unsecure-route";
 import {SecureRoute} from "./shared/secure-route";
 import {Dashboard} from "./app/dashboard";
+import {
+    FetchCurrentUser,
+    IFetchCurrentUserDispatch
+} from "@honerlawd/mentordoc-frontend-shared/dist/store/action/user/fetch-current-user";
+import {isEqual} from "lodash";
+import {
+    ISetCurrentUserSelector,
+    SetCurrentUser
+} from "@honerlawd/mentordoc-frontend-shared/dist/store/action/user/set-current-user";
 
-interface IProps extends Partial<IDispatchPropMap<IAuthenticationDataDispatch>> {
+interface IProps extends Partial<ISelectorPropMap<IAuthenticationDataSelector &ISetCurrentUserSelector>
+    & IDispatchPropMap<IAuthenticationDataDispatch & IFetchCurrentUserDispatch>> {
 
 }
 
@@ -24,7 +34,10 @@ interface IState {
     isLoading: boolean;
 }
 
-@ConnectProps(null, CombineDispatchers(SetAuthenticationData.dispatch))
+@ConnectProps(
+    CombineSelectors(SetAuthenticationData.selector, SetCurrentUser.selector),
+    CombineDispatchers(SetAuthenticationData.dispatch, FetchCurrentUser.dispatch)
+)
 export class Main extends React.PureComponent<IProps, IState> {
 
     public constructor(props: IProps) {
@@ -35,21 +48,23 @@ export class Main extends React.PureComponent<IProps, IState> {
         };
     }
 
-    public componentWillMount(): void {
-        const data: string | null = window.localStorage.getItem(AUTHENTICATION_DATA_KEY)
+    public async componentWillMount(): Promise<void> {
+        const data: string | null = window.localStorage.getItem(AUTHENTICATION_DATA_KEY);
         if (data) {
             this.props.dispatch!.setAuthenticationData({
                 data: JSON.parse(data)
             });
         }
 
-        this.setState({
-            isLoading: false
-        });
+        if (data) {
+            await this.props.dispatch!.fetchCurrentUser()
+        }
+
+        this.setState({isLoading: false});
     }
 
     public render(): JSX.Element | null {
-        if (this.state.isLoading) {
+        if (this.state.isLoading || (this.props.selector!.authenticationData && !this.props.selector!.currentUser)) {
             return null;
         }
 

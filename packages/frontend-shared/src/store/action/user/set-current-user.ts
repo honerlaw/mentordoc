@@ -15,11 +15,11 @@ export interface ISetCurrentUser {
     currentUser: User | null;
 }
 
-export interface ICurrentUserSelector extends ISelectorMap {
+export interface ISetCurrentUserSelector extends ISelectorMap {
     currentUser: User | null;
 }
 
-export interface ICurrentUserDispatch extends IDispatchMap {
+export interface ISetCurrentUserDispatch extends IDispatchMap {
     setCurrentUser: (req?: ISetCurrentUser) => void;
 }
 

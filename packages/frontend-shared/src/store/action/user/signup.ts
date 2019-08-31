@@ -5,6 +5,7 @@ import {AuthenticationData} from "../../model/user/authentication-data";
 import {MiddlewareAPI} from "redux";
 import {SetAuthenticationData} from "./set-authentication-data";
 import {IGenericActionRequest} from "../generic-action-request";
+import {FetchCurrentUser} from "./fetch-current-user";
 
 const SIGNUP_TYPE = "signup_type";
 
@@ -35,6 +36,8 @@ export class SignupImpl extends AsyncAction<ISignup> {
         api.dispatch(SetAuthenticationData.action({
             data: authData
         }));
+
+        api.dispatch(FetchCurrentUser.action() as any)
     }
 
 }

@@ -82,17 +82,16 @@ func StartServer(waitGroup *sync.WaitGroup) *Server {
 		AllowedOrigins:   []string{"*"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
-		ExposedHeaders:   []string{"Link"},
 		AllowCredentials: true,
 		MaxAge:           300,
 	})
 
 	router := chi.NewRouter()
-	router.Use(corsMiddleware.Handler)
 	router.Use(middleware.RequestID)
 	router.Use(middleware.RealIP)
 	router.Use(middleware.Logger)
 	router.Use(middleware.Recoverer)
+	router.Use(corsMiddleware.Handler)
 	router.Route("/v1", func(r chi.Router) {
 		userController.RegisterRoutes(r)
 		folderController.RegisterRoutes(r)
