@@ -3,6 +3,8 @@ package organization
 import (
 	"database/sql"
 	"errors"
+	"fmt"
+	"github.com/honerlaw/mentordoc/server/lib/shared"
 	"github.com/honerlaw/mentordoc/server/lib/util"
 	"log"
 )
@@ -22,13 +24,13 @@ func (repo *OrganizationRepository) InjectTransaction(tx *sql.Tx) interface{} {
 	return NewOrganizationRepository(repo.Db, tx)
 }
 
-func (repo *OrganizationRepository) FindById(id string) *Organization {
+func (repo *OrganizationRepository) FindById(id string) *shared.Organization {
 	row := repo.QueryRow(
 		"select id, name, created_at, updated_at, deleted_at from organization where id = ?",
 		id,
 	)
 
-	var organization Organization
+	var organization shared.Organization
 	err := row.Scan(&organization.Id, &organization.Name, &organization.CreatedAt, &organization.UpdatedAt, &organization.DeletedAt)
 	if err != nil {
 		log.Print(err)
@@ -38,7 +40,7 @@ func (repo *OrganizationRepository) FindById(id string) *Organization {
 	return &organization;
 }
 
-func (repo *OrganizationRepository) Insert(org *Organization) (*Organization, error) {
+func (repo *OrganizationRepository) Insert(org *shared.Organization) (*shared.Organization, error) {
 	org.CreatedAt = util.NowUnix()
 	org.UpdatedAt = util.NowUnix()
 
@@ -59,7 +61,7 @@ func (repo *OrganizationRepository) Insert(org *Organization) (*Organization, er
 	return org, nil;
 }
 
-func (repo *OrganizationRepository) Update(org *Organization) (*Organization, error) {
+func (repo *OrganizationRepository) Update(org *shared.Organization) (*shared.Organization, error) {
 	org.UpdatedAt = util.NowUnix()
 
 	_, err := repo.Exec(
@@ -76,4 +78,35 @@ func (repo *OrganizationRepository) Update(org *Organization) (*Organization, er
 	}
 
 	return org, nil;
+}
+
+func (repo *OrganizationRepository) Find(organizationIds []string) ([]shared.Organization, error) {
+	if len(organizationIds) == 0 {
+		return make([]shared.Organization, 0), nil
+	}
+
+	// build the in query
+	inQuery := fmt.Sprintf("id in (%s) ORDER BY name ASC", util.BuildSqlPlaceholderArray(organizationIds))
+	params := util.ConvertStringArrayToInterfaceArray(organizationIds)
+	query := fmt.Sprintf("select distinct id, name, created_at, updated_at, deleted_at from organization where %s", inQuery)
+
+	rows, err := repo.Query(query, params...)
+	if err != nil {
+		log.Print(err)
+		return nil, errors.New("failed to find organizations")
+	}
+	defer rows.Close()
+
+	orgs := make([]shared.Organization, 0)
+	for rows.Next() {
+		var org shared.Organization
+		err := rows.Scan(&org.Id, &org.Name, &org.CreatedAt, &org.UpdatedAt, &org.DeletedAt)
+		if err != nil {
+			log.Print(err)
+			return nil, errors.New("failed to parse organization")
+		}
+		orgs = append(orgs, org)
+	}
+
+	return orgs, nil
 }

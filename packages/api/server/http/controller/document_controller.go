@@ -66,7 +66,7 @@ func (controller *DocumentController) create(w http.ResponseWriter, req *http.Re
 		return
 	}
 
-	wrapped, err := controller.aclService.Wrap(user, []*document.Document{doc})
+	wrapped, err := controller.aclService.Wrap(user, []*shared.Document{doc})
 	if err != nil {
 		util.WriteHttpError(w, shared.NewInternalServerError("created document but failed to find user access"))
 		return
@@ -85,7 +85,7 @@ func (controller *DocumentController) update(w http.ResponseWriter, req *http.Re
 		return
 	}
 
-	wrapped, err := controller.aclService.Wrap(user, []*document.Document{doc})
+	wrapped, err := controller.aclService.Wrap(user, []*shared.Document{doc})
 	if err != nil {
 		util.WriteHttpError(w, shared.NewInternalServerError("updated document but failed to find user access"))
 		return

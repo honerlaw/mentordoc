@@ -3,6 +3,7 @@ package document
 import (
 	"database/sql"
 	"errors"
+	"github.com/honerlaw/mentordoc/server/lib/shared"
 	"github.com/honerlaw/mentordoc/server/lib/util"
 	"log"
 )
@@ -22,13 +23,13 @@ func (repo *DocumentContentRepository) InjectTransaction(tx *sql.Tx) interface{}
 	return NewDocumentContentRepository(repo.Db, tx)
 }
 
-func (repo *DocumentContentRepository) FindByDocumentId(documentId string) *DocumentContent {
+func (repo *DocumentContentRepository) FindByDocumentId(documentId string) *shared.DocumentContent {
 	row := repo.QueryRow(
 		"select id, content, document_id, created_at, updated_at, deleted_at from document_content where document_id = ?",
 		documentId,
 	)
 
-	var content DocumentContent
+	var content shared.DocumentContent
 	err := row.Scan(&content.Id, &content.Content, &content.DocumentId, &content.CreatedAt, &content.UpdatedAt, &content.DeletedAt)
 	if err != nil {
 		log.Print(err)
@@ -37,7 +38,7 @@ func (repo *DocumentContentRepository) FindByDocumentId(documentId string) *Docu
 	return &content
 }
 
-func (repo *DocumentContentRepository) Insert(content *DocumentContent) error {
+func (repo *DocumentContentRepository) Insert(content *shared.DocumentContent) error {
 	content.CreatedAt = util.NowUnix()
 	content.UpdatedAt = util.NowUnix()
 
@@ -59,7 +60,7 @@ func (repo *DocumentContentRepository) Insert(content *DocumentContent) error {
 	return nil;
 }
 
-func (repo *DocumentContentRepository) Update(document *DocumentContent) error {
+func (repo *DocumentContentRepository) Update(document *shared.DocumentContent) error {
 	document.UpdatedAt = util.NowUnix()
 
 	_, err := repo.Exec(

@@ -53,7 +53,7 @@ CREATE TABLE IF NOT EXISTS `user_role` (
   `user_id` CHAR(36) NOT NULL,
   `role_id` CHAR(36) NOT NULL,
   `resource_id` CHAR(36) NOT NULL,
-  PRIMARY KEY (`user_id`, `role_id`),
+  PRIMARY KEY (`user_id`, `role_id`, `resource_id`),
   FOREIGN KEY (`user_id`) REFERENCES user(`id`),
   FOREIGN KEY (`role_id`) REFERENCES role(`id`),
   UNIQUE KEY `uk_user_role_user_id_role_id_resource_id` (`user_id`, `role_id`, `resource_id`)

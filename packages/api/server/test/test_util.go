@@ -7,7 +7,7 @@ import (
 	"flag"
 	"fmt"
 	http2 "github.com/honerlaw/mentordoc/server/http"
-	"github.com/honerlaw/mentordoc/server/lib/user"
+	"github.com/honerlaw/mentordoc/server/lib/shared"
 	"github.com/honerlaw/mentordoc/server/lib/util"
 	"github.com/joho/godotenv"
 	uuid "github.com/satori/go.uuid"
@@ -59,22 +59,31 @@ func RunTests(m *testing.M, data *GlobalTestData) {
 
 	if *data.Integration {
 		http2.StopServer(data.TestServer)
+
+		exec.Command("bash", "-c", "docker kill mentordoc-mysql; docker rm mentordoc-mysql")
 	}
 
 	os.Exit(result)
 }
 
 type AuthData struct {
-	User         *user.User
+	User         *shared.User
 	AccessToken  string
 	RefreshToken string
+	Organization *shared.Organization
 }
 
 func SetupAuthentication(t *testing.T, data *GlobalTestData) *AuthData {
-	user := &user.User{}
+	user := &shared.User{}
 	user.Id = uuid.NewV4().String()
 	user.Email = fmt.Sprintf("%s@example.com", user.Id)
 	_, err := data.ItTestDatabaseConnection.Exec("insert into user (id, email, password, created_at, updated_at) values (?, ?, 'hash', 0, 0)", user.Id, user.Email)
+	assert.Nil(t, err)
+
+	// setup the org or the user
+	org, err := data.TestServer.OrganizationService.Create("test")
+	assert.Nil(t, err)
+	err = data.TestServer.AclService.LinkUserToRole(user, "organization:owner", org.Id)
 	assert.Nil(t, err)
 
 	tokenService := util.NewTokenService()
@@ -86,6 +95,7 @@ func SetupAuthentication(t *testing.T, data *GlobalTestData) *AuthData {
 
 	return &AuthData{
 		User:         user,
+		Organization: org,
 		AccessToken:  *accessToken,
 		RefreshToken: *refreshToken,
 	}

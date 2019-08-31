@@ -2,7 +2,7 @@ package acl
 
 import (
 	"database/sql"
-	"github.com/honerlaw/mentordoc/server/lib/user"
+	"github.com/honerlaw/mentordoc/server/lib/shared"
 	"github.com/honerlaw/mentordoc/server/lib/util"
 	"log"
 )
@@ -51,11 +51,11 @@ func (service *AclService) Init() error {
 	return service.rolePermissionService.InitRoles()
 }
 
-func (service *AclService) LinkUserToRole(user *user.User, roleName string, resourceId string) error {
+func (service *AclService) LinkUserToRole(user *shared.User, roleName string, resourceId string) error {
 	return service.userRoleService.LinkUserToRole(user, roleName, resourceId)
 }
 
-func (service *AclService) UserCanAccessResourceByModel(user *user.User, model interface{}, action string) bool {
+func (service *AclService) UserCanAccessResourceByModel(user *shared.User, model interface{}, action string) bool {
 	data, err := service.GetResourceDataForModel(model)
 	if err != nil {
 		log.Print(err)
@@ -64,7 +64,7 @@ func (service *AclService) UserCanAccessResourceByModel(user *user.User, model i
 	return service.UserCanAccessResource(user, data.ResourcePath, data.ResourceIds, action)
 }
 
-func (service *AclService) UserCanAccessResource(user *user.User, path []string, ids []string, action string) bool {
+func (service *AclService) UserCanAccessResource(user *shared.User, path []string, ids []string, action string) bool {
 	canAccess, err := service.userRoleService.UserCanAccessResource(user, path, ids, action)
 	if err != nil {
 		log.Print(err)
@@ -73,15 +73,15 @@ func (service *AclService) UserCanAccessResource(user *user.User, path []string,
 	return canAccess
 }
 
-func (service *AclService) UserActionableResourcesByPath(user *user.User, path []string, action string) ([]ResourceResponse, error) {
+func (service *AclService) UserActionableResourcesByPath(user *shared.User, path []string, action string) ([]ResourceResponse, error) {
 	return service.userRoleService.UserActionableResourcesByPath(user, path, action)
 }
 
-func (service *AclService) UserActionsForResources(user *user.User, paths [][]string, ids [][]string) ([]ResourceResponse, error) {
+func (service *AclService) UserActionsForResources(user *shared.User, paths [][]string, ids [][]string) ([]ResourceResponse, error) {
 	return service.userRoleService.UserActionsForResources(user, paths, ids)
 }
 
-func (service *AclService) Wrap(user *user.User, modelSlice interface{}) ([]AclWrappedModel, error) {
+func (service *AclService) Wrap(user *shared.User, modelSlice interface{}) ([]AclWrappedModel, error) {
 	return service.aclWrapperService.Wrap(user, modelSlice)
 }
 

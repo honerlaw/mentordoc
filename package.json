@@ -6,7 +6,7 @@
   "scripts": {
     "lerna": "lerna",
     "setup:env:main": "cat ./config/.env.local.api ./config/.env.local.shared > .env",
-    "setup:env:api": "cat ./config/.env.local.api > ./packages/api/.env && cat ./config/.env.local.api > ./packages/api/.env.test",
+    "setup:env:api": "cat ./config/.env.local.api > ./packages/api/.env && cat ./config/.env.test.api > ./packages/api/.env.test",
     "setup:env:website": "cat ./config/.env.local.shared > ./packages/frontend-website/.env",
     "setup:env": "npm run setup:env:main && npm run setup:env:api && npm run setup:env:website",
     "start": "npm run setup:env && npm run stop && CURDIR=$(pwd) docker-compose up",

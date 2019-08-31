@@ -25,7 +25,7 @@ func (repo *FolderRepository) InjectTransaction(tx *sql.Tx) interface{} {
 	return NewFolderRepository(repo.Db, tx)
 }
 
-func (repo *FolderRepository) Insert(folder *Folder) error {
+func (repo *FolderRepository) Insert(folder *shared.Folder) error {
 	folder.CreatedAt = util.NowUnix()
 	folder.UpdatedAt = util.NowUnix()
 
@@ -48,7 +48,7 @@ func (repo *FolderRepository) Insert(folder *Folder) error {
 	return nil;
 }
 
-func (repo *FolderRepository) Update(folder *Folder) error {
+func (repo *FolderRepository) Update(folder *shared.Folder) error {
 	folder.UpdatedAt = util.NowUnix()
 
 	_, err := repo.Exec(
@@ -68,7 +68,7 @@ func (repo *FolderRepository) Update(folder *Folder) error {
 	return nil;
 }
 
-func (repo *FolderRepository) Find(organizationIds []string, folderIds []string, parentFolderId *string, pagination *shared.Pagination) ([]Folder, error) {
+func (repo *FolderRepository) Find(organizationIds []string, folderIds []string, parentFolderId *string, pagination *shared.Pagination) ([]shared.Folder, error) {
 	query := "select id, name, parent_folder_id, organization_id, created_at, updated_at, deleted_at from folder where"
 
 	params := make([]interface{}, 0)
@@ -110,9 +110,9 @@ func (repo *FolderRepository) Find(organizationIds []string, folderIds []string,
 	}
 	defer rows.Close()
 
-	folders := make([]Folder, 0)
+	folders := make([]shared.Folder, 0)
 	for rows.Next() {
-		var folder Folder
+		var folder shared.Folder
 		err := rows.Scan(&folder.Id, &folder.Name, &folder.ParentFolderId, &folder.OrganizationId, &folder.CreatedAt, &folder.UpdatedAt, &folder.DeletedAt)
 		if err != nil {
 			log.Print(err)
@@ -124,13 +124,13 @@ func (repo *FolderRepository) Find(organizationIds []string, folderIds []string,
 	return folders, nil
 }
 
-func (repo *FolderRepository) FindById(id string) *Folder {
+func (repo *FolderRepository) FindById(id string) *shared.Folder {
 	row := repo.QueryRow(
 		"select id, name, parent_folder_id, organization_id, created_at, updated_at, deleted_at from folder where id = ?",
 		id,
 	)
 
-	var folder Folder
+	var folder shared.Folder
 	err := row.Scan(&folder.Id, &folder.Name, &folder.ParentFolderId, &folder.OrganizationId, &folder.CreatedAt, &folder.UpdatedAt, &folder.DeletedAt)
 	if err != nil {
 		log.Print(err)

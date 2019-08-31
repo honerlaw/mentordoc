@@ -5,7 +5,6 @@ import (
 	"github.com/honerlaw/mentordoc/server/lib/acl"
 	"github.com/honerlaw/mentordoc/server/lib/organization"
 	"github.com/honerlaw/mentordoc/server/lib/shared"
-	"github.com/honerlaw/mentordoc/server/lib/user"
 	uuid "github.com/satori/go.uuid"
 	"strings"
 )
@@ -30,11 +29,11 @@ func (service *FolderService) InjectTransaction(tx *sql.Tx) interface{} {
 		service.aclService.InjectTransaction(tx).(*acl.AclService))
 }
 
-func (service *FolderService) FindById(id string) *Folder {
+func (service *FolderService) FindById(id string) *shared.Folder {
 	return service.folderRepository.FindById(id)
 }
 
-func (service *FolderService) Create(user *user.User, name string, organizationId string, parentFolderId *string) (*Folder, error) {
+func (service *FolderService) Create(user *shared.User, name string, organizationId string, parentFolderId *string) (*shared.Folder, error) {
 
 	// lets make sure the parent folder exists
 	if parentFolderId != nil {
@@ -50,7 +49,7 @@ func (service *FolderService) Create(user *user.User, name string, organizationI
 		return nil, shared.NewNotFoundError("could not find organization")
 	}
 
-	folder := &Folder{
+	folder := &shared.Folder{
 		Name:           name,
 		OrganizationId: org.Id,
 		ParentFolderId: parentFolderId,
@@ -73,7 +72,7 @@ func (service *FolderService) Create(user *user.User, name string, organizationI
 	return folder, nil
 }
 
-func (service *FolderService) Update(user *user.User, folderId string, name string) (*Folder, error) {
+func (service *FolderService) Update(user *shared.User, folderId string, name string) (*shared.Folder, error) {
 	folder := service.FindById(folderId)
 	if folder == nil {
 		return nil, shared.NewNotFoundError("could not find folder")
@@ -95,7 +94,7 @@ func (service *FolderService) Update(user *user.User, folderId string, name stri
 	return folder, nil
 }
 
-func (service *FolderService) List(user *user.User, organizationId string, parentFolderId *string, pagination *shared.Pagination) ([]Folder, error) {
+func (service *FolderService) List(user *shared.User, organizationId string, parentFolderId *string, pagination *shared.Pagination) ([]shared.Folder, error) {
 	org := service.organizationService.FindById(organizationId)
 	if org == nil {
 		return nil, shared.NewNotFoundError("could not find organization")
@@ -106,7 +105,7 @@ func (service *FolderService) List(user *user.User, organizationId string, paren
 		return nil, shared.NewForbiddenError("you can not view folders in this organization")
 	}
 
-	folderResourceData, err := service.aclService.GetResourceDataForModel(&Folder{})
+	folderResourceData, err := service.aclService.GetResourceDataForModel(&shared.Folder{})
 	if err != nil {
 		return nil, shared.NewInternalServerError("failed to find folder information")
 	}

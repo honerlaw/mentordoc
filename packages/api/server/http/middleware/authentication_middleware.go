@@ -66,6 +66,6 @@ func (middleware *AuthenticationMiddleware) HasAccessToken() func(next http.Hand
 	}
 }
 
-func (middleware *AuthenticationMiddleware) GetUserFromRequest(req *http.Request) *user.User {
-	return req.Context().Value(AuthenticatedUserContextKey).(*user.User)
+func (middleware *AuthenticationMiddleware) GetUserFromRequest(req *http.Request) *shared.User {
+	return req.Context().Value(AuthenticatedUserContextKey).(*shared.User)
 }

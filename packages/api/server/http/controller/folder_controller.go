@@ -59,7 +59,7 @@ func (controller *FolderController) create(w http.ResponseWriter, req *http.Requ
 	}
 
 	// wrap the folder with acl information
-	wrapped, err := controller.aclService.Wrap(user, []folder.Folder{*fold})
+	wrapped, err := controller.aclService.Wrap(user, []shared.Folder{*fold})
 	if err != nil {
 		util.WriteHttpError(w, shared.NewInternalServerError("created folder but failed to find user access"))
 		return
@@ -81,7 +81,7 @@ func (controller *FolderController) update(w http.ResponseWriter, req *http.Requ
 	}
 
 	// wrap the folder with acl information
-	wrapped, err := controller.aclService.Wrap(user, []folder.Folder{*fold})
+	wrapped, err := controller.aclService.Wrap(user, []shared.Folder{*fold})
 	if err != nil {
 		util.WriteHttpError(w, shared.NewInternalServerError("updated folder but failed to find user access"))
 		return

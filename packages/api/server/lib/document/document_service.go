@@ -6,7 +6,6 @@ import (
 	"github.com/honerlaw/mentordoc/server/lib/folder"
 	"github.com/honerlaw/mentordoc/server/lib/organization"
 	"github.com/honerlaw/mentordoc/server/lib/shared"
-	"github.com/honerlaw/mentordoc/server/lib/user"
 	"github.com/honerlaw/mentordoc/server/lib/util"
 	uuid "github.com/satori/go.uuid"
 	"strings"
@@ -50,20 +49,20 @@ func (service *DocumentService) InjectTransaction(tx *sql.Tx) interface{} {
 	)
 }
 
-func (service *DocumentService) Create(user *user.User, organizationId string, folderId *string, name string, content string) (*Document, error) {
+func (service *DocumentService) Create(user *shared.User, organizationId string, folderId *string, name string, content string) (*shared.Document, error) {
 	organizationId, folderId, err := service.hasAccessToOrganizationOrFolder(user, organizationId, folderId, "create:document")
 	if err != nil {
 		return nil, err
 	}
 
-	document := &Document{
+	document := &shared.Document{
 		Name:           name,
 		OrganizationId: organizationId,
 		FolderId:       folderId,
 	}
 	document.Id = uuid.NewV4().String()
 
-	documentContent := &DocumentContent{
+	documentContent := &shared.DocumentContent{
 		DocumentId: document.Id,
 		Content:    content,
 	}
@@ -94,7 +93,7 @@ func (service *DocumentService) Create(user *user.User, organizationId string, f
 	return document, nil
 }
 
-func (service *DocumentService) Update(user *user.User, documentId string, name string, content string) (*Document, error) {
+func (service *DocumentService) Update(user *shared.User, documentId string, name string, content string) (*shared.Document, error) {
 	document := service.documentRepository.FindById(documentId)
 	if document == nil {
 		return nil, shared.NewNotFoundError("could not find document")
@@ -134,16 +133,16 @@ func (service *DocumentService) Update(user *user.User, documentId string, name 
 		return nil, shared.NewInternalServerError("failed to update document")
 	}
 
-	return res.(*Document), nil
+	return res.(*shared.Document), nil
 }
 
-func (service *DocumentService) List(user *user.User, organizationId string, folderId *string, pagination *shared.Pagination) ([]Document, error) {
+func (service *DocumentService) List(user *shared.User, organizationId string, folderId *string, pagination *shared.Pagination) ([]shared.Document, error) {
 	organizationId, folderId, err := service.hasAccessToOrganizationOrFolder(user, organizationId, folderId, "view:document");
 	if err != nil {
 		return nil, err
 	}
 
-	documentResourceData, err := service.aclService.GetResourceDataForModel(&Document{})
+	documentResourceData, err := service.aclService.GetResourceDataForModel(&shared.Document{})
 	if err != nil {
 		return nil, shared.NewInternalServerError("failed to find document information")
 	}
@@ -177,7 +176,7 @@ func (service *DocumentService) List(user *user.User, organizationId string, fol
 	return documents, nil
 }
 
-func (service *DocumentService) hasAccessToOrganizationOrFolder(user *user.User, organizationId string, folderId *string, action string) (string, *string, error) {
+func (service *DocumentService) hasAccessToOrganizationOrFolder(user *shared.User, organizationId string, folderId *string, action string) (string, *string, error) {
 	org := service.organizationService.FindById(organizationId)
 	if org == nil {
 		return "", nil, shared.NewNotFoundError("could not find organization")

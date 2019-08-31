@@ -39,6 +39,7 @@ type Server struct {
 	UserController            *controller.UserController
 	FolderController          *controller.FolderController
 	DocumentController        *controller.DocumentController
+	OrganizationController    *controller.OrganizationController
 }
 
 func StartServer(waitGroup *sync.WaitGroup) *Server {
@@ -58,8 +59,8 @@ func StartServer(waitGroup *sync.WaitGroup) *Server {
 	documentContentRepository := document.NewDocumentContentRepository(db, nil)
 
 	// services
-	organizationService := organization.NewOrganizationService(organizationRepository)
-	userService := user.NewUserService(userRepository, organizationService, transactionManager)
+	organizationService := organization.NewOrganizationService(organizationRepository, aclService)
+	userService := user.NewUserService(userRepository, organizationService, transactionManager, aclService)
 	folderService := folder.NewFolderService(folderRepository, organizationService, aclService)
 	documentService := document.NewDocumentService(documentRepository, documentContentRepository, organizationService, folderService, aclService, transactionManager)
 
@@ -70,6 +71,7 @@ func StartServer(waitGroup *sync.WaitGroup) *Server {
 	userController := controller.NewUserController(userService, validatorService, tokenService, authenticationMiddleware)
 	folderController := controller.NewFolderController(validatorService, folderService, authenticationMiddleware, aclService)
 	documentController := controller.NewDocumentController(validatorService, documentService, authenticationMiddleware, aclService)
+	organizationController := controller.NewOrganizationController(organizationService, authenticationMiddleware, aclService)
 
 	err := aclService.Init()
 	if err != nil {
@@ -95,6 +97,7 @@ func StartServer(waitGroup *sync.WaitGroup) *Server {
 		userController.RegisterRoutes(r)
 		folderController.RegisterRoutes(r)
 		documentController.RegisterRoutes(r)
+		organizationController.RegisterRoutes(r)
 	})
 
 	httpServer := &http.Server{
@@ -133,6 +136,7 @@ func StartServer(waitGroup *sync.WaitGroup) *Server {
 		UserController:            userController,
 		FolderController:          folderController,
 		DocumentController:        documentController,
+		OrganizationController:    organizationController,
 	}
 }
 

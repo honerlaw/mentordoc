@@ -25,13 +25,13 @@ func (repo *DocumentRepository) InjectTransaction(tx *sql.Tx) interface{} {
 	return NewDocumentRepository(repo.Db, tx)
 }
 
-func (repo *DocumentRepository) FindById(id string) *Document {
+func (repo *DocumentRepository) FindById(id string) *shared.Document {
 	row := repo.QueryRow(
 		"select id, name, folder_id, organization_id, created_at, updated_at, deleted_at from document where id = ?",
 		id,
 	)
 
-	var document Document
+	var document shared.Document
 	err := row.Scan(&document.Id, &document.Name, &document.FolderId, &document.OrganizationId, &document.CreatedAt, &document.UpdatedAt, &document.DeletedAt)
 	if err != nil {
 		log.Print(err)
@@ -40,7 +40,7 @@ func (repo *DocumentRepository) FindById(id string) *Document {
 	return &document
 }
 
-func (repo *DocumentRepository) Find(organizationIds []string, folderIds []string, documentIds []string, folderId *string, pagination *shared.Pagination) ([]Document, error) {
+func (repo *DocumentRepository) Find(organizationIds []string, folderIds []string, documentIds []string, folderId *string, pagination *shared.Pagination) ([]shared.Document, error) {
 	query := "select distinct id, name, folder_id, organization_id, created_at, updated_at, deleted_at from document where"
 
 	params := make([]interface{}, 0)
@@ -86,9 +86,9 @@ func (repo *DocumentRepository) Find(organizationIds []string, folderIds []strin
 	}
 	defer rows.Close()
 
-	documents := make([]Document, 0)
+	documents := make([]shared.Document, 0)
 	for rows.Next() {
-		var document Document
+		var document shared.Document
 		err := rows.Scan(&document.Id, &document.Name, &document.FolderId, &document.OrganizationId, &document.CreatedAt, &document.UpdatedAt, &document.DeletedAt)
 		if err != nil {
 			log.Print(err)
@@ -100,7 +100,7 @@ func (repo *DocumentRepository) Find(organizationIds []string, folderIds []strin
 	return documents, nil
 }
 
-func (repo *DocumentRepository) Insert(document *Document) error {
+func (repo *DocumentRepository) Insert(document *shared.Document) error {
 	document.CreatedAt = util.NowUnix()
 	document.UpdatedAt = util.NowUnix()
 
@@ -123,7 +123,7 @@ func (repo *DocumentRepository) Insert(document *Document) error {
 	return nil;
 }
 
-func (repo *DocumentRepository) Update(document *Document) error {
+func (repo *DocumentRepository) Update(document *shared.Document) error {
 	document.UpdatedAt = util.NowUnix()
 
 	_, err := repo.Exec(

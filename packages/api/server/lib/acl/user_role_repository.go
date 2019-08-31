@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/honerlaw/mentordoc/server/lib/user"
+	"github.com/honerlaw/mentordoc/server/lib/shared"
 	"github.com/honerlaw/mentordoc/server/lib/util"
 	"log"
 	"strings"
@@ -25,13 +25,13 @@ func (repo *UserRoleRepository) InjectTransaction(tx *sql.Tx) interface{} {
 	return NewUserRoleRepository(repo.Db, tx)
 }
 
-func (repo *UserRoleRepository) Link(user *user.User, role *Role, resourceId string) error {
+func (repo *UserRoleRepository) Link(user *shared.User, role *Role, resourceId string) error {
 	// check if its already been linked
 	rows, err := repo.Query(
 		"select user_id, role_id, resource_id from user_role where user_id = ? and role_id = ? and resource_id = ?",
-		&user.Id,
+		user.Id,
 		role.Id,
-		&resourceId,
+		resourceId,
 	)
 	if err != nil {
 		log.Print(err)
@@ -65,7 +65,7 @@ func (repo *UserRoleRepository) Link(user *user.User, role *Role, resourceId str
 	return nil
 }
 
-func (repo *UserRoleRepository) Unlink(user *user.User, role *Role, resourceId string) error {
+func (repo *UserRoleRepository) Unlink(user *shared.User, role *Role, resourceId string) error {
 	_, err := repo.Exec(
 		"delete from user_role where user_id = ? and role_id = ? and resource_id = ?",
 		user.Id,
@@ -166,7 +166,7 @@ func (repo *UserRoleRepository) buildWhereClause(userId string, requests []Resou
 	return &clause, params, nil
 }
 
-func (repo *UserRoleRepository) GetDataForResources(user *user.User, requests []ResourceRequest) ([]ResourceResponse, error) {
+func (repo *UserRoleRepository) GetDataForResources(user *shared.User, requests []ResourceRequest) ([]ResourceResponse, error) {
 	if len(requests) == 0 {
 		return nil, errors.New("must supply at least one resource request")
 	}
@@ -185,7 +185,6 @@ func (repo *UserRoleRepository) GetDataForResources(user *user.User, requests []
 		params...
 	)
 	if err != nil {
-		log.Print(err, query)
 		return nil, errors.New("failed to fetch resource data")
 	}
 	defer rows.Close()

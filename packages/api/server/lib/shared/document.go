@@ -1,9 +1,7 @@
-package document
-
-import "github.com/honerlaw/mentordoc/server/lib/shared"
+package shared
 
 type Document struct {
-	shared.Entity
+	Entity
 
 	Name           string           `json:"name"`
 	OrganizationId string           `json:"organizationId"`

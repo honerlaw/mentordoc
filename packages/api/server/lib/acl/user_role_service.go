@@ -2,7 +2,7 @@ package acl
 
 import (
 	"database/sql"
-	"github.com/honerlaw/mentordoc/server/lib/user"
+	"github.com/honerlaw/mentordoc/server/lib/shared"
 	"github.com/pkg/errors"
 )
 
@@ -23,7 +23,7 @@ func (service *UserRoleService) InjectTransaction(tx *sql.Tx) interface{} {
 		service.userRoleRepository.InjectTransaction(tx).(*UserRoleRepository))
 }
 
-func (service *UserRoleService) LinkUserToRole(user *user.User, roleName string, resourceId string) error {
+func (service *UserRoleService) LinkUserToRole(user *shared.User, roleName string, resourceId string) error {
 	role := service.roleRepository.Find(roleName)
 	if role == nil {
 		return errors.New("failed to find role")
@@ -35,7 +35,7 @@ func (service *UserRoleService) LinkUserToRole(user *user.User, roleName string,
 /*
 Check if a user can access a specific resource for the given action
  */
-func (service *UserRoleService) UserCanAccessResource(user *user.User, path []string, ids []string, action string) (bool, error) {
+func (service *UserRoleService) UserCanAccessResource(user *shared.User, path []string, ids []string, action string) (bool, error) {
 	request := []ResourceRequest{
 		{
 			ResourcePath: path,
@@ -56,7 +56,7 @@ func (service *UserRoleService) UserCanAccessResource(user *user.User, path []st
 /**
 Fetch the actions that the user an do on each resource, this data needs to be merged with the actual models elsewhere
  */
-func (service *UserRoleService) UserActionsForResources(user *user.User, paths [][]string, ids [][]string) ([]ResourceResponse, error) {
+func (service *UserRoleService) UserActionsForResources(user *shared.User, paths [][]string, ids [][]string) ([]ResourceResponse, error) {
 	if len(paths) != len(ids) {
 		return nil, errors.New("path and ids must be the same length")
 	}
@@ -82,7 +82,7 @@ func (service *UserRoleService) UserActionsForResources(user *user.User, paths [
 /**
 Find the resource data for the specified resource path and action. E.g. to find all viewable documents
  */
-func (service *UserRoleService) UserActionableResourcesByPath(user *user.User, path []string, action string) ([]ResourceResponse, error) {
+func (service *UserRoleService) UserActionableResourcesByPath(user *shared.User, path []string, action string) ([]ResourceResponse, error) {
 	request := []ResourceRequest{
 		{
 			ResourcePath: path,

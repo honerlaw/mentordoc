@@ -2,8 +2,7 @@ package acl
 
 import (
 	"errors"
-	"github.com/honerlaw/mentordoc/server/lib/user"
-	"log"
+	"github.com/honerlaw/mentordoc/server/lib/shared"
 	"reflect"
 	"strings"
 )
@@ -45,7 +44,7 @@ wraps the given set of organization / folder / document models with the actions 
 to each resource. This way the client will know what info to show, we only need to fetch this data as it is going
 out back to the client
  */
-func (service *AclWrapperService) Wrap(user *user.User, modelSlice interface{}) ([]AclWrappedModel, error) {
+func (service *AclWrapperService) Wrap(user *shared.User, modelSlice interface{}) ([]AclWrappedModel, error) {
 	s := reflect.ValueOf(modelSlice)
 	if s.Kind() != reflect.Slice {
 		return nil, errors.New("a slice of models is required")
@@ -103,8 +102,6 @@ func (service *AclWrapperService) Wrap(user *user.User, modelSlice interface{}) 
 func (service *AclWrapperService) GetResourceDataForModel(m interface{}) (*ResourceData, error) {
 	modelName := reflect.TypeOf(m).String()
 	modelData, ok := service.data[strings.Split(strings.ReplaceAll(modelName, "*", ""), ".")[1]]
-
-	log.Print(modelName, modelData)
 
 	if !ok {
 		return nil, errors.New("could not find data for model")
