@@ -45,6 +45,10 @@ func (controller *FolderController) RegisterRoutes(router chi.Router) {
 	router.
 		With(controller.authenticationMiddleware.HasAccessToken()).
 		Get("/folder/list/{organizationId}", controller.list)
+
+	router.
+		With(controller.authenticationMiddleware.HasAccessToken()).
+		Delete("/folder/{id}", controller.delete)
 }
 
 func (controller *FolderController) create(w http.ResponseWriter, req *http.Request) {
@@ -87,7 +91,27 @@ func (controller *FolderController) update(w http.ResponseWriter, req *http.Requ
 		return
 	}
 
-	util.WriteJsonToResponse(w, http.StatusOK, wrapped)
+	util.WriteJsonToResponse(w, http.StatusOK, wrapped[0])
+}
+
+func (controller *FolderController) delete(w http.ResponseWriter, req *http.Request) {
+	user := controller.authenticationMiddleware.GetUserFromRequest(req)
+	id := chi.URLParam(req, "id")
+
+	fold, err := controller.folderService.Delete(user, id)
+	if err != nil {
+		util.WriteHttpError(w, err)
+		return
+	}
+
+	// wrap the folder with acl information
+	wrapped, err := controller.aclService.Wrap(user, []shared.Folder{*fold})
+	if err != nil {
+		util.WriteHttpError(w, shared.NewInternalServerError("updated folder but failed to find user access"))
+		return
+	}
+
+	util.WriteJsonToResponse(w, http.StatusOK, wrapped[0])
 }
 
 func (controller *FolderController) list(w http.ResponseWriter, req *http.Request) {

@@ -11,4 +11,8 @@ export class AclOrganization {
     @Expose()
     public actions: string[];
 
+    public hasAction(action: string): boolean {
+        return this.actions.indexOf(action) !== -1;
+    }
+
 }

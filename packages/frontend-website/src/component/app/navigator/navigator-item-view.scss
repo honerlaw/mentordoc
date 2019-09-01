@@ -1,0 +1,51 @@
+@import "../../../../scss/constant";
+@import "../../../../scss/common/button";
+@import "../../../../scss/mixin";
+
+.navigator-item-container {
+  .navigator-item {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    font-size: .9rem;
+    padding: 5px;
+
+    .title {
+      flex: 9;
+    }
+
+    .options {
+      flex: 1;
+
+      button {
+        img {
+          height: 1rem;
+        }
+      }
+    }
+    &:hover {
+      cursor: pointer;
+      background-color: $light-grey;
+    }
+    .expand-arrow {
+      @include transition(transform .2s);
+      @include transform(rotate(0deg));
+      &.expanded {
+        @include transform(rotate(90deg));
+      }
+      &.hidden {
+        opacity: 0;
+      }
+      img {
+        height: 15px;
+        opacity: .5;
+      }
+    }
+    .dropdown-button button img {
+      opacity: .5;
+    }
+  }
+  .navigator-children {
+    padding-left: 10px;
+  }
+}

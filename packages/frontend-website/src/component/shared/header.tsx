@@ -21,12 +21,14 @@ export class Header extends React.PureComponent<IProps, {}> {
 
     public render(): JSX.Element {
         return <div id={"header"}>
-            <div>
-                <Link className={"logo"} to={"/"}>mentordoc</Link>
-            </div>
+            <div id={"header-container"}>
+                <div>
+                    <Link className={"logo"} to={"/"}>mentordoc</Link>
+                </div>
 
-            <div className={"options"}>
-                {this.renderOptions()}
+                <div className={"options"}>
+                    {this.renderOptions()}
+                </div>
             </div>
         </div>;
     }

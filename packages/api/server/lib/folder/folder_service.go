@@ -5,6 +5,7 @@ import (
 	"github.com/honerlaw/mentordoc/server/lib/acl"
 	"github.com/honerlaw/mentordoc/server/lib/organization"
 	"github.com/honerlaw/mentordoc/server/lib/shared"
+	"github.com/honerlaw/mentordoc/server/lib/util"
 	uuid "github.com/satori/go.uuid"
 	"strings"
 )
@@ -93,6 +94,34 @@ func (service *FolderService) Update(user *shared.User, folderId string, name st
 
 	return folder, nil
 }
+
+func (service *FolderService) Delete(user *shared.User, folderId string) (*shared.Folder, error) {
+	folder := service.FindById(folderId)
+	if folder == nil {
+		return nil, shared.NewNotFoundError("could not find folder")
+	}
+
+	if folder.ChildCount > 0 {
+		return nil, shared.NewBadRequestError("can not delete a folder with contents")
+	}
+
+	// check that they are allowed to create the folder in this organization
+	canDelete := service.aclService.UserCanAccessResourceByModel(user, folder, "delete")
+	if !canDelete {
+		return nil, shared.NewForbiddenError("you do not have permission to delete this folder")
+	}
+
+	deletedAt := util.NowUnix()
+	folder.DeletedAt = &deletedAt
+
+	err := service.folderRepository.Update(folder)
+	if err != nil {
+		return nil, shared.NewInternalServerError("failed to delete folder")
+	}
+
+	return folder, nil
+}
+
 
 func (service *FolderService) List(user *shared.User, organizationId string, parentFolderId *string, pagination *shared.Pagination) ([]shared.Folder, error) {
 	org := service.organizationService.FindById(organizationId)

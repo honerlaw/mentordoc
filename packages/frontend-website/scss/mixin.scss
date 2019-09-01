@@ -6,6 +6,14 @@
   transform: $args;
 }
 
+@mixin transition($args...) {
+  -webkit-transition: $args;
+  -moz-transition: $args;
+  -ms-transition: $args;
+  -o-transition: $args;
+  transition: $args;
+}
+
 @mixin box-shadow($args...) {
   -webkit-box-shadow: $args;
   -moz-box-shadow: $args;
@@ -19,13 +27,18 @@
 }
 
 @mixin smartphones() {
-  @media only screen and (min-device-width : 320px) and (max-device-width : 480px) {
+  @media only screen and (min-device-width: 320px) and (max-device-width: 480px) {
     @content;
   }
 }
 
 @mixin tablets() {
-  @media only screen and (min-device-width : 768px) and (max-device-width : 1024px) {
+  @media only screen and (min-device-width: 768px) and (max-device-width: 1024px) {
     @content;
   }
+}
+
+@mixin max-size() {
+  margin: 0 auto;
+  max-width: 1280px;
 }

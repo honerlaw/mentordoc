@@ -34,13 +34,8 @@ func NewDocumentController(
 }
 
 /**
-
-Featuers
-- Create
-- Update
-- List
-
 Future
+- Delete
 - Verification
 - Drafts
 */

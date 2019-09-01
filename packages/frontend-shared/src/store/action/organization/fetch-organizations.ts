@@ -35,8 +35,6 @@ export class FetchOrganizationsImpl extends AsyncAction<IFetchOrganizations> {
             throw new HttpError("failed to find organizations");
         }
 
-        console.log(orgs);
-
         api.dispatch(SetOrganizations.action({
             organizations: orgs
         }));

@@ -26,7 +26,7 @@ func (repo *OrganizationRepository) InjectTransaction(tx *sql.Tx) interface{} {
 
 func (repo *OrganizationRepository) FindById(id string) *shared.Organization {
 	row := repo.QueryRow(
-		"select id, name, created_at, updated_at, deleted_at from organization where id = ?",
+		"select id, name, created_at, updated_at, deleted_at from organization where id = ? and deleted_at is null",
 		id,
 	)
 
@@ -86,7 +86,7 @@ func (repo *OrganizationRepository) Find(organizationIds []string) ([]shared.Org
 	}
 
 	// build the in query
-	inQuery := fmt.Sprintf("id in (%s) ORDER BY name ASC", util.BuildSqlPlaceholderArray(organizationIds))
+	inQuery := fmt.Sprintf("id in (%s) and deleted_at is null ORDER BY name ASC", util.BuildSqlPlaceholderArray(organizationIds))
 	params := util.ConvertStringArrayToInterfaceArray(organizationIds)
 	query := fmt.Sprintf("select distinct id, name, created_at, updated_at, deleted_at from organization where %s", inQuery)
 

@@ -1,0 +1,40 @@
+@import "../../../scss/constant";
+@import "../../../scss/common/button";
+@import "../../../scss/common/card";
+@import "../../../scss/mixin";
+
+.dropdown-button {
+  position: relative;
+  button {
+    @include plain-button();
+    outline: none;
+  }
+  .dropdown-container {
+    z-index: 100;
+    @include card();
+    @include box-sizing(border-box);
+    position: absolute;
+    top: 0;
+    left: 100%;
+    padding: 10px;
+    &.hidden {
+      display: none;
+    }
+    &.visible {
+      display: block;
+    }
+    .option {
+      cursor: pointer;
+      white-space: nowrap;
+      padding: 10px;
+      border-bottom: 1px solid $light-grey;
+      font-size: .8rem;
+      &:hover {
+        background-color: $light-grey;
+      }
+      &:first-child {
+        border-top: 1px solid $light-grey;
+      }
+    }
+  }
+}

@@ -6,4 +6,5 @@ type Folder struct {
 	Name           string  `json:"name"`
 	OrganizationId string  `json:"organizationId"`
 	ParentFolderId *string `json:"parentFolderId"`
+	ChildCount     int     `json:"childCount"`
 }
