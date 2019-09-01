@@ -1,0 +1,15 @@
+@import "../../../scss/constant";
+@import "../../../scss/common/card";
+
+.document-viewer {
+  padding: 50px;
+  width: 100%;
+  .document {
+    @include card();
+    height: 1000px;
+    width: 100%;
+    padding: 0;
+    background-color: $white;
+  }
+
+}

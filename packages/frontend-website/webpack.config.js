@@ -53,7 +53,15 @@ module.exports = {
                     'css-loader',
                     'sass-loader',
                 ],
-            }
+            },
+            {
+                test: /\.(svg)$/i,
+                use: [
+                    {
+                        loader: 'file-loader',
+                    }
+                ],
+            },
         ]
     }
 };

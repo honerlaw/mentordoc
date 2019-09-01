@@ -32,7 +32,6 @@ export class Navigator extends React.PureComponent<IProps, {}> {
             {this.props.selector!.organizations.map((org: AclOrganization): JSX.Element => {
                 return <NavigatorItem item={org} />;
             })}
-
         </div>;
     }
 

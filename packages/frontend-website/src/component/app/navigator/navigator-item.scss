@@ -1,0 +1,12 @@
+.navigator-item {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 10px;
+  font-size: 1rem;
+  border-left: 1px solid white;
+  img {
+    height: 1.5rem;
+    padding: 5px;
+  }
+}
