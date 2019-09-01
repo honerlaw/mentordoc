@@ -19,13 +19,12 @@ import {
     FetchCurrentUser,
     IFetchCurrentUserDispatch
 } from "@honerlawd/mentordoc-frontend-shared/dist/store/action/user/fetch-current-user";
-import {isEqual} from "lodash";
 import {
     ISetCurrentUserSelector,
     SetCurrentUser
 } from "@honerlawd/mentordoc-frontend-shared/dist/store/action/user/set-current-user";
 
-interface IProps extends Partial<ISelectorPropMap<IAuthenticationDataSelector &ISetCurrentUserSelector>
+interface IProps extends Partial<ISelectorPropMap<IAuthenticationDataSelector & ISetCurrentUserSelector>
     & IDispatchPropMap<IAuthenticationDataDispatch & IFetchCurrentUserDispatch>> {
 
 }

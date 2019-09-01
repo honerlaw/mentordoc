@@ -32,7 +32,7 @@ export function ConnectProps(
     mapStateToProps?: MapToProps,
     mapDispatchToProps?: MapToProps,
 ): ClassDecorator {
-    return connect(mapStateToProps, mapDispatchToProps) as any;
+    return connect(mapStateToProps, mapDispatchToProps, null, {pure: false}) as any;
 }
 
 export function CombineSelectors(...selectors: Selector[]): (state: IRootState) => ISelectorPropMap {

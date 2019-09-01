@@ -14,7 +14,9 @@
   "dependencies": {
     "@honerlawd/mentordoc-frontend-shared": "^1.0.0",
     "@types/react-dom": "^16.9.0",
-    "react-dom": "^16.9.0"
+    "@types/reflect-metadata": "^0.1.0",
+    "react-dom": "^16.9.0",
+    "reflect-metadata": "^0.1.13"
   },
   "devDependencies": {
     "css-loader": "^3.2.0",

@@ -7,7 +7,6 @@ import (
 	"github.com/honerlaw/mentordoc/server/lib/organization"
 	"github.com/honerlaw/mentordoc/server/lib/shared"
 	"github.com/honerlaw/mentordoc/server/lib/util"
-	"log"
 	"net/http"
 )
 
@@ -40,20 +39,17 @@ func (controller *OrganizationController) list(w http.ResponseWriter, req *http.
 
 	orgs, err := controller.organizationService.List(user)
 	if err != nil {
-		log.Print(err)
 		util.WriteHttpError(w, err)
 		return
 	}
 
 	if len(orgs) == 0 {
-		log.Print("no orgs")
 		util.WriteJsonToResponse(w, http.StatusOK, orgs)
 		return
 	}
 
 	wrapped, err := controller.aclService.Wrap(user, orgs)
 	if err != nil {
-		log.Print(err)
 		util.WriteHttpError(w, shared.NewInternalServerError("found organizations but failed to find user access"))
 		return
 	}

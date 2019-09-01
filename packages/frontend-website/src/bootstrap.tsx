@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import * as ReactDOM from "react-dom";
 import * as React from "react";
 import {Main} from "./component/main";

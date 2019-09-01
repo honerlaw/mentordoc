@@ -80,12 +80,12 @@ function setAuthorizationHeader(headers: Record<string, string>, api?: Middlewar
         return;
     }
 
-    if (data.accessToken) {
+    if (!useRefreshToken && data.accessToken) {
         headers["Authorization"] = `Bearer ${data.accessToken}`;
     }
 
     if (useRefreshToken && data.refreshToken) {
-        headers["Authorization"] = `Bearer ${data.accessToken}`;
+        headers["Authorization"] = `Bearer ${data.refreshToken}`;
     }
 }
 
@@ -118,6 +118,7 @@ async function refreshToken(api: MiddlewareAPI): Promise<void> {
         method: "POST",
         path: "/user/auth/refresh",
         model: AuthenticationData,
+        api,
         useRefreshToken: true
     });
 

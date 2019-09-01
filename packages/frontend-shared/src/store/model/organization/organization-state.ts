@@ -1,7 +1,7 @@
-import {Organization} from "./organization";
+import {AclOrganization} from "./acl-organization";
 
 export interface IOrganizationState {
-    organizations: Organization[];
+    organizations: AclOrganization[];
 }
 
 export const INITIAL_ORGANIZATION_STATE: IOrganizationState = {

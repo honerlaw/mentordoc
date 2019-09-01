@@ -1,31 +1,41 @@
 import {ISelectorMap, SyncAction} from "../sync-action";
-import {Organization} from "../../model/organization/organization";
 import {IOrganizationState} from "../../model/organization/organization-state";
 import {IRootState} from "../../model/root-state";
 import {ReducerType} from "../../model/reducer-type";
 import {IDispatchMap} from "../generic-action";
+import {AclOrganization} from "../../model/organization/acl-organization";
+import {IWrappedAction} from "../../model/wrapped-action";
+import {cloneDeep} from "lodash";
 
 export const SET_ORGANIZATIONS_TYPE: string = "set_organizations_type";
 
 export interface ISetOrganizations {
-    organizations: Organization[];
+    organizations: AclOrganization[];
 }
 
 export interface ISetOrganizationsSelector extends ISelectorMap {
-    organizations: Organization[]
+    organizations: AclOrganization[]
 }
 
 export interface ISetOrganizationsDispatch extends IDispatchMap {
     setOrganizations: (req?: ISetOrganizations) => void;
 }
 
-export class SetOrganizationsImpl extends SyncAction<IOrganizationState, ISetOrganizations, Organization[]> {
+export class SetOrganizationsImpl extends SyncAction<IOrganizationState, ISetOrganizations, AclOrganization[]> {
 
     public constructor() {
         super(ReducerType.ORGANIZATION, SET_ORGANIZATIONS_TYPE, "organizations", "setOrganizations")
     }
 
-    public getSelectorValue(state: IRootState): Organization[] {
+    public handle(state: IOrganizationState, action: IWrappedAction<ISetOrganizations>): IOrganizationState {
+        state = cloneDeep(state);
+        if (action.payload) {
+            state.organizations = action.payload.organizations
+        }
+        return state;
+    }
+
+    public getSelectorValue(state: IRootState): AclOrganization[] {
         return state.organization.organizations;
     }
 
