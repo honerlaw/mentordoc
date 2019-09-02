@@ -10,11 +10,14 @@ import {
     DeleteDocument,
     IDeleteDocumentDispatch
 } from "@honerlawd/mentordoc-frontend-shared/dist/store/action/document/delete-document";
+import {WithRouter} from "@honerlawd/mentordoc-frontend-shared/dist/store/decorator/with-router";
+import {RouteComponentProps} from "react-router";
 
-interface IProps extends Partial<IDispatchPropMap<IDeleteDocumentDispatch>> {
+interface IProps extends Partial<IDispatchPropMap<IDeleteDocumentDispatch> & RouteComponentProps> {
     document: AclDocument;
 }
 
+@WithRouter()
 @ConnectProps(null, CombineDispatchers(DeleteDocument.dispatch))
 export class DocumentItemView extends React.PureComponent<IProps, {}> {
 
@@ -22,10 +25,12 @@ export class DocumentItemView extends React.PureComponent<IProps, {}> {
         super(props);
 
         this.deleteDocument = this.deleteDocument.bind(this);
+        this.onClick = this.onClick.bind(this);
     }
 
     public render(): JSX.Element {
         return <NavigatorItemView title={this.props.document.model.name}
+                                  onClick={this.onClick}
                                   hasChildren={false}
                                   isExpanded={false}
         options={this.getOptions()}/>;
@@ -48,6 +53,10 @@ export class DocumentItemView extends React.PureComponent<IProps, {}> {
         await this.props.dispatch!.deleteDocument({
             documentId: this.props.document.model.id
         });
+    }
+
+    private onClick(): void {
+        this.props.history!.push(`/app/${this.props.document.model.organizationId}/${this.props.document.model.id}`);
     }
 
 }

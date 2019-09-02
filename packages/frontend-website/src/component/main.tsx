@@ -23,9 +23,17 @@ import {
     ISetCurrentUserSelector,
     SetCurrentUser
 } from "@honerlawd/mentordoc-frontend-shared/dist/store/action/user/set-current-user";
+import {
+    FetchOrganizations,
+    IFetchOrganizationsDispatch
+} from "@honerlawd/mentordoc-frontend-shared/dist/store/action/organization/fetch-organizations";
+import {
+    ISetOrganizationsSelector,
+    SetOrganizations
+} from "@honerlawd/mentordoc-frontend-shared/dist/store/action/organization/set-organizations";
 
-interface IProps extends Partial<ISelectorPropMap<IAuthenticationDataSelector & ISetCurrentUserSelector>
-    & IDispatchPropMap<IAuthenticationDataDispatch & IFetchCurrentUserDispatch>> {
+interface IProps extends Partial<ISelectorPropMap<IAuthenticationDataSelector & ISetCurrentUserSelector & ISetOrganizationsSelector>
+    & IDispatchPropMap<IAuthenticationDataDispatch & IFetchCurrentUserDispatch & IFetchOrganizationsDispatch>> {
 
 }
 
@@ -34,8 +42,8 @@ interface IState {
 }
 
 @ConnectProps(
-    CombineSelectors(SetAuthenticationData.selector, SetCurrentUser.selector),
-    CombineDispatchers(SetAuthenticationData.dispatch, FetchCurrentUser.dispatch)
+    CombineSelectors(SetAuthenticationData.selector, SetCurrentUser.selector, SetOrganizations.selector),
+    CombineDispatchers(SetAuthenticationData.dispatch, FetchCurrentUser.dispatch, FetchOrganizations.dispatch)
 )
 export class Main extends React.PureComponent<IProps, IState> {
 
@@ -56,20 +64,21 @@ export class Main extends React.PureComponent<IProps, IState> {
         }
 
         if (data) {
-            await this.props.dispatch!.fetchCurrentUser()
+            await this.props.dispatch!.fetchCurrentUser();
+            await this.props.dispatch!.fetchOrganizations();
         }
 
         this.setState({isLoading: false});
     }
 
     public render(): JSX.Element | null {
-        if (this.state.isLoading || (this.props.selector!.authenticationData && !this.props.selector!.currentUser)) {
+        if (this.state.isLoading || (this.props.selector!.authenticationData && (!this.props.selector!.currentUser || !this.props.selector!.organizations))) {
             return null;
         }
 
         return <Switch>
             <Route exact path={"/"} component={LandingPage}/>
-            <SecureRoute redirect={"/signin"} exact={true} path={"/app"} component={Dashboard}/>
+            <SecureRoute redirect={"/signin"} exact={true} path={"/app/:orgId?/:docId?"} component={Dashboard}/>
             <UnsecureRoute redirect={"/app"} path={"/signin"} component={SigninPage}/>
             <UnsecureRoute redirect={"/app"} path={"/signup"} component={SignupPage}/>
         </Switch>;

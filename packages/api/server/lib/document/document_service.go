@@ -49,6 +49,27 @@ func (service *DocumentService) InjectTransaction(tx *sql.Tx) interface{} {
 	)
 }
 
+func (service *DocumentService) Find(user *shared.User, documentId string) (*shared.Document, error) {
+	document := service.documentRepository.FindById(documentId)
+	if document == nil {
+		return nil, shared.NewNotFoundError("could not find document")
+	}
+
+	canAccess := service.aclService.UserCanAccessResourceByModel(user, document, "view")
+	if !canAccess {
+		return nil, shared.NewForbiddenError("can not modify document")
+	}
+
+	content := service.documentContentRepository.FindByDocumentId(documentId)
+	if content == nil {
+		return nil, shared.NewNotFoundError("could not find document content");
+	}
+
+	document.Content = content
+
+	return document, nil
+}
+
 func (service *DocumentService) Create(user *shared.User, organizationId string, folderId *string, name string, content string) (*shared.Document, error) {
 	organizationId, folderId, err := service.hasAccessToOrganizationOrFolder(user, organizationId, folderId, "create:document")
 	if err != nil {

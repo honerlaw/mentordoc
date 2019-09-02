@@ -1,0 +1,59 @@
+@import "~codemirror/lib/codemirror.css";
+@import "~tui-editor/dist/tui-editor.css";
+@import "~tui-editor/dist/tui-editor-contents.css";
+@import "~highlight.js/styles/github.css";
+@import "../../../../scss/constant";
+@import "../../../../scss/common/card";
+@import "../../../../scss/mixin";
+
+.document-editor {
+  @include card();
+  @include box-sizing(border-box);
+  width: 100%;
+  background-color: $white;
+
+  input {
+    border: none;
+    background-color: transparent;
+    outline: none;
+    font-size: 2rem;
+    margin-bottom: 20px;
+  }
+
+  * {
+    font-family: $font-family-normal !important;
+  }
+}
+
+.tui-editor-defaultUI {
+  border: none;
+
+  .tui-editor-defaultUI-toolbar {
+    padding: 0;
+  }
+
+  .tui-editor-contents, .CodeMirror-lines {
+    padding: 10px 0 0 0 !important;
+  }
+
+  .te-preview .tui-editor-contents {
+    padding: 0 !important;
+  }
+
+  .te-mode-switch-section {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background-color: transparent;
+    border-top: none;
+
+    .te-switch-button {
+      height: 31px;
+      line-height: 31px;
+      border: none;
+      background-color: transparent;
+      padding: 0 10px;
+      width: auto;
+    }
+  }
+}

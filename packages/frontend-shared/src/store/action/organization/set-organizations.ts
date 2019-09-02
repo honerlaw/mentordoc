@@ -10,11 +10,11 @@ import {cloneDeep} from "lodash";
 export const SET_ORGANIZATIONS_TYPE: string = "set_organizations_type";
 
 export interface ISetOrganizations {
-    organizations: AclOrganization[];
+    organizations: AclOrganization[] | null;
 }
 
 export interface ISetOrganizationsSelector extends ISelectorMap {
-    organizations: AclOrganization[]
+    organizations: AclOrganization[] | null
 }
 
 export interface ISetOrganizationsDispatch extends IDispatchMap {
@@ -35,7 +35,7 @@ export class SetOrganizationsImpl extends SyncAction<IOrganizationState, ISetOrg
         return state;
     }
 
-    public getSelectorValue(state: IRootState): AclOrganization[] {
+    public getSelectorValue(state: IRootState): AclOrganization[] | null {
         return state.organization.organizations;
     }
 

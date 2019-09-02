@@ -9,6 +9,7 @@ interface IProps {
     hasChildren: boolean;
     isExpanded: boolean;
     onExpand?: () => void;
+    onClick?: () => void;
     options?: IDropdownButtonOption[];
 }
 
@@ -61,6 +62,10 @@ export class NavigatorItemView extends React.PureComponent<IProps, IState> {
     }
 
     private onToggle(): void {
+        if (this.props.onClick) {
+            this.props.onClick();
+        }
+
         if (!this.props.hasChildren) {
             return;
         }

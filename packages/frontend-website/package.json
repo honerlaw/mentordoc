@@ -16,7 +16,8 @@
     "@types/react-dom": "^16.9.0",
     "@types/reflect-metadata": "^0.1.0",
     "react-dom": "^16.9.0",
-    "reflect-metadata": "^0.1.13"
+    "reflect-metadata": "^0.1.13",
+    "tui-editor": "^1.4.6"
   },
   "devDependencies": {
     "css-loader": "^3.2.0",

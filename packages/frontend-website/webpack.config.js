@@ -10,7 +10,8 @@ module.exports = {
     entry: './src/bootstrap.tsx',
     output: {
         path: path.resolve(__dirname, 'dist'),
-        filename: 'bundle.js'
+        filename: 'bundle.js',
+        publicPath: "/"
     },
     devServer: {
         host: "0.0.0.0",
@@ -47,7 +48,7 @@ module.exports = {
                 loader: "ts-loader"
             },
             {
-                test: /\.scss$/i,
+                test: /\.(scss|css)$/i,
                 use: [
                     'style-loader',
                     'css-loader',
@@ -55,7 +56,7 @@ module.exports = {
                 ],
             },
             {
-                test: /\.(svg)$/i,
+                test: /\.(svg|png)$/i,
                 use: [
                     {
                         loader: 'file-loader',
