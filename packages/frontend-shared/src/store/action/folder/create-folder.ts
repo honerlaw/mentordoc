@@ -6,6 +6,8 @@ import {request} from "../../../util/request";
 import {HttpError} from "../../model/request-status/http-error";
 import {AclFolder} from "../../model/folder/acl-folder";
 import {SetFolders} from "./set-folders";
+import {FetchFolders} from "./fetch-folders";
+import {IRootState} from "../../model/root-state";
 
 export const CREATE_FOLDER_TYPE: string = "create_folder_type";
 
@@ -41,6 +43,8 @@ class CreateFolderImpl extends AsyncAction<ICreateFolder> {
         api.dispatch(SetFolders.action({
             folders: [folder]
         }));
+
+        FetchFolders.findParentAndUpdate(api, folder.model.organizationId, folder.model.parentFolderId);
     }
 
 

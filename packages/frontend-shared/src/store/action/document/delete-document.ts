@@ -5,33 +5,30 @@ import {MiddlewareAPI} from "redux";
 import {request} from "../../../util/request";
 import {HttpError} from "../../model/request-status/http-error";
 import {AclDocument} from "../../model/document/acl-document";
-import {SetDocuments} from "./set-documents";
-import {FetchFolders} from "../folder/fetch-folders";
+import {UnsetDocuments} from "./unset-documents";
 import {FetchDocuments} from "./fetch-documents";
+import {FetchFolders} from "../folder/fetch-folders";
 
-export const CREATE_DOCUMENT_TYPE: string = "create_document_type";
+export const DELETE_DOCUMENT_TYPE: string = "delete_document_type";
 
-export interface ICreateDocument extends IGenericActionRequest {
-    organizationId: string;
-    folderId: string | null;
-    name: string;
-    content: string;
+export interface IDeleteDocument extends IGenericActionRequest {
+    documentId: string;
 }
 
-export interface ICreateDocumentDispatch extends IDispatchMap {
-    createDocument: (req?: ICreateDocument) => Promise<void>;
+export interface IDeleteDocumentDispatch extends IDispatchMap {
+    deleteDocument: (req: IDeleteDocument) => Promise<void>;
 }
 
-class CreateDocumentImpl extends AsyncAction<ICreateDocument> {
+class DeleteDocumentImpl extends AsyncAction<IDeleteDocument> {
 
     public constructor() {
-        super(CREATE_DOCUMENT_TYPE, "createDocument");
+        super(DELETE_DOCUMENT_TYPE, "deleteDocument");
     }
 
-    protected async fetch(api: MiddlewareAPI, req: ICreateDocument): Promise<void> {
+    protected async fetch(api: MiddlewareAPI, req: IDeleteDocument): Promise<void> {
         const document: AclDocument | null = await request<AclDocument>({
-            method: "POST",
-            path: "/document",
+            method: "DELETE",
+            path: `/document/${req.documentId}`,
             model: AclDocument,
             api,
             body: req
@@ -41,7 +38,7 @@ class CreateDocumentImpl extends AsyncAction<ICreateDocument> {
             throw new HttpError("failed to create document");
         }
 
-        api.dispatch(SetDocuments.action({
+        api.dispatch(UnsetDocuments.action({
             documents: [document]
         }));
 
@@ -52,7 +49,6 @@ class CreateDocumentImpl extends AsyncAction<ICreateDocument> {
         FetchFolders.findParentAndUpdate(api, document.model.organizationId, document.model.folderId);
     }
 
-
 }
 
-export const CreateDocument: CreateDocumentImpl = new CreateDocumentImpl();
+export const DeleteDocument: DeleteDocumentImpl = new DeleteDocumentImpl();

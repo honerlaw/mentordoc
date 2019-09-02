@@ -27,7 +27,7 @@ func (repo *DocumentRepository) InjectTransaction(tx *sql.Tx) interface{} {
 
 func (repo *DocumentRepository) FindById(id string) *shared.Document {
 	row := repo.QueryRow(
-		"select id, name, folder_id, organization_id, created_at, updated_at, deleted_at from document where id = ?",
+		"select id, name, folder_id, organization_id, created_at, updated_at, deleted_at from document where id = ? and deleted_at is null",
 		id,
 	)
 
@@ -71,7 +71,7 @@ func (repo *DocumentRepository) Find(organizationIds []string, folderIds []strin
 		query = fmt.Sprintf("%s AND folder_id is null", query)
 	}
 
-	query = fmt.Sprintf("%s ORDER BY name ASC", query)
+	query = fmt.Sprintf("%s  AND deleted_at is null ORDER BY name ASC", query)
 
 	// add the pagination portion of the query
 	if pagination != nil {

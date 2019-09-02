@@ -6,6 +6,7 @@ import {IWrappedAction} from "../../model/wrapped-action";
 import {cloneDeep} from "lodash";
 import {AclDocument} from "../../model/document/acl-document";
 import {IDocumentState} from "../../model/document/document-state";
+import {AclFolder} from "../../model/folder/acl-folder";
 
 export const SET_DOCUMENTS_TYPE: string = "set_documents_type";
 
@@ -43,9 +44,20 @@ class SetDocumentsImpl extends SyncAction<IDocumentState, ISetDocuments, Selecto
                     return;
                 }
 
-                // otherwise lets make sure the folder isn't in the map already, and then add it
-                const found: AclDocument | undefined = documents
-                    .find((existing: AclDocument): boolean => existing.model.id === doc.model.id);
+                let found: boolean = false;
+
+                // see if the folder exists already
+                for (let i: number = documents.length - 1; i >= 0; --i) {
+                    const d: AclDocument = documents[i];
+
+                    // if it does exist, replace it and mark that we found it
+                    if (d.model.id === doc.model.id) {
+                        found = true;
+                        documents[i] = doc;
+                    }
+                }
+
+                // if it wasn't found then add it
                 if (!found) {
                     documents.push(doc);
                 }

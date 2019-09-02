@@ -85,7 +85,15 @@ func (repo *FolderRepository) ChildCount(folders []shared.Folder) error {
 		params = append(params, folder.Id)
 	}
 
-	query := fmt.Sprintf("select f.parent_folder_id, f.folderCount, d.folder_id, d.documentCount from (select parent_folder_id, count(id) as folderCount from folder where %s and deleted_at is null group by parent_folder_id) f left join (select folder_id, count(id) as documentCount from document where %s and deleted_at is null group by folder_id) d on f.parent_folder_id = d.folder_id", inQuery, inQueryDocument)
+	// add for the second query
+	for _, folder := range folders {
+		params = append(params, folder.Id)
+	}
+	for _, folder := range folders {
+		params = append(params, folder.Id)
+	}
+
+	query := fmt.Sprintf("select f.parent_folder_id, f.folderCount, d.folder_id, d.documentCount from (select parent_folder_id, count(id) as folderCount from folder where %s and deleted_at is null group by parent_folder_id) f left join (select folder_id, count(id) as documentCount from document where %s and deleted_at is null group by folder_id) d on f.parent_folder_id = d.folder_id UNION select f.parent_folder_id, f.folderCount, d.folder_id, d.documentCount from (select parent_folder_id, count(id) as folderCount from folder where %s and deleted_at is null group by parent_folder_id) f right join (select folder_id, count(id) as documentCount from document where %s and deleted_at is null group by folder_id) d on f.parent_folder_id = d.folder_id", inQuery, inQueryDocument, inQuery, inQueryDocument)
 
 	rows, err := repo.Query(query, params...)
 	if err != nil {
@@ -95,8 +103,8 @@ func (repo *FolderRepository) ChildCount(folders []shared.Folder) error {
 	defer rows.Close()
 
 	type FolderCount struct {
-		ParentFolderId string
-		FolderCount    int
+		ParentFolderId *string
+		FolderCount    *int
 		FolderId       *string
 		DocumentCount  *int
 	}
@@ -111,12 +119,11 @@ func (repo *FolderRepository) ChildCount(folders []shared.Folder) error {
 
 		for i := 0; i < len(folders); i++ {
 			folder := &folders[i];
-			if folderCount.ParentFolderId == folder.Id {
-				folder.ChildCount = folderCount.FolderCount
-				if folderCount.DocumentCount != nil {
-					folder.ChildCount = folder.ChildCount + *folderCount.DocumentCount
-				}
-				break;
+			if folderCount.ParentFolderId != nil && *folderCount.ParentFolderId == folder.Id {
+				folder.ChildCount += *folderCount.FolderCount;
+			}
+			if folderCount.FolderId != nil && *folderCount.FolderId == folder.Id {
+				folder.ChildCount += *folderCount.DocumentCount;
 			}
 		}
 	}

@@ -5,8 +5,8 @@ import {MiddlewareAPI} from "redux";
 import {request} from "../../../util/request";
 import {HttpError} from "../../model/request-status/http-error";
 import {AclFolder} from "../../model/folder/acl-folder";
-import {SetFolders} from "./set-folders";
 import {UnsetFolders} from "./unset-folders";
+import {FetchFolders} from "./fetch-folders";
 
 export const DELETE_FOLDER_TYPE: string = "delete_folder_type";
 
@@ -40,6 +40,8 @@ class DeleteFolderImpl extends AsyncAction<IDeleteFolder> {
         api.dispatch(UnsetFolders.action({
             folders: [folder]
         }));
+
+        FetchFolders.findParentAndUpdate(api, folder.model.organizationId, folder.model.parentFolderId);
     }
 
 }

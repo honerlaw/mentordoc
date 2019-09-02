@@ -136,6 +136,51 @@ func (service *DocumentService) Update(user *shared.User, documentId string, nam
 	return res.(*shared.Document), nil
 }
 
+func (service *DocumentService) Delete(user *shared.User, documentId string) (*shared.Document, error) {
+	document := service.documentRepository.FindById(documentId)
+	if document == nil {
+		return nil, shared.NewNotFoundError("could not find document")
+	}
+
+	canAccess := service.aclService.UserCanAccessResourceByModel(user, document, "delete")
+	if !canAccess {
+		return nil, shared.NewForbiddenError("can not delete document")
+	}
+
+	documentContent := service.documentContentRepository.FindByDocumentId(document.Id)
+	if documentContent == nil {
+		return nil, shared.NewNotFoundError("could not find document content")
+	}
+
+	res, err := service.transactionManager.Transact(service, func(injected interface{}) (interface{}, error) {
+		injectedService := injected.(*DocumentService)
+
+		deletedAt := util.NowUnix()
+
+		document.DeletedAt = &deletedAt
+		err := injectedService.documentRepository.Update(document)
+		if err != nil {
+			return nil, err
+		}
+
+		documentContent.DeletedAt = &deletedAt
+		err = injectedService.documentContentRepository.Update(documentContent)
+		if err != nil {
+			return nil, err
+		}
+
+		document.Content = documentContent
+
+		return document, nil
+	})
+
+	if err != nil {
+		return nil, shared.NewInternalServerError("failed to delete document")
+	}
+
+	return res.(*shared.Document), nil
+}
+
 func (service *DocumentService) List(user *shared.User, organizationId string, folderId *string, pagination *shared.Pagination) ([]shared.Document, error) {
 	organizationId, folderId, err := service.hasAccessToOrganizationOrFolder(user, organizationId, folderId, "view:document");
 	if err != nil {

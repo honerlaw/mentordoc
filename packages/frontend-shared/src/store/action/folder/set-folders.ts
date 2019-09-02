@@ -6,6 +6,7 @@ import {IWrappedAction} from "../../model/wrapped-action";
 import {cloneDeep} from "lodash";
 import {IFolderState} from "../../model/folder/folder-state";
 import {AclFolder} from "../../model/folder/acl-folder";
+import {FetchFolders} from "./fetch-folders";
 
 export const SET_FOLDERS_TYPE: string = "set_folders_type";
 
@@ -43,9 +44,20 @@ export class SetFoldersImpl extends SyncAction<IFolderState, ISetFolders, Select
                     return;
                 }
 
-                // otherwise lets make sure the folder isn't in the map already, and then add it
-                const found: AclFolder | undefined = folders
-                    .find((existing: AclFolder): boolean => existing.model.id === folder.model.id);
+                let found: boolean = false;
+
+                // see if the folder exists already
+                for (let i: number = folders.length - 1; i >= 0; --i) {
+                    const f: AclFolder = folders[i];
+
+                    // if it does exist, replace it and mark that we found it
+                    if (f.model.id === folder.model.id) {
+                        found = true;
+                        folders[i] = folder;
+                    }
+                }
+
+                // if it wasn't found then add it
                 if (!found) {
                     folders.push(folder);
                 }
@@ -64,11 +76,11 @@ export class SetFoldersImpl extends SyncAction<IFolderState, ISetFolders, Select
         };
     }
 
-    private getKeyForFolder(folder: AclFolder): string {
+    public getKeyForFolder(folder: AclFolder): string {
         return this.getKey(folder.model.organizationId, folder.model.parentFolderId);
     }
 
-    private getKey(orgId: string, parentFolderId: string | null): string {
+    public getKey(orgId: string, parentFolderId: string | null): string {
         if (parentFolderId) {
             return `${orgId}-${parentFolderId}`;
         }

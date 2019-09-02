@@ -143,6 +143,11 @@ export class FolderItemView extends React.PureComponent<IProps, {}> {
             organizationId: this.props.folder.model.organizationId,
             parentFolderId: this.props.folder.model.id
         });
+
+        await this.props.dispatch!.fetchDocuments({
+            organizationId: this.props.folder.model.organizationId,
+            folderId: this.props.folder.model.id
+        });
     }
 
 }

@@ -25,7 +25,7 @@ func (repo *DocumentContentRepository) InjectTransaction(tx *sql.Tx) interface{}
 
 func (repo *DocumentContentRepository) FindByDocumentId(documentId string) *shared.DocumentContent {
 	row := repo.QueryRow(
-		"select id, content, document_id, created_at, updated_at, deleted_at from document_content where document_id = ?",
+		"select id, content, document_id, created_at, updated_at, deleted_at from document_content where document_id = ? and deleted_at is null",
 		documentId,
 	)
 
