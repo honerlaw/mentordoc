@@ -3,6 +3,6 @@ package shared
 type DocumentContent struct {
 	Entity
 
-	DocumentId string `json:"documentId"`
+	DocumentDraftId string `json:"documentDraftId"`
 	Content    string `json:"content"`
 }

@@ -108,7 +108,7 @@ func TestIntegrationCreateFolder(t *testing.T) {
 	assert.Equal(t, http.StatusCreated, status)
 
 	r := resp.(*acl.AclWrappedModel)
-	assert.Equal(t, r.Actions, []string{"create:document", "delete", "modify", "view", "view:document"})
+	assert.Equal(t, r.Actions, []string{"create:document", "create:folder", "delete", "modify", "view", "view:document", "view:folder"})
 }
 
 func TestIntegrationListFolders(t *testing.T) {

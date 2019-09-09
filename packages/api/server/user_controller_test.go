@@ -101,15 +101,16 @@ func TestIntegrationGetCurrentUser(t *testing.T) {
 	authData := test.SetupAuthentication(t, testData)
 
 	status, resp, err := test.Request(&test.RequestOptions{
-		Method: "OPTIONS",
+		Method: "GET",
 		Path:   "/user",
 		Headers: map[string]string{
 			"Authorization": fmt.Sprintf("Bearer %s", authData.AccessToken),
 		},
-		ResponseModel: true,
+		ResponseModel: &shared.User{},
 	})
 	assert.Nil(t, err)
 	assert.Equal(t, status, http.StatusOK)
 
-	panic(string(resp.([]byte)))
+	u := resp.(*shared.User)
+	assert.Equal(t, u.Id, authData.User.Id)
 }

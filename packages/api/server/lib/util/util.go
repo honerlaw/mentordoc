@@ -10,9 +10,9 @@ import (
 	"time"
 )
 
-// gets unix time in milliseconds
+// gets unix time
 func NowUnix() int64 {
-	return time.Now().UnixNano() / 1e6
+	return time.Now().UnixNano()
 }
 
 func WriteJsonToResponse(w http.ResponseWriter, status int, model interface{}) {

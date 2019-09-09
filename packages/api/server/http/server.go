@@ -56,13 +56,15 @@ func StartServer(waitGroup *sync.WaitGroup) *Server {
 	userRepository := user.NewUserRepository(db, nil)
 	folderRepository := folder.NewFolderRepository(db, nil)
 	documentRepository := document.NewDocumentRepository(db, nil)
+	documentDraftRepository := document.NewDocumentDraftRepository(db, nil)
 	documentContentRepository := document.NewDocumentContentRepository(db, nil)
 
 	// services
 	organizationService := organization.NewOrganizationService(organizationRepository, aclService)
 	userService := user.NewUserService(userRepository, organizationService, transactionManager, aclService)
 	folderService := folder.NewFolderService(folderRepository, organizationService, aclService)
-	documentService := document.NewDocumentService(documentRepository, documentContentRepository, organizationService, folderService, aclService, transactionManager)
+	documentService := document.NewDocumentService(documentRepository, documentDraftRepository,
+		documentContentRepository, organizationService, folderService, aclService, transactionManager)
 
 	// middlewares
 	authenticationMiddleware := middleware2.NewAuthenticationMiddleware(tokenService, userService)

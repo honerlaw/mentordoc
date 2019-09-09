@@ -13,6 +13,7 @@ import (
 
 type DocumentService struct {
 	documentRepository        *DocumentRepository
+	documentDraftRepository   *DocumentDraftRepository
 	documentContentRepository *DocumentContentRepository
 	organizationService       *organization.OrganizationService
 	folderService             *folder.FolderService
@@ -22,6 +23,7 @@ type DocumentService struct {
 
 func NewDocumentService(
 	documentRepository *DocumentRepository,
+	documentDraftRepository *DocumentDraftRepository,
 	documentContentRepository *DocumentContentRepository,
 	organizationService *organization.OrganizationService,
 	folderService *folder.FolderService,
@@ -30,6 +32,7 @@ func NewDocumentService(
 ) *DocumentService {
 	return &DocumentService{
 		documentRepository:        documentRepository,
+		documentDraftRepository:   documentDraftRepository,
 		documentContentRepository: documentContentRepository,
 		organizationService:       organizationService,
 		folderService:             folderService,
@@ -41,6 +44,7 @@ func NewDocumentService(
 func (service *DocumentService) InjectTransaction(tx *sql.Tx) interface{} {
 	return NewDocumentService(
 		service.documentRepository.InjectTransaction(tx).(*DocumentRepository),
+		service.documentDraftRepository.InjectTransaction(tx).(*DocumentDraftRepository),
 		service.documentContentRepository.InjectTransaction(tx).(*DocumentContentRepository),
 		service.organizationService.InjectTransaction(tx).(*organization.OrganizationService),
 		service.folderService.InjectTransaction(tx).(*folder.FolderService),
@@ -49,7 +53,7 @@ func (service *DocumentService) InjectTransaction(tx *sql.Tx) interface{} {
 	)
 }
 
-func (service *DocumentService) Find(user *shared.User, documentId string) (*shared.Document, error) {
+func (service *DocumentService) FindPublishedDocument(user *shared.User, documentId string) (*shared.Document, error) {
 	document := service.documentRepository.FindById(documentId)
 	if document == nil {
 		return nil, shared.NewNotFoundError("could not find document")
@@ -57,15 +61,21 @@ func (service *DocumentService) Find(user *shared.User, documentId string) (*sha
 
 	canAccess := service.aclService.UserCanAccessResourceByModel(user, document, "view")
 	if !canAccess {
-		return nil, shared.NewForbiddenError("can not modify document")
+		return nil, shared.NewForbiddenError("can not view document")
 	}
 
-	content := service.documentContentRepository.FindByDocumentId(documentId)
+	draft := service.documentDraftRepository.FindPublishedDraftByDocumentId(documentId)
+	if draft == nil {
+		return nil, shared.NewNotFoundError("could not find published document")
+	}
+
+	content := service.documentContentRepository.FindByDocumentDraftId(draft.Id)
 	if content == nil {
 		return nil, shared.NewNotFoundError("could not find document content");
 	}
 
-	document.Content = content
+	draft.Content = content
+	document.Drafts = []shared.DocumentDraft{*draft}
 
 	return document, nil
 }
@@ -77,14 +87,19 @@ func (service *DocumentService) Create(user *shared.User, organizationId string,
 	}
 
 	document := &shared.Document{
-		Name:           name,
 		OrganizationId: organizationId,
 		FolderId:       folderId,
 	}
 	document.Id = uuid.NewV4().String()
 
-	documentContent := &shared.DocumentContent{
+	documentDraft := &shared.DocumentDraft{
 		DocumentId: document.Id,
+		Name: name,
+	}
+	documentDraft.Id = uuid.NewV4().String()
+
+	documentContent := &shared.DocumentContent{
+		DocumentDraftId: documentDraft.Id,
 		Content:    content,
 	}
 	documentContent.Id = uuid.NewV4().String()
@@ -93,6 +108,11 @@ func (service *DocumentService) Create(user *shared.User, organizationId string,
 		injectedService := injected.(*DocumentService)
 
 		err := injectedService.documentRepository.Insert(document)
+		if err != nil {
+			return nil, err
+		}
+
+		err = injectedService.documentDraftRepository.Insert(documentDraft)
 		if err != nil {
 			return nil, err
 		}
@@ -109,7 +129,8 @@ func (service *DocumentService) Create(user *shared.User, organizationId string,
 		return nil, shared.NewInternalServerError("failed to create document")
 	}
 
-	document.Content = documentContent
+	documentDraft.Content = documentContent
+	document.Drafts = []shared.DocumentDraft{*documentDraft}
 
 	return document, nil
 }
@@ -125,7 +146,13 @@ func (service *DocumentService) Update(user *shared.User, documentId string, nam
 		return nil, shared.NewForbiddenError("can not modify document")
 	}
 
-	documentContent := service.documentContentRepository.FindByDocumentId(document.Id)
+	// find the draft version, we can only update if a draft exists
+	documentDraft := service.documentDraftRepository.FindDraftByDocumentId(document.Id)
+	if documentDraft == nil {
+		return nil, shared.NewBadRequestError("could not find draft version off the document to update")
+	}
+
+	documentContent := service.documentContentRepository.FindByDocumentDraftId(documentDraft.Id)
 	if documentContent == nil {
 		return nil, shared.NewNotFoundError("could not find document content")
 	}
@@ -133,8 +160,8 @@ func (service *DocumentService) Update(user *shared.User, documentId string, nam
 	res, err := service.transactionManager.Transact(service, func(injected interface{}) (interface{}, error) {
 		injectedService := injected.(*DocumentService)
 
-		document.Name = name
-		err := injectedService.documentRepository.Update(document)
+		documentDraft.Name = name
+		err := injectedService.documentDraftRepository.Update(documentDraft)
 		if err != nil {
 			return nil, err
 		}
@@ -145,7 +172,8 @@ func (service *DocumentService) Update(user *shared.User, documentId string, nam
 			return nil, err
 		}
 
-		document.Content = documentContent
+		documentDraft.Content = documentContent
+		document.Drafts = []shared.DocumentDraft{*documentDraft}
 
 		return document, nil
 	})
@@ -168,11 +196,6 @@ func (service *DocumentService) Delete(user *shared.User, documentId string) (*s
 		return nil, shared.NewForbiddenError("can not delete document")
 	}
 
-	documentContent := service.documentContentRepository.FindByDocumentId(document.Id)
-	if documentContent == nil {
-		return nil, shared.NewNotFoundError("could not find document content")
-	}
-
 	res, err := service.transactionManager.Transact(service, func(injected interface{}) (interface{}, error) {
 		injectedService := injected.(*DocumentService)
 
@@ -184,13 +207,11 @@ func (service *DocumentService) Delete(user *shared.User, documentId string) (*s
 			return nil, err
 		}
 
-		documentContent.DeletedAt = &deletedAt
-		err = injectedService.documentContentRepository.Update(documentContent)
+		// delete all of the drafts as well, we implicitly delete the content for each draft this way
+		err = injectedService.documentDraftRepository.Delete(document.Id);
 		if err != nil {
 			return nil, err
 		}
-
-		document.Content = documentContent
 
 		return document, nil
 	})
@@ -236,7 +257,12 @@ func (service *DocumentService) List(user *shared.User, organizationId string, f
 
 	documents, err := service.documentRepository.Find(organizationIds, folderIds, documentIds, folderId, pagination)
 	if err != nil {
-		return nil, shared.NewInternalServerError("failed to find folders")
+		return nil, shared.NewInternalServerError("failed to find documents")
+	}
+
+	err = service.documentDraftRepository.FindAndAttachLatestDraftForDocuments(documents)
+	if err != nil {
+		return nil, shared.NewInternalServerError("failed to find document drafts")
 	}
 
 	return documents, nil
@@ -250,12 +276,12 @@ func (service *DocumentService) hasAccessToOrganizationOrFolder(user *shared.Use
 
 	// if they are adding this to a folder, check the folder exists and they have access
 	if folderId != nil {
-		folder := service.folderService.FindById(*folderId)
-		if folder == nil {
+		fold := service.folderService.FindById(*folderId)
+		if fold == nil {
 			return "", nil, shared.NewNotFoundError("could not find folder")
 		}
 
-		canAccess := service.aclService.UserCanAccessResourceByModel(user, folder, action)
+		canAccess := service.aclService.UserCanAccessResourceByModel(user, fold, action)
 		if !canAccess {
 			return "", nil, shared.NewForbiddenError("can not create document in folder")
 		}

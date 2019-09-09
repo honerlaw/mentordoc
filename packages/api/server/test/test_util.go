@@ -166,3 +166,9 @@ func Request(options *RequestOptions) (int, interface{}, error) {
 
 	return response.StatusCode, options.ResponseModel, nil
 }
+
+func ConvertModel(source interface{}, target interface{}) interface{} {
+	data, _ := json.Marshal(source)
+	_ = json.Unmarshal(data, target)
+	return target
+}

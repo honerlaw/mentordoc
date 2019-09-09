@@ -61,7 +61,7 @@ func (controller *DocumentController) find(w http.ResponseWriter, req *http.Requ
 	user := controller.authenticationMiddleware.GetUserFromRequest(req)
 	documentId := chi.URLParam(req, "id")
 
-	doc, err := controller.documentService.Find(user, documentId)
+	doc, err := controller.documentService.FindPublishedDocument(user, documentId)
 	if err != nil {
 		util.WriteHttpError(w, err)
 		return

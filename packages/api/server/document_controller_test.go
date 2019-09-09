@@ -192,9 +192,10 @@ func TestIntegrationListDocumentInOrganization(t *testing.T) {
 	assert.Equal(t, http.StatusOK, status)
 
 	r := *resp.(*[]acl.AclWrappedModel)
+	doc := test.ConvertModel(r[0].Model, &shared.Document{}).(*shared.Document)
 
 	assert.Len(t, r, 1)
-	assert.Equal(t, "test document", r[0].Model.(map[string]interface{})["name"])
+	assert.Equal(t, "test document", doc.Drafts[0].Name)
 }
 
 func TestIntegrationListDocumentInOrganizationAndSpecificFolder(t *testing.T) {
@@ -237,9 +238,10 @@ func TestIntegrationListDocumentInOrganizationAndSpecificFolder(t *testing.T) {
 	assert.Equal(t, http.StatusOK, status)
 
 	r := *resp.(*[]acl.AclWrappedModel)
+	doc := test.ConvertModel(r[0].Model, &shared.Document{}).(*shared.Document)
 
 	assert.Len(t, r, 1)
-	assert.Equal(t, "test document", r[0].Model.(map[string]interface{})["name"])
+	assert.Equal(t, "test document", doc.Drafts[0].Name)
 }
 
 func TestIntegrationListDocumentInOrganizationAndSpecificFolderWithPaginaton(t *testing.T) {
@@ -285,13 +287,18 @@ func TestIntegrationListDocumentInOrganizationAndSpecificFolderWithPaginaton(t *
 	assert.Equal(t, http.StatusOK, status)
 
 	r := *resp.(*[]acl.AclWrappedModel)
+	doc := test.ConvertModel(r[0].Model, &shared.Document{}).(*shared.Document)
+	doc1 := test.ConvertModel(r[1].Model, &shared.Document{}).(*shared.Document)
+	doc2 := test.ConvertModel(r[2].Model, &shared.Document{}).(*shared.Document)
+	doc3 := test.ConvertModel(r[3].Model, &shared.Document{}).(*shared.Document)
+	doc4 := test.ConvertModel(r[4].Model, &shared.Document{}).(*shared.Document)
 
 	assert.Len(t, r, 5)
-	assert.Equal(t, "test document 0", r[0].Model.(map[string]interface{})["name"])
-	assert.Equal(t, "test document 1", r[1].Model.(map[string]interface{})["name"])
-	assert.Equal(t, "test document 10", r[2].Model.(map[string]interface{})["name"])
-	assert.Equal(t, "test document 11", r[3].Model.(map[string]interface{})["name"])
-	assert.Equal(t, "test document 12", r[4].Model.(map[string]interface{})["name"])
+	assert.Equal(t, "test document 0", doc.Drafts[0].Name)
+	assert.Equal(t, "test document 1", doc1.Drafts[0].Name)
+	assert.Equal(t, "test document 2", doc2.Drafts[0].Name)
+	assert.Equal(t, "test document 3", doc3.Drafts[0].Name)
+	assert.Equal(t, "test document 4", doc4.Drafts[0].Name)
 
 	// fetch the next page
 	status, resp, err = test.Request(&test.RequestOptions{
@@ -306,13 +313,18 @@ func TestIntegrationListDocumentInOrganizationAndSpecificFolderWithPaginaton(t *
 	assert.Equal(t, http.StatusOK, status)
 
 	r = *resp.(*[]acl.AclWrappedModel)
+	doc = test.ConvertModel(r[0].Model, &shared.Document{}).(*shared.Document)
+	doc1 = test.ConvertModel(r[1].Model, &shared.Document{}).(*shared.Document)
+	doc2 = test.ConvertModel(r[2].Model, &shared.Document{}).(*shared.Document)
+	doc3 = test.ConvertModel(r[3].Model, &shared.Document{}).(*shared.Document)
+	doc4 = test.ConvertModel(r[4].Model, &shared.Document{}).(*shared.Document)
 
 	assert.Len(t, r, 5)
-	assert.Equal(t, "test document 13", r[0].Model.(map[string]interface{})["name"])
-	assert.Equal(t, "test document 14", r[1].Model.(map[string]interface{})["name"])
-	assert.Equal(t, "test document 15", r[2].Model.(map[string]interface{})["name"])
-	assert.Equal(t, "test document 16", r[3].Model.(map[string]interface{})["name"])
-	assert.Equal(t, "test document 17", r[4].Model.(map[string]interface{})["name"])
+	assert.Equal(t, "test document 5", doc.Drafts[0].Name)
+	assert.Equal(t, "test document 6", doc1.Drafts[0].Name)
+	assert.Equal(t, "test document 7", doc2.Drafts[0].Name)
+	assert.Equal(t, "test document 8", doc3.Drafts[0].Name)
+	assert.Equal(t, "test document 9", doc4.Drafts[0].Name)
 }
 
 func TestIntegrationUpdateDocument(t *testing.T) {
@@ -330,8 +342,9 @@ func TestIntegrationUpdateDocument(t *testing.T) {
 	document, err := testData.TestServer.DocumentService.Create(authData.User, org.Id, &folder.Id, "test document", "test content")
 	assert.Nil(t, err)
 
-	assert.Equal(t, document.Name, "test document")
-	assert.Equal(t, document.Content.Content, "test content")
+	assert.Len(t, document.Drafts, 1)
+	assert.Equal(t, document.Drafts[0].Name, "test document")
+	assert.Equal(t, document.Drafts[0].Content.Content, "test content")
 
 	status, resp, err := test.Request(&test.RequestOptions{
 		Method: "PUT",
@@ -350,8 +363,9 @@ func TestIntegrationUpdateDocument(t *testing.T) {
 	assert.Equal(t, http.StatusOK, status)
 
 	r := resp.(*acl.AclWrappedModel)
+	doc := test.ConvertModel(r.Model, &shared.Document{}).(*shared.Document)
 
-	assert.Equal(t, document.Id, r.Model.(map[string]interface{})["id"])
-	assert.Equal(t, "new name", r.Model.(map[string]interface{})["name"])
-	assert.Equal(t, "new content", r.Model.(map[string]interface{})["content"].(map[string]interface{})["content"])
+	assert.Equal(t, document.Id, doc.Id)
+	assert.Equal(t, "new name", doc.Drafts[0].Name)
+	assert.Equal(t, "new content", doc.Drafts[0].Content.Content)
 }
