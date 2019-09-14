@@ -85,6 +85,33 @@ func (service *DocumentService) FindPublishedDocument(user *shared.User, documen
 	return document, nil
 }
 
+func (service *DocumentService) FindDraftDocument(user *shared.User, documentId string) (*shared.Document, error) {
+	document := service.documentRepository.FindById(documentId)
+	if document == nil {
+		return nil, shared.NewNotFoundError("could not find document")
+	}
+
+	canAccess := service.aclService.UserCanAccessResourceByModel(user, document, "edit")
+	if !canAccess {
+		return nil, shared.NewForbiddenError("can not edit document")
+	}
+
+	draft := service.documentDraftRepository.FindDraftByDocumentId(documentId)
+	if draft == nil {
+		return nil, shared.NewNotFoundError("could not find published document")
+	}
+
+	content := service.documentContentRepository.FindByDocumentDraftId(draft.Id)
+	if content == nil {
+		return nil, shared.NewNotFoundError("could not find document content");
+	}
+
+	draft.Content = content
+	document.Drafts = []shared.DocumentDraft{*draft}
+
+	return document, nil
+}
+
 func (service *DocumentService) Create(user *shared.User, organizationId string, folderId *string, name string, content string) (*shared.Document, error) {
 	organizationId, folderId, err := service.hasAccessToOrganizationOrFolder(user, organizationId, folderId, "create:document")
 	if err != nil {
@@ -128,6 +155,11 @@ func (service *DocumentService) Create(user *shared.User, organizationId string,
 		}
 
 		_, err = injectedService.resourceHistoryService.Create(document.Id, "document", user.Id, "created")
+		if err != nil {
+			return nil, err
+		}
+
+		_, err = injectedService.resourceHistoryService.Create(documentDraft.Id, "document_draft", user.Id, "created")
 		if err != nil {
 			return nil, err
 		}
@@ -183,6 +215,11 @@ func (service *DocumentService) Update(user *shared.User, documentId string, nam
 		}
 
 		_, err = injectedService.resourceHistoryService.Create(document.Id, "document", user.Id, "updated")
+		if err != nil {
+			return nil, err
+		}
+
+		_, err = injectedService.resourceHistoryService.Create(documentDraft.Id, "document_draft", user.Id, "updated")
 		if err != nil {
 			return nil, err
 		}
@@ -255,7 +292,7 @@ func (service *DocumentService) List(user *shared.User, organizationId string, f
 	}
 
 	// find all of the resources that you can view
-	resp, err := service.aclService.UserActionableResourcesByPath(user, documentResourceData.ResourcePath, "view")
+	resp, err := service.aclService.UserActionableResourcesByPath(user, documentResourceData.ResourcePath, "view", "edit")
 	if err != nil {
 		return nil, shared.NewInternalServerError("failed to find accessible documents")
 	}
@@ -275,7 +312,7 @@ func (service *DocumentService) List(user *shared.User, organizationId string, f
 		}
 	}
 
-	documents, err := service.documentRepository.Find(user.Id, organizationIds, folderIds, documentIds, folderId, pagination)
+	documents, err := service.documentRepository.Find(organizationIds, folderIds, documentIds, folderId, pagination)
 	if err != nil {
 		return nil, shared.NewInternalServerError("failed to find documents")
 	}

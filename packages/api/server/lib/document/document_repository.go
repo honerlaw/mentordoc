@@ -40,13 +40,10 @@ func (repo *DocumentRepository) FindById(id string) *shared.Document {
 	return &document
 }
 
-// this will find all the given documents in the folders / orgs / docs / etc
-// it will also limit the results to stuff the user created OR where at least one draft is published
-func (repo *DocumentRepository) Find(userId string, organizationIds []string, folderIds []string, documentIds []string, folderId *string, pagination *shared.Pagination) ([]shared.Document, error) {
-	query := "select distinct d.id, d.folder_id, d.organization_id, d.created_at, d.updated_at, d.deleted_at from document d LEFT JOIN resource_history rh ON rh.resource_id = d.id AND rh.resource_name = \"document\" AND rh.user_id = ? JOIN document_draft dd ON dd.document_id = d.id WHERE (rh.action = \"created\" OR (dd.published_at IS NOT NULL AND dd.retracted_at IS NULL)) AND"
+func (repo *DocumentRepository) Find(organizationIds []string, folderIds []string, documentIds []string, folderId *string, pagination *shared.Pagination) ([]shared.Document, error) {
+	query := "select distinct d.id, d.folder_id, d.organization_id, d.created_at, d.updated_at, d.deleted_at from document d WHERE"
 
 	params := make([]interface{}, 0)
-	params = append(params, userId)
 
 	// build the in queries
 	inQueries := make([]string, 0)

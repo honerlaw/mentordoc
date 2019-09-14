@@ -44,6 +44,9 @@ func (controller *DocumentController) RegisterRoutes(router chi.Router) {
 		With(controller.authenticationMiddleware.HasAccessToken()).
 		Get("/document/{id}", controller.find)
 	router.
+		With(controller.authenticationMiddleware.HasAccessToken()).
+		Get("/document/draft/{id}", controller.findDraft)
+	router.
 		With(controller.validatorService.Middleware(request.DocumentCreateRequest{}), controller.authenticationMiddleware.HasAccessToken()).
 		Post("/document", controller.create)
 	router.
@@ -62,6 +65,25 @@ func (controller *DocumentController) find(w http.ResponseWriter, req *http.Requ
 	documentId := chi.URLParam(req, "id")
 
 	doc, err := controller.documentService.FindPublishedDocument(user, documentId)
+	if err != nil {
+		util.WriteHttpError(w, err)
+		return
+	}
+
+	wrapped, err := controller.aclService.Wrap(user, []*shared.Document{doc})
+	if err != nil {
+		util.WriteHttpError(w, shared.NewInternalServerError("found document but failed to find user access"))
+		return
+	}
+
+	util.WriteJsonToResponse(w, http.StatusCreated, wrapped[0])
+}
+
+func (controller *DocumentController) findDraft(w http.ResponseWriter, req *http.Request) {
+	user := controller.authenticationMiddleware.GetUserFromRequest(req)
+	documentId := chi.URLParam(req, "id")
+
+	doc, err := controller.documentService.FindDraftDocument(user, documentId)
 	if err != nil {
 		util.WriteHttpError(w, err)
 		return

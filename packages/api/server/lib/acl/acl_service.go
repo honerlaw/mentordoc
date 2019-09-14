@@ -55,17 +55,17 @@ func (service *AclService) LinkUserToRole(user *shared.User, roleName string, re
 	return service.userRoleService.LinkUserToRole(user, roleName, resourceId)
 }
 
-func (service *AclService) UserCanAccessResourceByModel(user *shared.User, model interface{}, action string) bool {
+func (service *AclService) UserCanAccessResourceByModel(user *shared.User, model interface{}, actions ...string) bool {
 	data, err := service.GetResourceDataForModel(model)
 	if err != nil {
 		log.Print(err)
 		return false
 	}
-	return service.UserCanAccessResource(user, data.ResourcePath, data.ResourceIds, action)
+	return service.UserCanAccessResource(user, data.ResourcePath, data.ResourceIds, actions...)
 }
 
-func (service *AclService) UserCanAccessResource(user *shared.User, path []string, ids []string, action string) bool {
-	canAccess, err := service.userRoleService.UserCanAccessResource(user, path, ids, action)
+func (service *AclService) UserCanAccessResource(user *shared.User, path []string, ids []string, actions ...string) bool {
+	canAccess, err := service.userRoleService.UserCanAccessResource(user, path, ids, actions...)
 	if err != nil {
 		log.Print(err)
 		return false
@@ -73,8 +73,8 @@ func (service *AclService) UserCanAccessResource(user *shared.User, path []strin
 	return canAccess
 }
 
-func (service *AclService) UserActionableResourcesByPath(user *shared.User, path []string, action string) ([]ResourceResponse, error) {
-	return service.userRoleService.UserActionableResourcesByPath(user, path, action)
+func (service *AclService) UserActionableResourcesByPath(user *shared.User, path []string, actions ...string) ([]ResourceResponse, error) {
+	return service.userRoleService.UserActionableResourcesByPath(user, path, actions...)
 }
 
 func (service *AclService) UserActionsForResources(user *shared.User, paths [][]string, ids [][]string) ([]ResourceResponse, error) {

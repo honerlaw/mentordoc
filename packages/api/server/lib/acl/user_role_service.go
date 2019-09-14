@@ -35,16 +35,20 @@ func (service *UserRoleService) LinkUserToRole(user *shared.User, roleName strin
 /*
 Check if a user can access a specific resource for the given action
  */
-func (service *UserRoleService) UserCanAccessResource(user *shared.User, path []string, ids []string, action string) (bool, error) {
-	request := []ResourceRequest{
-		{
-			ResourcePath: path,
-			ResourceIds:  ids,
-			Action: &action,
-		},
+func (service *UserRoleService) UserCanAccessResource(user *shared.User, path []string, ids []string, actions ...string) (bool, error) {
+	requests := make([]ResourceRequest, 0)
+	for _, action := range actions {
+		requests = append(
+			requests,
+			ResourceRequest{
+				ResourcePath: path,
+				ResourceIds:  ids,
+				Action:       &action,
+			},
+		);
 	}
 
-	data, err := service.userRoleRepository.GetDataForResources(user, request)
+	data, err := service.userRoleRepository.GetDataForResources(user, requests)
 
 	if err != nil {
 		return false, err
@@ -82,15 +86,19 @@ func (service *UserRoleService) UserActionsForResources(user *shared.User, paths
 /**
 Find the resource data for the specified resource path and action. E.g. to find all viewable documents
  */
-func (service *UserRoleService) UserActionableResourcesByPath(user *shared.User, path []string, action string) ([]ResourceResponse, error) {
-	request := []ResourceRequest{
-		{
-			ResourcePath: path,
-			Action: &action,
-		},
+func (service *UserRoleService) UserActionableResourcesByPath(user *shared.User, path []string, actions ...string) ([]ResourceResponse, error) {
+	requests := make([]ResourceRequest, 0)
+	for _, action := range actions {
+		requests = append(
+			requests,
+			ResourceRequest{
+				ResourcePath: path,
+				Action:       &action,
+			},
+		);
 	}
 
-	data, err := service.userRoleRepository.GetDataForResources(user, request)
+	data, err := service.userRoleRepository.GetDataForResources(user, requests)
 
 	if err != nil {
 		return nil, err
