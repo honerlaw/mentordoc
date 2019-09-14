@@ -9,6 +9,8 @@
     align-items: center;
     font-size: .9rem;
     padding: 5px;
+    height: 30px;
+    border-radius: $default-border-radius;
 
     .title {
       flex: 9;
@@ -16,18 +18,23 @@
 
     .options {
       flex: 1;
+      display: none;
 
       button {
         img {
-          height: 1rem;
+          height: 30px;
         }
       }
     }
     &:hover {
       cursor: pointer;
       background-color: $light-grey;
+      .options {
+        display: block;
+      }
     }
     .expand-arrow {
+      margin-right: 10px;
       @include transition(transform .2s);
       @include transform(rotate(0deg));
       &.expanded {
@@ -37,8 +44,7 @@
         opacity: 0;
       }
       img {
-        height: 15px;
-        opacity: .5;
+        height: 10px;
       }
     }
     .dropdown-button button img {

@@ -1,12 +1,9 @@
 import {Entity} from "../entity";
-import {DocumentContent} from "./document-content";
 import {Expose, Exclude, Type} from "class-transformer";
+import {DocumentDraft} from "./document-draft";
 
 @Exclude()
 export class Document extends Entity {
-
-    @Expose()
-    public name: string;
 
     @Expose()
     public organizationId: string;
@@ -15,7 +12,7 @@ export class Document extends Entity {
     public folderId: string;
 
     @Expose()
-    @Type(() => DocumentContent)
-    public content: DocumentContent | null;
+    @Type(() => DocumentDraft)
+    public drafts: DocumentDraft[];
 
 }

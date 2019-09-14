@@ -5,6 +5,7 @@ import (
 	"github.com/honerlaw/mentordoc/server/lib/acl"
 	"github.com/honerlaw/mentordoc/server/lib/folder"
 	"github.com/honerlaw/mentordoc/server/lib/organization"
+	"github.com/honerlaw/mentordoc/server/lib/resource_history"
 	"github.com/honerlaw/mentordoc/server/lib/shared"
 	"github.com/honerlaw/mentordoc/server/lib/util"
 	uuid "github.com/satori/go.uuid"
@@ -19,6 +20,7 @@ type DocumentService struct {
 	folderService             *folder.FolderService
 	aclService                *acl.AclService
 	transactionManager        *util.TransactionManager
+	resourceHistoryService    *resource_history.ResourceHistoryService
 }
 
 func NewDocumentService(
@@ -29,6 +31,7 @@ func NewDocumentService(
 	folderService *folder.FolderService,
 	aclService *acl.AclService,
 	transactionManager *util.TransactionManager,
+	resourceHistoryService *resource_history.ResourceHistoryService,
 ) *DocumentService {
 	return &DocumentService{
 		documentRepository:        documentRepository,
@@ -38,6 +41,7 @@ func NewDocumentService(
 		folderService:             folderService,
 		aclService:                aclService,
 		transactionManager:        transactionManager,
+		resourceHistoryService:    resourceHistoryService,
 	}
 }
 
@@ -50,6 +54,7 @@ func (service *DocumentService) InjectTransaction(tx *sql.Tx) interface{} {
 		service.folderService.InjectTransaction(tx).(*folder.FolderService),
 		service.aclService.InjectTransaction(tx).(*acl.AclService),
 		service.transactionManager.InjectTransaction(tx).(*util.TransactionManager),
+		service.resourceHistoryService.InjectTransaction(tx).(*resource_history.ResourceHistoryService),
 	)
 }
 
@@ -94,13 +99,13 @@ func (service *DocumentService) Create(user *shared.User, organizationId string,
 
 	documentDraft := &shared.DocumentDraft{
 		DocumentId: document.Id,
-		Name: name,
+		Name:       name,
 	}
 	documentDraft.Id = uuid.NewV4().String()
 
 	documentContent := &shared.DocumentContent{
 		DocumentDraftId: documentDraft.Id,
-		Content:    content,
+		Content:         content,
 	}
 	documentContent.Id = uuid.NewV4().String()
 
@@ -118,6 +123,11 @@ func (service *DocumentService) Create(user *shared.User, organizationId string,
 		}
 
 		err = injectedService.documentContentRepository.Insert(documentContent)
+		if err != nil {
+			return nil, err
+		}
+
+		_, err = injectedService.resourceHistoryService.Create(document.Id, "document", user.Id, "created")
 		if err != nil {
 			return nil, err
 		}
@@ -172,6 +182,11 @@ func (service *DocumentService) Update(user *shared.User, documentId string, nam
 			return nil, err
 		}
 
+		_, err = injectedService.resourceHistoryService.Create(document.Id, "document", user.Id, "updated")
+		if err != nil {
+			return nil, err
+		}
+
 		documentDraft.Content = documentContent
 		document.Drafts = []shared.DocumentDraft{*documentDraft}
 
@@ -209,6 +224,11 @@ func (service *DocumentService) Delete(user *shared.User, documentId string) (*s
 
 		// delete all of the drafts as well, we implicitly delete the content for each draft this way
 		err = injectedService.documentDraftRepository.Delete(document.Id);
+		if err != nil {
+			return nil, err
+		}
+
+		_, err = injectedService.resourceHistoryService.Create(document.Id, "document", user.Id, "deleted")
 		if err != nil {
 			return nil, err
 		}
@@ -255,7 +275,7 @@ func (service *DocumentService) List(user *shared.User, organizationId string, f
 		}
 	}
 
-	documents, err := service.documentRepository.Find(organizationIds, folderIds, documentIds, folderId, pagination)
+	documents, err := service.documentRepository.Find(user.Id, organizationIds, folderIds, documentIds, folderId, pagination)
 	if err != nil {
 		return nil, shared.NewInternalServerError("failed to find documents")
 	}

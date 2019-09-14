@@ -40,10 +40,13 @@ func (repo *DocumentRepository) FindById(id string) *shared.Document {
 	return &document
 }
 
-func (repo *DocumentRepository) Find(organizationIds []string, folderIds []string, documentIds []string, folderId *string, pagination *shared.Pagination) ([]shared.Document, error) {
-	query := "select distinct id, folder_id, organization_id, created_at, updated_at, deleted_at from document where"
+// this will find all the given documents in the folders / orgs / docs / etc
+// it will also limit the results to stuff the user created OR where at least one draft is published
+func (repo *DocumentRepository) Find(userId string, organizationIds []string, folderIds []string, documentIds []string, folderId *string, pagination *shared.Pagination) ([]shared.Document, error) {
+	query := "select distinct d.id, d.folder_id, d.organization_id, d.created_at, d.updated_at, d.deleted_at from document d LEFT JOIN resource_history rh ON rh.resource_id = d.id AND rh.resource_name = \"document\" AND rh.user_id = ? JOIN document_draft dd ON dd.document_id = d.id WHERE (rh.action = \"created\" OR (dd.published_at IS NOT NULL AND dd.retracted_at IS NULL)) AND"
 
 	params := make([]interface{}, 0)
+	params = append(params, userId)
 
 	// build the in queries
 	inQueries := make([]string, 0)
@@ -65,13 +68,13 @@ func (repo *DocumentRepository) Find(organizationIds []string, folderIds []strin
 
 	// add the specific check for a specific folder
 	if folderId != nil {
-		query = fmt.Sprintf("%s AND folder_id = ?", query)
+		query = fmt.Sprintf("%s AND d.folder_id = ?", query)
 		params = append(params, *folderId)
 	} else {
-		query = fmt.Sprintf("%s AND folder_id is null", query)
+		query = fmt.Sprintf("%s AND d.folder_id is null", query)
 	}
 
-	query = fmt.Sprintf("%s AND deleted_at is null ORDER BY created_at ASC", query)
+	query = fmt.Sprintf("%s AND d.deleted_at is null ORDER BY d.created_at ASC", query)
 
 	// add the pagination portion of the query
 	if pagination != nil {

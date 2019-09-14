@@ -2,6 +2,7 @@ package http
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
@@ -12,6 +13,7 @@ import (
 	"github.com/honerlaw/mentordoc/server/lib/document"
 	"github.com/honerlaw/mentordoc/server/lib/folder"
 	"github.com/honerlaw/mentordoc/server/lib/organization"
+	"github.com/honerlaw/mentordoc/server/lib/resource_history"
 	"github.com/honerlaw/mentordoc/server/lib/user"
 	"github.com/honerlaw/mentordoc/server/lib/util"
 	"log"
@@ -21,6 +23,7 @@ import (
 )
 
 type Server struct {
+	Db                        *sql.DB
 	HttpServer                *http.Server
 	TransactionManager        *util.TransactionManager
 	AclService                *acl.AclService
@@ -31,6 +34,8 @@ type Server struct {
 	FolderRepository          *folder.FolderRepository
 	DocumentRepository        *document.DocumentRepository
 	DocumentContentRepository *document.DocumentContentRepository
+	ResourceHistoryRepository *resource_history.ResourceHistoryRepository
+	ResourceHistoryService    *resource_history.ResourceHistoryService
 	OrganizationService       *organization.OrganizationService
 	UserService               *user.UserService
 	FolderService             *folder.FolderService
@@ -58,13 +63,15 @@ func StartServer(waitGroup *sync.WaitGroup) *Server {
 	documentRepository := document.NewDocumentRepository(db, nil)
 	documentDraftRepository := document.NewDocumentDraftRepository(db, nil)
 	documentContentRepository := document.NewDocumentContentRepository(db, nil)
+	resourceHistoryRepository := resource_history.NewResourceHistoryRepository(db, nil)
 
 	// services
+	resourceHistoryService := resource_history.NewResourceHistoryService(resourceHistoryRepository)
 	organizationService := organization.NewOrganizationService(organizationRepository, aclService)
 	userService := user.NewUserService(userRepository, organizationService, transactionManager, aclService)
 	folderService := folder.NewFolderService(folderRepository, organizationService, aclService)
 	documentService := document.NewDocumentService(documentRepository, documentDraftRepository,
-		documentContentRepository, organizationService, folderService, aclService, transactionManager)
+		documentContentRepository, organizationService, folderService, aclService, transactionManager, resourceHistoryService)
 
 	// middlewares
 	authenticationMiddleware := middleware2.NewAuthenticationMiddleware(tokenService, userService)
@@ -119,6 +126,7 @@ func StartServer(waitGroup *sync.WaitGroup) *Server {
 	log.Print("successfully started server")
 
 	return &Server{
+		Db:                        db,
 		HttpServer:                httpServer,
 		TransactionManager:        transactionManager,
 		AclService:                aclService,
@@ -129,6 +137,8 @@ func StartServer(waitGroup *sync.WaitGroup) *Server {
 		FolderRepository:          folderRepository,
 		DocumentRepository:        documentRepository,
 		DocumentContentRepository: documentContentRepository,
+		ResourceHistoryRepository: resourceHistoryRepository,
+		ResourceHistoryService:    resourceHistoryService,
 		OrganizationService:       organizationService,
 		UserService:               userService,
 		FolderService:             folderService,

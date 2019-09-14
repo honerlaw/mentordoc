@@ -64,16 +64,24 @@ export class OrganizationItemView extends React.PureComponent<IProps, {}> {
         </NavigatorItemView>
     }
 
-    private renderFolders(): JSX.Element[] {
+    private renderFolders(): JSX.Element[] | null {
         const folders: AclFolder[] = this.props.selector!.getFolders(this.props.organization.model.id, null);
+
+        if (folders.length === 0) {
+            return null;
+        }
 
         return folders.map((folder: AclFolder): JSX.Element => {
             return <NavigatorItem key={folder.model.id} item={folder} />;
         });
     }
 
-    private renderDocuments(): JSX.Element[] {
+    private renderDocuments(): JSX.Element[] | null {
         const documents: AclDocument[] = this.props.selector!.getDocuments(this.props.organization.model.id, null);
+
+        if (documents.length === 0) {
+            return null;
+        }
 
         return documents.map((doc: AclDocument): JSX.Element => {
             return <NavigatorItem key={doc.model.id} item={doc} />;

@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS `permission` (
   `action` varchar(255) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_perrmission_resource_path_action` (`resource_path`, `action`),
-  KEY `idx_user_deleted_at` (`deleted_at`)
+  KEY `idx_permission_deleted_at` (`deleted_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `role` (
@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS `role` (
   `updated_at` BIGINT NOT NULL,
   `deleted_at` BIGINT NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `idx_user_deleted_at` (`deleted_at`)
+  KEY `idx_role_deleted_at` (`deleted_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `role_permission` (
@@ -70,7 +70,7 @@ CREATE TABLE IF NOT EXISTS `folder` (
   PRIMARY KEY (`id`),
   FOREIGN KEY (`organization_id`) REFERENCES organization(`id`),
   FOREIGN KEY (`parent_folder_id`) REFERENCES folder(`id`),
-  KEY `idx_user_deleted_at` (`deleted_at`)
+  KEY `idx_folder_deleted_at` (`deleted_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `document` (
@@ -83,7 +83,7 @@ CREATE TABLE IF NOT EXISTS `document` (
   PRIMARY KEY (`id`),
   FOREIGN KEY (`organization_id`) REFERENCES organization(`id`),
   FOREIGN KEY (`folder_id`) REFERENCES folder(`id`),
-  KEY `idx_user_deleted_at` (`deleted_at`)
+  KEY `idx_document_deleted_at` (`deleted_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `document_draft` (
@@ -97,8 +97,9 @@ CREATE TABLE IF NOT EXISTS `document_draft` (
   `deleted_at` BIGINT NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   FOREIGN KEY (`document_id`) REFERENCES document(`id`),
-  KEY `idx_user_deleted_at` (`deleted_at`)
+  KEY `idx_document_draft_deleted_at` (`deleted_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 
 CREATE TABLE IF NOT EXISTS `document_draft_content` (
   `id` CHAR(36) NOT NULL,
@@ -109,7 +110,20 @@ CREATE TABLE IF NOT EXISTS `document_draft_content` (
   `deleted_at` BIGINT NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   FOREIGN KEY (`document_draft_id`) REFERENCES document_draft(`id`),
-  KEY `idx_user_deleted_at` (`deleted_at`)
+  KEY `idx_document_draft_content_deleted_at` (`deleted_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-
+CREATE TABLE IF NOT EXISTS `resource_history` (
+  `id` CHAR(36) NOT NULL,
+  `resource_id` CHAR(36) NOT NULL,
+  `resource_name` varchar(255) NOT NULL,
+  `user_id` CHAR(36) NOT NULL,
+  `action` varchar(255) NOT NULL,
+  `created_at` BIGINT NOT NULL,
+  `updated_at` BIGINT NOT NULL,
+  `deleted_at` BIGINT NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  FOREIGN KEY (`user_id`) REFERENCES user(`id`),
+  KEY `idx_resource_history_deleted_at` (`deleted_at`),
+  KEY `idx_resource_history_identifier` (`resource_id`, `resource_name`, `user_id`, `action`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

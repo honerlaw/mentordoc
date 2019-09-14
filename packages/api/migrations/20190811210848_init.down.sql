@@ -1,3 +1,8 @@
+DROP TABLE `resource_history`;
+DROP TABLE `document_draft_content`;
+DROP TABLE `document_draft`;
+DROP TABLE `document`;
+DROP TABLE `folder`;
 DROP TABLE `user_role`;
 DROP TABLE `role_permission`;
 DROP TABLE `role`;

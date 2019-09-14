@@ -2,7 +2,6 @@ package test
 
 import (
 	"bytes"
-	"database/sql"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -21,7 +20,6 @@ import (
 )
 
 type GlobalTestData struct {
-	ItTestDatabaseConnection *sql.DB
 	Integration              *bool
 	TestServer               *http2.Server
 }
@@ -48,7 +46,6 @@ func InitTestData(envPath string, migrationDir string) *GlobalTestData {
 		_ = os.Setenv("MIGRATION_DIR", migrationDir)
 
 		data.TestServer = http2.StartServer(nil)
-		data.ItTestDatabaseConnection = util.NewDb()
 	}
 
 	return data
@@ -77,7 +74,7 @@ func SetupAuthentication(t *testing.T, data *GlobalTestData) *AuthData {
 	user := &shared.User{}
 	user.Id = uuid.NewV4().String()
 	user.Email = fmt.Sprintf("%s@example.com", user.Id)
-	_, err := data.ItTestDatabaseConnection.Exec("insert into user (id, email, password, created_at, updated_at) values (?, ?, 'hash', 0, 0)", user.Id, user.Email)
+	_, err := data.TestServer.Db.Exec("insert into user (id, email, password, created_at, updated_at) values (?, ?, 'hash', 0, 0)", user.Id, user.Email)
 	assert.Nil(t, err)
 
 	// setup the org or the user

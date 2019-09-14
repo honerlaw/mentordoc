@@ -13,7 +13,7 @@ func TestIntegrationUserCanNotAccessWhenDoesNotExist(t *testing.T) {
 	if !*testData.Integration {
 		t.Skip("skipping integration test")
 	}
-	service := acl.NewAclService(util.NewTransactionManager(testData.ItTestDatabaseConnection, nil), testData.ItTestDatabaseConnection, nil)
+	service := acl.NewAclService(util.NewTransactionManager(testData.TestServer.Db, nil), testData.TestServer.Db, nil)
 
 	user := &shared.User{}
 	user.Id = "5"
@@ -25,11 +25,11 @@ func TestIntegrationUserLinkToRole(t *testing.T) {
 	if !*testData.Integration {
 		t.Skip("skipping integration test")
 	}
-	service := acl.NewAclService(util.NewTransactionManager(testData.ItTestDatabaseConnection, nil), testData.ItTestDatabaseConnection, nil)
+	service := acl.NewAclService(util.NewTransactionManager(testData.TestServer.Db, nil), testData.TestServer.Db, nil)
 
 	user := &shared.User{}
 	user.Id = uuid.NewV4().String()
-	_, err := testData.ItTestDatabaseConnection.Exec("insert into user (id, email, password, created_at, updated_at) values (?, ?, 'hash', 0, 0)", user.Id, user.Id)
+	_, err := testData.TestServer.Db.Exec("insert into user (id, email, password, created_at, updated_at) values (?, ?, 'hash', 0, 0)", user.Id, user.Id)
 	assert.Nil(t, err)
 
 	err = service.LinkUserToRole(user, "organization:owner", uuid.NewV4().String())
@@ -41,13 +41,13 @@ func TestIntegrationUserAccessToDocumentInOrganization(t *testing.T) {
 	if !*testData.Integration {
 		t.Skip("skipping integration test")
 	}
-	service := acl.NewAclService(util.NewTransactionManager(testData.ItTestDatabaseConnection, nil), testData.ItTestDatabaseConnection, nil)
+	service := acl.NewAclService(util.NewTransactionManager(testData.TestServer.Db, nil), testData.TestServer.Db, nil)
 
 	orgId := uuid.NewV4().String()
 
 	user := &shared.User{}
 	user.Id = uuid.NewV4().String()
-	_, err := testData.ItTestDatabaseConnection.Exec("insert into user (id, email, password, created_at, updated_at) values (?, ?, 'hash', 0, 0)", user.Id, user.Id)
+	_, err := testData.TestServer.Db.Exec("insert into user (id, email, password, created_at, updated_at) values (?, ?, 'hash', 0, 0)", user.Id, user.Id)
 	assert.Nil(t, err)
 	err = service.LinkUserToRole(user, "organization:owner", orgId)
 	assert.Nil(t, err)
@@ -60,12 +60,12 @@ func TestIntegrationUserActionableResourcesByPath(t *testing.T) {
 	if !*testData.Integration {
 		t.Skip("skipping integration test")
 	}
-	service := acl.NewAclService(util.NewTransactionManager(testData.ItTestDatabaseConnection, nil), testData.ItTestDatabaseConnection, nil)
+	service := acl.NewAclService(util.NewTransactionManager(testData.TestServer.Db, nil), testData.TestServer.Db, nil)
 
 	orgId := uuid.NewV4().String()
 	user := &shared.User{}
 	user.Id = uuid.NewV4().String()
-	_, err := testData.ItTestDatabaseConnection.Exec("insert into user (id, email, password, created_at, updated_at) values (?, ?, 'hash', 0, 0)", user.Id, user.Id)
+	_, err := testData.TestServer.Db.Exec("insert into user (id, email, password, created_at, updated_at) values (?, ?, 'hash', 0, 0)", user.Id, user.Id)
 	assert.Nil(t, err)
 
 	err = service.LinkUserToRole(user, "organization:owner", orgId)
@@ -80,11 +80,11 @@ func TestIntegrationWrap(t *testing.T) {
 	if !*testData.Integration {
 		t.Skip("skipping integration test")
 	}
-	service := acl.NewAclService(util.NewTransactionManager(testData.ItTestDatabaseConnection, nil), testData.ItTestDatabaseConnection, nil)
+	service := acl.NewAclService(util.NewTransactionManager(testData.TestServer.Db, nil), testData.TestServer.Db, nil)
 
 	user := &shared.User{}
 	user.Id = uuid.NewV4().String()
-	_, err := testData.ItTestDatabaseConnection.Exec("insert into user (id, email, password, created_at, updated_at) values (?, ?, 'hash', 0, 0)", user.Id, user.Id)
+	_, err := testData.TestServer.Db.Exec("insert into user (id, email, password, created_at, updated_at) values (?, ?, 'hash', 0, 0)", user.Id, user.Id)
 	assert.Nil(t, err)
 
 	document := &shared.Document{

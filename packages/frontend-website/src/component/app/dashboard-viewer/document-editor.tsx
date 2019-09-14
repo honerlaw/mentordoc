@@ -23,8 +23,8 @@ export class DocumentEditor extends React.PureComponent<IProps, IState> {
         super(props);
 
         this.state = {
-            name: props.document.model.name,
-            content: props.document.model.content!.content
+            name: props.document.model.drafts[0].name,
+            content: props.document.model.drafts[0].content!.content
         };
 
         this.editorRef = React.createRef();

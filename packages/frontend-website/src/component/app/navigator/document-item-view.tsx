@@ -29,7 +29,7 @@ export class DocumentItemView extends React.PureComponent<IProps, {}> {
     }
 
     public render(): JSX.Element {
-        return <NavigatorItemView title={this.props.document.model.name}
+        return <NavigatorItemView title={this.props.document.model.drafts[0].name}
                                   onClick={this.onClick}
                                   hasChildren={false}
                                   isExpanded={false}

@@ -27,13 +27,9 @@
       cursor: pointer;
       white-space: nowrap;
       padding: 10px;
-      border-bottom: 1px solid $light-grey;
-      font-size: .8rem;
+      font-size: .7rem;
       &:hover {
         background-color: $light-grey;
-      }
-      &:first-child {
-        border-top: 1px solid $light-grey;
       }
     }
   }
