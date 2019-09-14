@@ -37,13 +37,13 @@ Check if a user can access a specific resource for the given action
  */
 func (service *UserRoleService) UserCanAccessResource(user *shared.User, path []string, ids []string, actions ...string) (bool, error) {
 	requests := make([]ResourceRequest, 0)
-	for _, action := range actions {
+	for i := 0; i < len(actions); i++ {
 		requests = append(
 			requests,
 			ResourceRequest{
 				ResourcePath: path,
 				ResourceIds:  ids,
-				Action:       &action,
+				Action:       &actions[i],
 			},
 		);
 	}
@@ -88,12 +88,13 @@ Find the resource data for the specified resource path and action. E.g. to find 
  */
 func (service *UserRoleService) UserActionableResourcesByPath(user *shared.User, path []string, actions ...string) ([]ResourceResponse, error) {
 	requests := make([]ResourceRequest, 0)
-	for _, action := range actions {
+
+	for i := 0; i < len(actions); i++ {
 		requests = append(
 			requests,
 			ResourceRequest{
 				ResourcePath: path,
-				Action:       &action,
+				Action:       &actions[i],
 			},
 		);
 	}
