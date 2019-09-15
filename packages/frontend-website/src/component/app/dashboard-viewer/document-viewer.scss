@@ -1,10 +1,24 @@
+@import "../../../../scss/common/tui";
 @import "../../../../scss/constant";
 @import "../../../../scss/common/card";
+@import "../../../../scss/mixin";
+@import "../../../../scss/common/button";
 
 .document-viewer {
   @include card();
-  height: 1000px;
+  @include box-sizing(border-box);
   width: 100%;
-  padding: 0;
   background-color: $white;
+
+  input {
+    border: none;
+    background-color: transparent;
+    outline: none;
+    font-size: 2rem;
+    margin-bottom: 20px;
+  }
+
+  * {
+    font-family: $font-family-normal !important;
+  }
 }

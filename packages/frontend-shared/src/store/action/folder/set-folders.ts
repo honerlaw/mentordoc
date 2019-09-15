@@ -6,25 +6,26 @@ import {IWrappedAction} from "../../model/wrapped-action";
 import {cloneDeep} from "lodash";
 import {IFolderState} from "../../model/folder/folder-state";
 import {AclFolder} from "../../model/folder/acl-folder";
-import {FetchFolders} from "./fetch-folders";
 
 export const SET_FOLDERS_TYPE: string = "set_folders_type";
 
-export type SelectorValue = (orgId: string, parentFolderId: string | null) => AclFolder[];
+export type SelectorSetFoldersChildValue = (orgId: string, parentFolderId: string | null) => AclFolder[];
+export type SelectorSetFoldersMapValue = Record<string, AclFolder[]>;
+export type SelectorSetFoldersValue = (type: "child" | "map") => SelectorSetFoldersChildValue | SelectorSetFoldersMapValue;
 
 export interface ISetFolders {
     folders: AclFolder[];
 }
 
 export interface ISetFoldersSelector extends ISelectorMap {
-    getFolders: SelectorValue;
+    getFolders: SelectorSetFoldersValue;
 }
 
 export interface ISetFoldersDispatch extends IDispatchMap {
     setFolders: (req?: ISetFolders) => void;
 }
 
-export class SetFoldersImpl extends SyncAction<IFolderState, ISetFolders, SelectorValue> {
+export class SetFoldersImpl extends SyncAction<IFolderState, ISetFolders, SelectorSetFoldersValue> {
 
     public constructor() {
         super(ReducerType.FOLDER, SET_FOLDERS_TYPE, "getFolders", "setFolders")
@@ -66,13 +67,18 @@ export class SetFoldersImpl extends SyncAction<IFolderState, ISetFolders, Select
         return state;
     }
 
-    public getSelectorValue(state: IRootState): SelectorValue {
-        return (orgId: string, parentFolderId: string | null): AclFolder[] => {
-            const folders: AclFolder[] | undefined = state.folder.folderMap[this.getKey(orgId, parentFolderId)];
-            if (folders) {
-                return folders;
+    public getSelectorValue(state: IRootState): SelectorSetFoldersValue {
+        return (type: "child" | "map"): SelectorSetFoldersChildValue | SelectorSetFoldersMapValue => {
+            if (type === "map") {
+                return state.folder.folderMap;
             }
-            return [];
+            return (orgId: string, parentFolderId: string | null): AclFolder[] => {
+                const folders: AclFolder[] | undefined = state.folder.folderMap[this.getKey(orgId, parentFolderId)];
+                if (folders) {
+                    return folders;
+                }
+                return [];
+            };
         };
     }
 
@@ -82,7 +88,7 @@ export class SetFoldersImpl extends SyncAction<IFolderState, ISetFolders, Select
 
     public getKey(orgId: string, parentFolderId: string | null): string {
         if (parentFolderId) {
-            return `${orgId}-${parentFolderId}`;
+            return `${orgId}:${parentFolderId}`;
         }
         return orgId;
     }

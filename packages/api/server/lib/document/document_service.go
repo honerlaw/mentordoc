@@ -58,13 +58,21 @@ func (service *DocumentService) InjectTransaction(tx *sql.Tx) interface{} {
 	)
 }
 
-func (service *DocumentService) FindPublishedDocument(user *shared.User, documentId string) (*shared.Document, error) {
+func (service *DocumentService) FindDocument(user *shared.User, documentId string) (*shared.Document, error) {
 	document := service.documentRepository.FindById(documentId)
 	if document == nil {
 		return nil, shared.NewNotFoundError("could not find document")
 	}
 
-	canAccess := service.aclService.UserCanAccessResourceByModel(user, document, "view")
+	// document has not been initially published, so find the draft for this user
+	if document.InitialDraftUserId != nil {
+		if *document.InitialDraftUserId != user.Id {
+			return nil, shared.NewForbiddenError("can not access document")
+		}
+		return service.FindDraftDocument(user, document.Id)
+	}
+
+	canAccess := service.aclService.UserCanAccessResourceByModel(user, document, "view", "modify")
 	if !canAccess {
 		return nil, shared.NewForbiddenError("can not view document")
 	}
@@ -91,9 +99,9 @@ func (service *DocumentService) FindDraftDocument(user *shared.User, documentId 
 		return nil, shared.NewNotFoundError("could not find document")
 	}
 
-	canAccess := service.aclService.UserCanAccessResourceByModel(user, document, "edit")
+	canAccess := service.aclService.UserCanAccessResourceByModel(user, document, "modify")
 	if !canAccess {
-		return nil, shared.NewForbiddenError("can not edit document")
+		return nil, shared.NewForbiddenError("can not modify document")
 	}
 
 	draft := service.documentDraftRepository.FindDraftByDocumentId(documentId)
@@ -121,7 +129,7 @@ func (service *DocumentService) Create(user *shared.User, organizationId string,
 	document := &shared.Document{
 		OrganizationId:     organizationId,
 		FolderId:           folderId,
-		InitialDraftUserId: user.Id,
+		InitialDraftUserId: &user.Id,
 	}
 	document.Id = uuid.NewV4().String()
 
@@ -293,7 +301,7 @@ func (service *DocumentService) List(user *shared.User, organizationId string, f
 	}
 
 	// find all of the resources that you can view
-	resp, err := service.aclService.UserActionableResourcesByPath(user, documentResourceData.ResourcePath, "view", "edit")
+	resp, err := service.aclService.UserActionableResourcesByPath(user, documentResourceData.ResourcePath, "view", "modify")
 	if err != nil {
 		return nil, shared.NewInternalServerError("failed to find accessible documents")
 	}

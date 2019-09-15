@@ -38,6 +38,7 @@ export class DocumentEditor extends React.PureComponent<IProps, IState> {
         this.editor = new Editor({
             el: this.editorRef.current,
             initialValue: this.state.content,
+            usageStatistics: false,
             events: {
                 change: this.onContentChange
             },

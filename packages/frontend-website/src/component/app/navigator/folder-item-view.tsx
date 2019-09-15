@@ -10,7 +10,7 @@ import {
     IFetchFoldersDispatch
 } from "@honerlawd/mentordoc-frontend-shared/dist/store/action/folder/fetch-folders";
 import {
-    ISetFoldersSelector,
+    ISetFoldersSelector, SelectorSetFoldersChildValue,
     SetFolders
 } from "@honerlawd/mentordoc-frontend-shared/dist/store/action/folder/set-folders";
 import {AclFolder} from "@honerlawd/mentordoc-frontend-shared/dist/store/model/folder/acl-folder";
@@ -20,7 +20,7 @@ import {
     ICreateFolderDispatch
 } from "@honerlawd/mentordoc-frontend-shared/dist/store/action/folder/create-folder";
 import {
-    ISetDocumentsSelector,
+    ISetDocumentsSelector, SelectorSetDocumentsChildValue,
     SetDocuments
 } from "@honerlawd/mentordoc-frontend-shared/dist/store/action/document/set-documents";
 import {
@@ -73,7 +73,8 @@ export class FolderItemView extends React.PureComponent<IProps, {}> {
     }
 
     private renderFolders(): JSX.Element[] | null {
-        const folders: AclFolder[] = this.props.selector!.getFolders(this.props.folder.model.organizationId, this.props.folder.model.id);
+        const selector: SelectorSetFoldersChildValue = this.props.selector!.getFolders("child") as SelectorSetFoldersChildValue;
+        const folders: AclFolder[] = selector(this.props.folder.model.organizationId, this.props.folder.model.id);
 
         if (folders.length === 0) {
             return null;
@@ -85,7 +86,8 @@ export class FolderItemView extends React.PureComponent<IProps, {}> {
     }
 
     private renderDocuments(): JSX.Element[] | null {
-        const documents: AclDocument[] = this.props.selector!.getDocuments(this.props.folder.model.organizationId, this.props.folder.model.id);
+        const selector: SelectorSetDocumentsChildValue = this.props.selector!.getDocuments("child") as SelectorSetDocumentsChildValue;
+        const documents: AclDocument[] = selector(this.props.folder.model.organizationId, this.props.folder.model.id);
 
         if (documents.length === 0) {
             return null;

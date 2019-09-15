@@ -9,7 +9,7 @@ export class Document extends Entity {
     public organizationId: string;
 
     @Expose()
-    public folderId: string;
+    public folderId: string | null;
 
     @Expose()
     @Type(() => DocumentDraft)

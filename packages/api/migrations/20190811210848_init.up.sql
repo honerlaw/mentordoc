@@ -77,7 +77,7 @@ CREATE TABLE IF NOT EXISTS `document` (
   `id` CHAR(36) NOT NULL,
   `organization_id` CHAR(36) NOT NULL,
   `folder_id` CHAR(36) NULL DEFAULT NULL,
-  `initial_draft_user_id` CHAR(36) NOT NULL,
+  `initial_draft_user_id` CHAR(36),
   `created_at` BIGINT NOT NULL,
   `updated_at` BIGINT NOT NULL,
   `deleted_at` BIGINT NULL DEFAULT NULL,

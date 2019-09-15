@@ -6,25 +6,26 @@ import {IWrappedAction} from "../../model/wrapped-action";
 import {cloneDeep} from "lodash";
 import {AclDocument} from "../../model/document/acl-document";
 import {IDocumentState} from "../../model/document/document-state";
-import {AclFolder} from "../../model/folder/acl-folder";
 
 export const SET_DOCUMENTS_TYPE: string = "set_documents_type";
 
-export type SelectorValue = (orgId: string, folderId: string | null) => AclDocument[];
+export type SelectorSetDocumentsChildValue = (orgId: string, folderId: string | null) => AclDocument[];
+export type SelectorSetDocumentsMapValue = Record<string, AclDocument[]>;
+export type SelectorSetDocumentsValue = (type: "map" | "child") => SelectorSetDocumentsChildValue | SelectorSetDocumentsMapValue;
 
 export interface ISetDocuments {
     documents: AclDocument[];
 }
 
 export interface ISetDocumentsSelector extends ISelectorMap {
-    getDocuments: SelectorValue;
+    getDocuments: SelectorSetDocumentsValue;
 }
 
 export interface ISetDocumentsDispatch extends IDispatchMap {
     setDocuments: (req?: ISetDocuments) => void;
 }
 
-class SetDocumentsImpl extends SyncAction<IDocumentState, ISetDocuments, SelectorValue> {
+class SetDocumentsImpl extends SyncAction<IDocumentState, ISetDocuments, SelectorSetDocumentsValue> {
 
     public constructor() {
         super(ReducerType.DOCUMENT, SET_DOCUMENTS_TYPE, "getDocuments", "setDocuments")
@@ -66,14 +67,19 @@ class SetDocumentsImpl extends SyncAction<IDocumentState, ISetDocuments, Selecto
         return state;
     }
 
-    public getSelectorValue(state: IRootState): SelectorValue {
-        return (orgId: string, folderId: string | null): AclDocument[] => {
-            const documents: AclDocument[] | undefined = state.document.documentMap[this.getKey(orgId, folderId)];
-            if (documents) {
-                return documents;
+    public getSelectorValue(state: IRootState): SelectorSetDocumentsValue {
+        return (type: "child" | "map"): SelectorSetDocumentsChildValue | SelectorSetDocumentsMapValue => {
+            if (type === "map") {
+                return state.document.documentMap;
             }
-            return [];
-        };
+            return (orgId: string, folderId: string | null): AclDocument[] => {
+                const documents: AclDocument[] | undefined = state.document.documentMap[this.getKey(orgId, folderId)];
+                if (documents) {
+                    return documents;
+                }
+                return [];
+            };
+        }
     }
 
     private getKeyForDocument(document: AclDocument): string {
@@ -82,7 +88,7 @@ class SetDocumentsImpl extends SyncAction<IDocumentState, ISetDocuments, Selecto
 
     private getKey(orgId: string, folderId: string | null): string {
         if (folderId) {
-            return `${orgId}-${folderId}`;
+            return `${orgId}:${folderId}`;
         }
         return orgId;
     }

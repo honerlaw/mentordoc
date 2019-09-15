@@ -1,6 +1,6 @@
 import * as React from "react";
 import "./dashboard-viewer.scss";
-import {DocumentViewer} from "./dashboard-viewer/document-viewer";
+import {DocumentRenderer} from "./dashboard-viewer/document-renderer";
 import {WithRouter} from "@honerlawd/mentordoc-frontend-shared/dist/store/decorator/with-router";
 import {RouteComponentProps} from "react-router";
 
@@ -24,7 +24,7 @@ export class DashboardViewer extends React.PureComponent<IProps, {}> {
 
     private renderViewer(): JSX.Element | null {
         if (this.props.match!.params.docId && this.props.match!.params.orgId) {
-            return <DocumentViewer/>;
+            return <DocumentRenderer/>;
         }
         return null;
     }

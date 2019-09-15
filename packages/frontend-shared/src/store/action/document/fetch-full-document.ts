@@ -4,7 +4,6 @@ import {MiddlewareAPI} from "redux";
 import {AclDocument} from "../../model/document/acl-document";
 import {request} from "../../../util/request";
 import {HttpError} from "../../model/request-status/http-error";
-import {SetDocuments} from "./set-documents";
 import {SetFullDocument} from "./set-full-document";
 
 export const FETCH_FULL_DOCUMENT_TYPE: string = "fetch_full_document_type";

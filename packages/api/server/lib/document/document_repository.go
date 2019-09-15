@@ -128,7 +128,7 @@ func (repo *DocumentRepository) Update(document *shared.Document) error {
 	document.UpdatedAt = util.NowUnix()
 
 	_, err := repo.Exec(
-		"update document set folder_id = ?, initial_draft_document_id = ?, updated_at = ?, deleted_at = ? where id = ?",
+		"update document set folder_id = ?, initial_draft_user_id = ?, updated_at = ?, deleted_at = ? where id = ?",
 		document.FolderId,
 		document.InitialDraftUserId,
 		document.UpdatedAt,
