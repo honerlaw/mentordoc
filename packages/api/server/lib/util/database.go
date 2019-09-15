@@ -4,9 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/golang-migrate/migrate"
-	"github.com/golang-migrate/migrate/database/mysql"
-	_ "github.com/golang-migrate/migrate/source/file"
+	"github.com/rubenv/sql-migrate"
 	"log"
 	"os"
 	"time"
@@ -16,7 +14,7 @@ func NewDb() *sql.DB {
 
 	// multi statements is needed for migrations
 	dataSource := fmt.Sprintf(
-		"%s:%s@tcp(%s:%s)/%s?autocommit=true&multiStatements=true",
+		"%s:%s@tcp(%s:%s)/%s?autocommit=true&multiStatements=true&parseTime=true",
 		os.Getenv("DATABASE_USERNAME"),
 		os.Getenv("DATABASE_PASSWORD"),
 		os.Getenv("DATABASE_HOST"),
@@ -48,19 +46,13 @@ func runMigration(db *sql.DB) {
 	}
 
 	log.Print("starting to run database migrations")
-	driver, err := mysql.WithInstance(db, &mysql.Config{})
-	if err != nil {
-		log.Fatal(err)
+
+	migrations := &migrate.FileMigrationSource{
+		Dir: os.Getenv("MIGRATION_DIR"),
 	}
 
-	migrator, err := migrate.NewWithDatabaseInstance(fmt.Sprintf("file://%s", os.Getenv("MIGRATION_DIR")), os.Getenv("DATABASE_NAME"), driver)
-
+	_, err := migrate.Exec(db, "mysql", migrations, migrate.Up)
 	if err != nil {
-		log.Fatal(err)
-	}
-
-	err = migrator.Up()
-	if err != nil && err.Error() != "no change" {
 		log.Fatal(err)
 	}
 	log.Print("finished running database migrations")

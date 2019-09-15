@@ -213,3 +213,71 @@ func (repo *FolderRepository) FindById(id string) *shared.Folder {
 
 	return &folder
 }
+
+func (repo *FolderRepository) FindAncestry(id string) ([]shared.Folder, error) {
+	currentFolder := repo.FindById(id)
+
+	row := repo.QueryRow("select GetFolderAncestry(?)", id)
+
+	var path string
+	err := row.Scan(&path)
+	if err != nil {
+		log.Print(err)
+		return nil, errors.New("could not find folder ancestry")
+	}
+
+	// so the passed id is going to be excluded from the result, so technically, the path could be empty (e.g. no parents)
+	// in that case, we should simply find and return the current folder
+	if path == "" {
+		return []shared.Folder{*currentFolder}, nil
+	}
+
+	ids := strings.Split(path, ",")
+
+	placeholders := util.BuildSqlPlaceholderArray(ids)
+	params := util.ConvertStringArrayToInterfaceArray(ids)
+
+	query := fmt.Sprintf("select id, name, parent_folder_id, organization_id, created_at, updated_at, deleted_at from folder where id in (%s)", placeholders)
+	rows, err := repo.Query(
+		query,
+		params...,
+	)
+
+	if err != nil {
+		log.Print(err)
+		return nil, errors.New("could not find folder ancestry")
+	}
+	defer rows.Close()
+
+	folders := make([]shared.Folder, 0)
+
+	// add the current folder so we get the full path
+	folders = append(folders, *currentFolder)
+
+	for rows.Next() {
+		var folder shared.Folder
+		err := rows.Scan(&folder.Id, &folder.Name, &folder.ParentFolderId, &folder.OrganizationId, &folder.CreatedAt, &folder.UpdatedAt, &folder.DeletedAt)
+		if err != nil {
+			log.Print(err)
+			return nil, errors.New("failed to parse folder")
+		}
+		folders = append(folders, folder)
+	}
+
+	if len(ids) != len(folders) - 1 {
+		return nil, errors.New("found ancestry and folder data does not match")
+	}
+
+	sortedFolders := make([]shared.Folder, len(folders))
+	for i := 0; i < len(ids); i++ {
+		id := ids[i];
+		for j := 0; j < len(folders); j++ {
+			folder := folders[j]
+			if folder.Id == id {
+				sortedFolders = append(sortedFolders, folder)
+			}
+		}
+	}
+
+	return sortedFolders, nil
+}

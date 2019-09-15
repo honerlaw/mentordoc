@@ -163,3 +163,7 @@ func (service *FolderService) List(user *shared.User, organizationId string, par
 
 	return folders, nil
 }
+
+func (service *FolderService) FindAncestry(id string) ([]shared.Folder, error) {
+	return service.folderRepository.FindAncestry(id)
+}

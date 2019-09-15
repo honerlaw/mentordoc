@@ -17,7 +17,7 @@ export interface IRequestOptions<T> {
     headers?: Record<string, string>;
 }
 
-export async function request<T>(options: IRequestOptions<T>): Promise<T | null> {
+export async function request<T>(options: IRequestOptions<T>): Promise<T> {
     const headers: Record<string, string> = {
         "Content-Type": "application/json",
         ...options.headers
@@ -52,7 +52,7 @@ export async function request<T>(options: IRequestOptions<T>): Promise<T | null>
     if (options.model) {
         return await parseResponse<T>(resp, options.model);
     }
-    return null;
+    return resp as any;
 }
 
 async function parseResponse<T>(resp: Response, model: new () => T): Promise<T> {
@@ -114,7 +114,7 @@ async function handleUnauthorized(api?: MiddlewareAPI, useRefreshToken?: boolean
 }
 
 async function refreshToken(api: MiddlewareAPI): Promise<void> {
-    const data: AuthenticationData | null = await request({
+    const data: AuthenticationData = await request({
         method: "POST",
         path: "/user/auth/refresh",
         model: AuthenticationData,

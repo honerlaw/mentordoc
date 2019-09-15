@@ -18,27 +18,26 @@ import {AclDocument} from "@honerlawd/mentordoc-frontend-shared/dist/store/model
 import {DocumentViewer} from "./document-viewer";
 import {DocumentEditor} from "./document-editor";
 import {
-    ISetDocumentsSelector, SelectorSetDocumentsMapValue,
-    SetDocuments
-} from "@honerlawd/mentordoc-frontend-shared/dist/store/action/document/set-documents";
+    FetchDocumentPath,
+    IFetchDocumentPathDispatch
+} from "@honerlawd/mentordoc-frontend-shared/dist/store/action/document/fetch-document-path";
 import {
-    ISetFoldersSelector,
-    SelectorSetFoldersMapValue, SetFolders
-} from "@honerlawd/mentordoc-frontend-shared/dist/store/action/folder/set-folders";
-import {AclFolder} from "@honerlawd/mentordoc-frontend-shared/dist/store/model/folder/acl-folder";
-import {
-    ISetOrganizationsSelector,
-    SetOrganizations
-} from "@honerlawd/mentordoc-frontend-shared/dist/store/action/organization/set-organizations";
-import {AclOrganization} from "@honerlawd/mentordoc-frontend-shared/dist/store/model/organization/acl-organization";
+    ISetDocumentPathSelector,
+    SetDocumentPath
+} from "@honerlawd/mentordoc-frontend-shared/dist/store/action/document/set-document-path";
+import {DocumentPath} from "@honerlawd/mentordoc-frontend-shared/dist/store/model/document/document-state";
+import * as icon from "../../../../images/ellipsis.svg";
+import * as chevron from "../../../../images/chevron.svg";
+import {DropdownButton} from "../../shared/dropdown-button";
+import "./document-renderer.scss";
 
 export interface IRouteProps {
     orgId: string;
     docId: string;
 }
 
-interface IProps extends Partial<IDispatchPropMap<IFetchFullDocumentDispatch & ISetFullDocumentDispatch> &
-    ISelectorPropMap<ISetFullDocumentSelector & ISetDocumentsSelector & ISetFoldersSelector & ISetOrganizationsSelector> &
+interface IProps extends Partial<IDispatchPropMap<IFetchFullDocumentDispatch & ISetFullDocumentDispatch & IFetchDocumentPathDispatch> &
+    ISelectorPropMap<ISetFullDocumentSelector & ISetDocumentPathSelector> &
     RouteComponentProps<IRouteProps>> {
 }
 
@@ -48,8 +47,8 @@ interface IState {
 
 @WithRouter()
 @ConnectProps(
-    CombineSelectors(SetFullDocument.selector, SetDocuments.selector, SetFolders.selector, SetOrganizations.selector),
-    CombineDispatchers(FetchFullDocument.dispatch, SetFullDocument.dispatch)
+    CombineSelectors(SetFullDocument.selector, SetDocumentPath.selector),
+    CombineDispatchers(FetchFullDocument.dispatch, SetFullDocument.dispatch, FetchDocumentPath.dispatch)
 )
 export class DocumentRenderer extends React.PureComponent<IProps, IState> {
 
@@ -77,80 +76,48 @@ export class DocumentRenderer extends React.PureComponent<IProps, IState> {
         await this.props.dispatch!.fetchFullDocument({
             documentId: docId
         });
+
+        await this.props.dispatch!.fetchDocumentPath({
+            documentId: docId
+        });
     }
 
     public render(): JSX.Element | null {
         const doc: AclDocument | null = this.props.selector!.fullDocument;
-        if (!doc) {
+        const path: DocumentPath = this.props.selector!.documentPath;
+        if (!doc || path.length === 0) {
             return null;
         }
 
         if (this.state.isEditing) {
             return <DocumentEditor document={doc}/>;
         }
-        return <div>
-            <div className={"document-action-bar"}>
-                <span>{this.getPath(doc).join(" > ")}</span>
-                <div className={"actions"}>
-                    <button>modifiy</button>
+        return <div className={"document-renderer"}>
+            <div className={"document-header-bar"}>
+                <div className={"document-path"}>{this.renderPath()}</div>
+                <div className={"options"}>
+                    <DropdownButton icon={icon} options={[]}/>
                 </div>
             </div>
             <DocumentViewer document={doc}/>
         </div>;
     }
 
-    // @todo this should be moved to the backend
-    private getPath(doc: AclDocument): string[] {
-        if (doc.model.folderId === null) {
-            // @todo find the organization name
-            return [this.getOrganizationName(doc.model.organizationId), doc.model.drafts[0].name]
-        }
+    private renderPath(): JSX.Element[] {
+        const path: JSX.Element[] = [];
 
-        const folderMap: SelectorSetFoldersMapValue = this.props.selector!.getFolders("map") as SelectorSetFoldersMapValue;
-        const folderArr: AclFolder[][] = Object.values(folderMap);
-
-        const path: string[] = this.recursivelyFindFolderPath(doc.model.folderId, folderArr);
-
-        path.reverse();
-
-        path.push(doc.model.drafts[0].name);
-
-        return path;
-    }
-
-    private getOrganizationName(orgId: string): string {
-        const orgs: AclOrganization[] | null = this.props.selector!.organizations;
-        if (!orgs) {
-            return "Unknown";
-        }
-
-        const org: AclOrganization | undefined = orgs.find((org: AclOrganization): boolean => org.model.id === orgId);
-        if (!org) {
-            return "Unknown";
-        }
-
-        return org.model.name;
-    }
-
-    private recursivelyFindFolderPath(folderId: string, folderArr: AclFolder[][]): string[] {
-        let path: string[] = [];
-        for (let i: number = 0; i < folderArr.length; ++i) {
-            const folders: AclFolder[] = folderArr[i];
-            for (let j: number = 0; j < folders.length; ++j) {
-                const folder: AclFolder = folders[j];
-
-                // found the current folder
-                if (folder.model.id === folderId) {
-                    path.push(folder.model.name);
-                    if (folder.model.parentFolderId !== null) {
-                        path = path.concat(this.recursivelyFindFolderPath(folder.model.parentFolderId, folderArr))
-                    } else {
-                        path.push(this.getOrganizationName(folder.model.organizationId));
-                    }
-                }
+        const documentPath: DocumentPath = this.props.selector!.documentPath;
+        for (const item of documentPath) {
+            const temp: any = item;
+            if (temp.name) {
+                path.push(<span key={temp.name}>{temp.name}</span>);
+                path.push(<img key={`${temp.name}-chevron`} src={chevron} alt={"separator"} />)
+            }
+            if (temp.drafts && temp.drafts.length > 0) {
+                path.push(<span key={temp.drafts[0].name}>{temp.drafts[0].name}</span>);
             }
         }
-        return path;
+        return path
     }
 
 }

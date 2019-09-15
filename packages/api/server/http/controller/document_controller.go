@@ -47,6 +47,9 @@ func (controller *DocumentController) RegisterRoutes(router chi.Router) {
 		With(controller.authenticationMiddleware.HasAccessToken()).
 		Get("/document/draft/{id}", controller.findDraft)
 	router.
+		With(controller.authenticationMiddleware.HasAccessToken()).
+		Get("/document/path/{id}", controller.findPath)
+	router.
 		With(controller.validatorService.Middleware(request.DocumentCreateRequest{}), controller.authenticationMiddleware.HasAccessToken()).
 		Post("/document", controller.create)
 	router.
@@ -96,6 +99,19 @@ func (controller *DocumentController) findDraft(w http.ResponseWriter, req *http
 	}
 
 	util.WriteJsonToResponse(w, http.StatusCreated, wrapped[0])
+}
+
+func (controller *DocumentController) findPath(w http.ResponseWriter, req *http.Request) {
+	user := controller.authenticationMiddleware.GetUserFromRequest(req)
+	documentId := chi.URLParam(req, "id")
+
+	path, err := controller.documentService.FindDocumentAncestry(user, documentId)
+	if err != nil {
+		util.WriteHttpError(w, err)
+		return
+	}
+
+	util.WriteJsonToResponse(w, http.StatusCreated, path)
 }
 
 func (controller *DocumentController) create(w http.ResponseWriter, req *http.Request) {

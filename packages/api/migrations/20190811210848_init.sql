@@ -1,3 +1,35 @@
+-- +migrate Up
+-- SQL in section 'Up' is executed when this migration is applied
+
+/*
+this was ripped from https://dba.stackexchange.com/questions/7147/find-highest-level-of-a-hierarchical-field-with-vs-without-ctes
+modified to work specifically with the folder table
+Also modified to return a max of 50 folders
+*/
+-- +migrate StatementBegin
+DROP FUNCTION IF EXISTS `mentor_doc`.`GetFolderAncestry`;
+CREATE FUNCTION `mentor_doc`.`GetFolderAncestry` (GivenID CHAR(36)) RETURNS VARCHAR(1850)
+DETERMINISTIC
+BEGIN
+    DECLARE rv VARCHAR(1850);
+    DECLARE cm CHAR(1);
+    DECLARE ch CHAR(36);
+
+    SET rv = '';
+    SET cm = '';
+    SET ch = GivenID;
+    WHILE ch != -1 DO
+        SELECT IFNULL(parent_folder_id,-1) INTO ch FROM
+        (SELECT parent_folder_id FROM folder WHERE id = ch) A;
+        IF ch != -1 THEN
+            SET rv = CONCAT(rv,cm,ch);
+            SET cm = ',';
+        END IF;
+    END WHILE;
+    RETURN rv;
+END;
+-- +migrate StatementEnd
+
 CREATE TABLE IF NOT EXISTS `organization` (
   `id` CHAR(36) NOT NULL,
   `created_at` BIGINT NOT NULL,
@@ -129,3 +161,17 @@ CREATE TABLE IF NOT EXISTS `resource_history` (
   KEY `idx_resource_history_deleted_at` (`deleted_at`),
   KEY `idx_resource_history_identifier` (`resource_id`, `resource_name`, `user_id`, `action`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- +migrate Down
+-- SQL section 'Down' is executed when this migration is rolled back
+DROP TABLE `resource_history`;
+DROP TABLE `document_draft_content`;
+DROP TABLE `document_draft`;
+DROP TABLE `document`;
+DROP TABLE `folder`;
+DROP TABLE `user_role`;
+DROP TABLE `role_permission`;
+DROP TABLE `role`;
+DROP TABLE `permission`;
+DROP TABLE `organization`;
+DROP TABLE `user`;

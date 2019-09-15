@@ -120,6 +120,40 @@ func (service *DocumentService) FindDraftDocument(user *shared.User, documentId 
 	return document, nil
 }
 
+func (service *DocumentService) FindDocumentAncestry(user *shared.User, documentId string) ([]interface{}, error) {
+	document, err := service.FindDocument(user, documentId)
+	if err != nil {
+		return nil, err
+	}
+
+	path := make([]interface{}, 0)
+	path = append(path, document)
+	if document.FolderId != nil {
+		folders, err := service.folderService.FindAncestry(*document.FolderId)
+		if err != nil {
+			return nil, shared.NewInternalServerError("failed to find document path");
+		}
+		for _, f := range folders {
+			path = append(path, f)
+		}
+	}
+
+	org := service.organizationService.FindById(document.OrganizationId)
+	if org == nil {
+		return nil, shared.NewNotFoundError("could not find organization")
+	}
+
+	path = append(path, org)
+
+	// reverse the array
+	for i := len(path) / 2 - 1; i >= 0; i-- {
+		opp := len(path) - 1 - i
+		path[i], path[opp] = path[opp], path[i]
+	}
+
+	return path, nil
+}
+
 func (service *DocumentService) Create(user *shared.User, organizationId string, folderId *string, name string, content string) (*shared.Document, error) {
 	organizationId, folderId, err := service.hasAccessToOrganizationOrFolder(user, organizationId, folderId, "create:document")
 	if err != nil {
