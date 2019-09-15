@@ -77,12 +77,14 @@ CREATE TABLE IF NOT EXISTS `document` (
   `id` CHAR(36) NOT NULL,
   `organization_id` CHAR(36) NOT NULL,
   `folder_id` CHAR(36) NULL DEFAULT NULL,
+  `initial_draft_user_id` CHAR(36) NOT NULL,
   `created_at` BIGINT NOT NULL,
   `updated_at` BIGINT NOT NULL,
   `deleted_at` BIGINT NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   FOREIGN KEY (`organization_id`) REFERENCES organization(`id`),
   FOREIGN KEY (`folder_id`) REFERENCES folder(`id`),
+  FOREIGN KEY (`initial_draft_user_id`) REFERENCES user(`id`),
   KEY `idx_document_deleted_at` (`deleted_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 

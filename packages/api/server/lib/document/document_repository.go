@@ -27,12 +27,12 @@ func (repo *DocumentRepository) InjectTransaction(tx *sql.Tx) interface{} {
 
 func (repo *DocumentRepository) FindById(id string) *shared.Document {
 	row := repo.QueryRow(
-		"select id, folder_id, organization_id, created_at, updated_at, deleted_at from document where id = ? and deleted_at is null",
+		"select id, folder_id, organization_id, initial_draft_user_id, created_at, updated_at, deleted_at from document where id = ? and deleted_at is null",
 		id,
 	)
 
 	var document shared.Document
-	err := row.Scan(&document.Id, &document.FolderId, &document.OrganizationId, &document.CreatedAt, &document.UpdatedAt, &document.DeletedAt)
+	err := row.Scan(&document.Id, &document.FolderId, &document.OrganizationId, &document.InitialDraftUserId, &document.CreatedAt, &document.UpdatedAt, &document.DeletedAt)
 	if err != nil {
 		log.Print(err)
 		return nil
@@ -40,10 +40,11 @@ func (repo *DocumentRepository) FindById(id string) *shared.Document {
 	return &document
 }
 
-func (repo *DocumentRepository) Find(organizationIds []string, folderIds []string, documentIds []string, folderId *string, pagination *shared.Pagination) ([]shared.Document, error) {
-	query := "select distinct d.id, d.folder_id, d.organization_id, d.created_at, d.updated_at, d.deleted_at from document d WHERE"
+func (repo *DocumentRepository) Find(userId string, organizationIds []string, folderIds []string, documentIds []string, folderId *string, pagination *shared.Pagination) ([]shared.Document, error) {
+	query := "select distinct d.id, d.folder_id, d.organization_id, d.initial_draft_user_id, d.created_at, d.updated_at, d.deleted_at from document d WHERE (d.initial_draft_user_id = ? OR d.initial_draft_user_id is null) AND "
 
 	params := make([]interface{}, 0)
+	params = append(params, userId)
 
 	// build the in queries
 	inQueries := make([]string, 0)
@@ -89,7 +90,7 @@ func (repo *DocumentRepository) Find(organizationIds []string, folderIds []strin
 	documents := make([]shared.Document, 0)
 	for rows.Next() {
 		var document shared.Document
-		err := rows.Scan(&document.Id, &document.FolderId, &document.OrganizationId, &document.CreatedAt, &document.UpdatedAt, &document.DeletedAt)
+		err := rows.Scan(&document.Id, &document.FolderId, &document.OrganizationId, &document.InitialDraftUserId, &document.CreatedAt, &document.UpdatedAt, &document.DeletedAt)
 		if err != nil {
 			log.Print(err)
 			return nil, errors.New("failed to parse document")
@@ -105,10 +106,11 @@ func (repo *DocumentRepository) Insert(document *shared.Document) error {
 	document.UpdatedAt = util.NowUnix()
 
 	_, err := repo.Exec(
-		"insert into document (id, folder_id, organization_id, created_at, updated_at, deleted_at) values (?, ?, ?, ?, ?, ?)",
+		"insert into document (id, folder_id, organization_id, initial_draft_user_id, created_at, updated_at, deleted_at) values (?, ?, ?, ?, ?, ?, ?)",
 		document.Id,
 		document.FolderId,
 		document.OrganizationId,
+		document.InitialDraftUserId,
 		document.CreatedAt,
 		document.UpdatedAt,
 		document.DeletedAt,
@@ -126,8 +128,9 @@ func (repo *DocumentRepository) Update(document *shared.Document) error {
 	document.UpdatedAt = util.NowUnix()
 
 	_, err := repo.Exec(
-		"update document set folder_id = ?, updated_at = ?, deleted_at = ? where id = ?",
+		"update document set folder_id = ?, initial_draft_document_id = ?, updated_at = ?, deleted_at = ? where id = ?",
 		document.FolderId,
+		document.InitialDraftUserId,
 		document.UpdatedAt,
 		document.DeletedAt,
 		document.Id,

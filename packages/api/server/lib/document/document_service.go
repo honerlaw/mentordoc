@@ -119,8 +119,9 @@ func (service *DocumentService) Create(user *shared.User, organizationId string,
 	}
 
 	document := &shared.Document{
-		OrganizationId: organizationId,
-		FolderId:       folderId,
+		OrganizationId:     organizationId,
+		FolderId:           folderId,
+		InitialDraftUserId: user.Id,
 	}
 	document.Id = uuid.NewV4().String()
 
@@ -312,7 +313,7 @@ func (service *DocumentService) List(user *shared.User, organizationId string, f
 		}
 	}
 
-	documents, err := service.documentRepository.Find(organizationIds, folderIds, documentIds, folderId, pagination)
+	documents, err := service.documentRepository.Find(user.Id, organizationIds, folderIds, documentIds, folderId, pagination)
 	if err != nil {
 		return nil, shared.NewInternalServerError("failed to find documents")
 	}
