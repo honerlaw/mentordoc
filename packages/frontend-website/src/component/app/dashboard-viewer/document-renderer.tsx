@@ -28,7 +28,7 @@ import {
 import {DocumentPath} from "@honerlawd/mentordoc-frontend-shared/dist/store/model/document/document-state";
 import * as icon from "../../../../images/ellipsis.svg";
 import * as chevron from "../../../../images/chevron.svg";
-import {DropdownButton} from "../../shared/dropdown-button";
+import {DropdownButton, IDropdownButtonOption} from "../../shared/dropdown-button";
 import "./document-renderer.scss";
 
 export interface IRouteProps {
@@ -89,17 +89,15 @@ export class DocumentRenderer extends React.PureComponent<IProps, IState> {
             return null;
         }
 
-        if (this.state.isEditing) {
-            return <DocumentEditor document={doc}/>;
-        }
+        const viewerOrEditor: JSX.Element = this.state.isEditing ? <DocumentEditor document={doc}/> : <DocumentViewer document={doc}/>;
         return <div className={"document-renderer"}>
             <div className={"document-header-bar"}>
                 <div className={"document-path"}>{this.renderPath()}</div>
                 <div className={"options"}>
-                    <DropdownButton icon={icon} options={[]}/>
+                    <DropdownButton icon={icon} options={this.getOptions()}/>
                 </div>
             </div>
-            <DocumentViewer document={doc}/>
+            {viewerOrEditor}
         </div>;
     }
 
@@ -118,6 +116,28 @@ export class DocumentRenderer extends React.PureComponent<IProps, IState> {
             }
         }
         return path
+    }
+
+    private getOptions(): IDropdownButtonOption[] {
+        if (this.state.isEditing) {
+            return [
+                {
+                    label: "save",
+                    onClick: () => this.setState({
+                        isEditing: false
+                    })
+                }
+            ];
+        }
+
+        return [
+            {
+                label: "modify",
+                onClick: () => this.setState({
+                    isEditing: true
+                })
+            }
+        ];
     }
 
 }

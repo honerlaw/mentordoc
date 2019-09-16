@@ -220,7 +220,7 @@ func (service *DocumentService) Create(user *shared.User, organizationId string,
 	return document, nil
 }
 
-func (service *DocumentService) Update(user *shared.User, documentId string, name string, content string) (*shared.Document, error) {
+func (service *DocumentService) Update(user *shared.User, documentId string, draftId string, name string, content string) (*shared.Document, error) {
 	document := service.documentRepository.FindById(documentId)
 	if document == nil {
 		return nil, shared.NewNotFoundError("could not find document")
@@ -235,6 +235,10 @@ func (service *DocumentService) Update(user *shared.User, documentId string, nam
 	documentDraft := service.documentDraftRepository.FindDraftByDocumentId(document.Id)
 	if documentDraft == nil {
 		return nil, shared.NewBadRequestError("could not find draft version off the document to update")
+	}
+
+	if documentDraft.Id != draftId {
+		return nil, shared.NewBadRequestError("target draft and current draft are not the same")
 	}
 
 	documentContent := service.documentContentRepository.FindByDocumentDraftId(documentDraft.Id)

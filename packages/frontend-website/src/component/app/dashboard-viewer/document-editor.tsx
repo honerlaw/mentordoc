@@ -2,10 +2,18 @@ import * as React from "react";
 import * as tuiEditor from "tui-editor";
 import {AclDocument} from "@honerlawd/mentordoc-frontend-shared/dist/store/model/document/acl-document";
 import "./document-editor.scss";
-import {onChangeSetState} from "../../../util";
 import {debounce} from "lodash";
+import {
+    CombineDispatchers,
+    ConnectProps,
+    IDispatchPropMap
+} from "@honerlawd/mentordoc-frontend-shared/dist/store/decorator/connect-props";
+import {
+    IUpdateDocumentDispatch,
+    UpdateDocument
+} from "@honerlawd/mentordoc-frontend-shared/dist/store/action/document/update-document";
 
-interface IProps {
+interface IProps extends Partial<IDispatchPropMap<IUpdateDocumentDispatch>> {
     document: AclDocument;
 }
 
@@ -14,6 +22,7 @@ interface IState {
     content: string;
 }
 
+@ConnectProps(null, CombineDispatchers(UpdateDocument.dispatch))
 export class DocumentEditor extends React.PureComponent<IProps, IState> {
 
     private editorRef: React.RefObject<any>;
@@ -28,7 +37,11 @@ export class DocumentEditor extends React.PureComponent<IProps, IState> {
         };
 
         this.editorRef = React.createRef();
-        this.onContentChange = debounce(this.onContentChange.bind(this), 400);
+        this.onNameChange = this.onNameChange.bind(this);
+
+        // debounce both of these for perf reasons, fetching markdown is expensive, saving is expensive
+        this.onContentChange = debounce(this.onContentChange.bind(this), 500);
+        this.save = debounce(this.save.bind(this), 500);
     }
 
     public componentDidMount(): void {
@@ -50,14 +63,31 @@ export class DocumentEditor extends React.PureComponent<IProps, IState> {
 
     public render(): JSX.Element | null {
         return <div className={"document-editor"}>
-            <input type={"text"} value={this.state.name} onChange={onChangeSetState<IState>("name", this)}/>
+            <input type={"text"} value={this.state.name} onChange={this.onNameChange}/>
             <div ref={this.editorRef}/>
         </div>;
     }
 
+    private onNameChange(event: React.ChangeEvent<HTMLInputElement>): void {
+        const name: string = event.target.value;
+        this.setState({name});
+
+        this.save(name, this.editor.getMarkdown());
+    }
+
     private onContentChange(): void {
-        this.setState({
-            content: this.editor.getMarkdown()
+        const content: string = this.editor.getMarkdown();
+        this.setState({content});
+
+        this.save(this.state.name, content);
+    }
+
+    private save(name: string, content: string): void {
+        this.props.dispatch!.updateDocument({
+            documentId: this.props.document.model.id,
+            draftId: this.props.document.model.drafts[0].id,
+            name,
+            content
         });
     }
 
