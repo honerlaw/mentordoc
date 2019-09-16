@@ -26,9 +26,9 @@ import {
     SetDocumentPath
 } from "@honerlawd/mentordoc-frontend-shared/dist/store/action/document/set-document-path";
 import {DocumentPath} from "@honerlawd/mentordoc-frontend-shared/dist/store/model/document/document-state";
-import * as icon from "../../../../images/ellipsis.svg";
-import * as chevron from "../../../../images/chevron.svg";
-import {DropdownButton, IDropdownButtonOption} from "../../shared/dropdown-button";
+import * as icon from "../../../../../images/ellipsis.svg";
+import * as chevron from "../../../../../images/chevron.svg";
+import {DropdownButton, IDropdownButtonOption} from "../../../shared/dropdown-button";
 import "./document-renderer.scss";
 
 export interface IRouteProps {

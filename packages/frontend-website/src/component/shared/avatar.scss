@@ -1,0 +1,18 @@
+@import "../../../scss/constant";
+
+$size: 30px;
+
+.avatar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: $size;
+  width: $size;
+  border-radius: $size / 2;
+  background-color: $off-white;
+  .avatar-label {
+    font-size: $size / 2.5;
+    color: $dark-blue;
+    text-transform: uppercase;
+  }
+}

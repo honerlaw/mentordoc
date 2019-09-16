@@ -1,7 +1,7 @@
 import * as React from "react";
 import {AclOrganization} from "@honerlawd/mentordoc-frontend-shared/dist/store/model/organization/acl-organization";
 import {NavigatorItemView} from "./navigator-item-view";
-import {IDropdownButtonOption} from "../../shared/dropdown-button";
+import {IDropdownButtonOption} from "../../../shared/dropdown-button";
 import {
     CombineDispatchers, CombineSelectors,
     ConnectProps, IDispatchPropMap, ISelectorPropMap

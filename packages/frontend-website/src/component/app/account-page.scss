@@ -1,0 +1,7 @@
+@import "../../../scss/common/card";
+
+#account-page {
+  .settings {
+    @include card();
+  }
+}

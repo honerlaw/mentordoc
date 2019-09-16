@@ -1,8 +1,8 @@
 import * as React from "react";
 import {Page} from "../shared/page";
-import {Navigator} from "./navigator";
-import {DashboardViewer} from "./dashboard-viewer";
-import "./dashboard.scss";
+import {Navigator} from "./dashboard-page/navigator";
+import {DashboardViewer} from "./dashboard-page/dashboard-viewer";
+import "./dashboard-page.scss";
 import {RouteComponentProps} from "react-router";
 import {
     CombineSelectors,
@@ -23,7 +23,7 @@ interface IRouteParams {
 }
 
 @ConnectProps(CombineSelectors(SetOrganizations.selector))
-export class Dashboard extends React.PureComponent<IProps, {}> {
+export class DashboardPage extends React.PureComponent<IProps, {}> {
 
     public async componentWillMount(): Promise<void> {
         if (!this.props.match.params.orgId) {

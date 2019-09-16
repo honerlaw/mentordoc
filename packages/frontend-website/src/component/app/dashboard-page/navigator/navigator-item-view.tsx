@@ -1,8 +1,8 @@
 import * as React from "react";
 import "./navigator-item-view.scss";
-import {DropdownButton, IDropdownButtonOption} from "../../shared/dropdown-button";
-import * as icon from "../../../../images/ellipsis.svg";
-import * as chevron from "../../../../images/chevron.svg";
+import {DropdownButton, IDropdownButtonOption} from "../../../shared/dropdown-button";
+import * as icon from "../../../../../images/ellipsis.svg";
+import * as chevron from "../../../../../images/chevron.svg";
 
 interface IProps {
     title: string;

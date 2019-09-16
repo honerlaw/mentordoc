@@ -17,6 +17,11 @@
     top: 0;
     left: 100%;
     padding: 10px;
+    &.bottom {
+      top: calc(100% + 10px);
+      right: 0;
+      left: auto;
+    }
     &.hidden {
       display: none;
     }

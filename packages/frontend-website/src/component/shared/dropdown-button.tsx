@@ -7,8 +7,9 @@ export interface IDropdownButtonOption {
 }
 
 interface IProps {
-    label?: string;
+    label?: string | JSX.Element;
     icon?: string;
+    position?: "bottom";
     options?: IDropdownButtonOption[];
 }
 
@@ -48,7 +49,7 @@ export class DropdownButton extends React.PureComponent<IProps, IState> {
 
         return <div ref={this.ref} className={"dropdown-button"}>
             <button onClick={this.onClick}>{this.renderButtonContent()}</button>
-            <div className={`dropdown-container ${this.state.isVisible ? "visible" : "hidden"}`}>
+            <div className={`dropdown-container ${this.props.position || ""} ${this.state.isVisible ? "visible" : "hidden"}`}>
                 {this.renderOptions()}
             </div>
         </div>;

@@ -1,6 +1,6 @@
 import * as React from "react";
 import "./header.scss";
-import {Link} from "react-router-dom";
+import {Link, RouteComponentProps} from "react-router-dom";
 import {
     CombineDispatchers,
     CombineSelectors,
@@ -11,11 +11,15 @@ import {
     IAuthenticationDataSelector,
     SetAuthenticationData
 } from "@honerlawd/mentordoc-frontend-shared/dist/store/action/user/set-authentication-data";
+import {Avatar} from "./avatar";
+import {DropdownButton} from "./dropdown-button";
+import {WithRouter} from "@honerlawd/mentordoc-frontend-shared/dist/store/decorator/with-router";
 
-interface IProps extends Partial<IDispatchPropMap<ILogoutDispatch> & ISelectorPropMap<IAuthenticationDataSelector>> {
+interface IProps extends Partial<IDispatchPropMap<ILogoutDispatch> & ISelectorPropMap<IAuthenticationDataSelector> & RouteComponentProps> {
 
 }
 
+@WithRouter()
 @ConnectProps(CombineSelectors(SetAuthenticationData.selector), CombineDispatchers(Logout.dispatch))
 export class Header extends React.PureComponent<IProps, {}> {
 
@@ -36,10 +40,24 @@ export class Header extends React.PureComponent<IProps, {}> {
     private renderOptions(): JSX.Element[] {
         const options: JSX.Element[] = [];
         if (this.props.selector!.authenticationData) {
-            options.push(<div key={"logout"} className={"option"}
-                              onClick={() => this.props.dispatch!.logout()}>logout</div>);
+            options.push(this.renderDropdown());
         }
         return options;
+    }
+
+    private renderDropdown(): JSX.Element {
+        return <DropdownButton key={"avatar"} label={<Avatar label={"test"}/>} position={"bottom"} options={
+            [
+                {
+                    label: "account",
+                    onClick: () => this.props.history!.push("/app/account")
+                },
+                {
+                    label: "sign out",
+                    onClick: () => this.props.dispatch!.logout()
+                }
+            ]
+        }/>;
     }
 
 }
