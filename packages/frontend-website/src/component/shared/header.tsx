@@ -30,6 +30,10 @@ export class Header extends React.PureComponent<IProps, {}> {
                     <Link className={"logo"} to={"/"}>mentordoc</Link>
                 </div>
 
+                <div className={"search"}>
+                    <input type={"text"} placeholder={"search"} />
+                </div>
+
                 <div className={"options"}>
                     {this.renderOptions()}
                 </div>

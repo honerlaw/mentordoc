@@ -7,12 +7,9 @@ export class AccountPage extends React.PureComponent<{}, {}> {
     public render(): JSX.Element {
         return <Page>
             <div id={"account-page"}>
-
                 <div className={"settings"}>
                     hello
                 </div>
-
-
             </div>
         </Page>;
     }

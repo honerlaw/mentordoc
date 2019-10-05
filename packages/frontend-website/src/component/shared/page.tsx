@@ -3,14 +3,20 @@ import {Header} from "./header";
 import {AlertList} from "./alert-list";
 import "./page.scss";
 
-export class Page extends React.PureComponent<{}, {}> {
+interface IProps {
+    className?: string;
+}
+
+export class Page extends React.PureComponent<IProps, {}> {
 
     public render(): JSX.Element {
-        return <div className={"page"}>
-            <Header />
+        return <div className={`page ${this.props.className || ""}`}>
             <div className={"page-container"}>
+                <Header/>
+                <div className={"page-content-container"}>
+                    {this.props.children}
+                </div>
                 <AlertList/>
-                {this.props.children}
             </div>
         </div>;
     }

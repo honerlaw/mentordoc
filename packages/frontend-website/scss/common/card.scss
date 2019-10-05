@@ -4,6 +4,7 @@
 @mixin card() {
   padding: 30px;
   background-color: $white;
+  @include box-shadow(1px 2px 4px $grey);
   border-radius: $default-border-radius;
-  @include box-shadow(0 0 2px $grey);
+  border: 1px solid $grey-2;
 }

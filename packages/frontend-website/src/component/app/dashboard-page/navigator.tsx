@@ -20,10 +20,12 @@ export class Navigator extends React.PureComponent<IProps, {}> {
 
     public render(): JSX.Element {
         return <div className={"dashboard-navigator"}>
-            <h4>Navigation</h4>
-            {this.props.selector!.organizations!.map((org: AclOrganization): JSX.Element => {
-                return <NavigatorItem key={org.model.id} item={org} />;
-            })}
+            <div className={"dashboard-empty-spacer"} />
+            <div className={"dashboard-navigator-container"}>
+                {this.props.selector!.organizations!.map((org: AclOrganization): JSX.Element => {
+                    return <NavigatorItem key={org.model.id} item={org}/>;
+                })}
+            </div>
         </div>;
     }
 

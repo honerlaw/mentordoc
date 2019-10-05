@@ -39,7 +39,7 @@ export class NavigatorItemView extends React.PureComponent<IProps, IState> {
                 {this.renderExpandButton()}
                 <span className={"title"}>{this.props.title}</span>
                 <div className={"options"}>
-                    <DropdownButton icon={icon} options={this.props.options}/>
+                    <DropdownButton icon={icon} position={"left"} options={this.props.options}/>
                 </div>
             </div>
             <div className={"navigator-children"}>

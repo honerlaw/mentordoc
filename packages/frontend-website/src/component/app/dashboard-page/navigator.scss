@@ -1,8 +1,11 @@
+@import "../../../../scss/constant";
+
 .dashboard-navigator {
-  width: 300px;
-  padding: 0 30px 30px 30px;
-  h4 {
-    font-weight: 400;
-    font-size: 1.2rem;
-  }
+  width: 100%;
+  padding: 0;
+  background-color: $off-white;
+  overflow: hidden;
+  border-right: 1px solid $grey-2;
+  display: grid;
+  grid-template-columns: calc(100% - #{$navigator-width}) $navigator-width;
 }

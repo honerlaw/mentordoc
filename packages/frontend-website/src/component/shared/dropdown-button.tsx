@@ -9,7 +9,7 @@ export interface IDropdownButtonOption {
 interface IProps {
     label?: string | JSX.Element;
     icon?: string;
-    position?: "bottom";
+    position?: "bottom" | "left";
     options?: IDropdownButtonOption[];
 }
 

@@ -94,7 +94,7 @@ export class DocumentRenderer extends React.PureComponent<IProps, IState> {
             <div className={"document-header-bar"}>
                 <div className={"document-path"}>{this.renderPath()}</div>
                 <div className={"options"}>
-                    <DropdownButton icon={icon} options={this.getOptions()}/>
+                    <DropdownButton icon={icon} position={"left"} options={this.getOptions()}/>
                 </div>
             </div>
             {viewerOrEditor}

@@ -1,7 +1,21 @@
 @import "../../../scss/mixin";
+@import "../../../scss/constant";
 
 .page {
+  height: 100%;
+  width: 100%;
+
   .page-container {
-    @include max-size();
+    display: grid;
+    grid-template-rows: $header-height calc(100% - #{$header-height});
+    height: 100%;
+
+    .page-content-container {
+      height: 100%;
+      display: grid;
+      grid-template-columns: $left-container-width calc(100% - #{$left-container-width});
+      grid-template-rows: 100%;
+    }
+
   }
 }

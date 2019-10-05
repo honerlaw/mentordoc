@@ -2,22 +2,47 @@
 @import "../../../scss/mixin";
 
 #header {
-  background-color: $blue;
+  background-color: $white;
   width: 100%;
+  border-bottom: 1px solid $grey-2;
+
   #header-container {
-    display: grid;
-    grid-template-columns: calc(100% - 50px) 50px;
+    display: flex;
+    flex-direction: row;
     align-items: center;
     padding: 0 30px;
-    height: 60px;
+    height: $header-height;
     @include box-sizing(border-box);
-    @include max-size();
+
+    div {
+      flex: 1;
+    }
 
     .logo {
       font-size: 1.3rem;
-      color: $white;
+      color: $blue;
       font-family: $font-family-custom;
       text-decoration: none;
+      font-weight: 800;
+    }
+
+    .search {
+      input {
+        width: 100%;
+        @include box-sizing(border-box);
+        border: none;
+        padding: 10px;
+        background-color: $off-white;
+        text-align: center;
+        font-size: 1rem;
+      }
+    }
+
+    .options {
+      .dropdown-button {
+        display: inline-block;
+        float: right;
+      }
     }
   }
 }

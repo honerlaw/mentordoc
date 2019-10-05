@@ -34,11 +34,9 @@ export class DashboardPage extends React.PureComponent<IProps, {}> {
     }
 
     public render(): JSX.Element {
-        return <Page>
-            <div id={"dashboard-container"}>
-                <Navigator/>
-                <DashboardViewer/>
-            </div>
+        return <Page className={"dashboard-page"}>
+            <Navigator/>
+            <DashboardViewer/>
         </Page>;
     }
 
