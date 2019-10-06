@@ -5,6 +5,7 @@ import {MiddlewareAPI} from "redux";
 import {request} from "../../../util/request";
 import {AclDocument} from "../../model/document/acl-document";
 import {SetFullDocument} from "./set-full-document";
+import {FetchDocuments} from "./fetch-documents";
 
 export const UPDATE_DOCUMENT_TYPE: string = "update_document_type";
 
@@ -37,6 +38,12 @@ class UpdateDocumentImpl extends AsyncAction<IUpdateDocument> {
         api.dispatch(SetFullDocument.action({
             fullDocument: document
         }));
+
+        // re-fetch the folder documents, so the nav bar updates properly
+        api.dispatch(FetchDocuments.action({
+            organizationId: document.model.organizationId,
+            folderId: document.model.folderId
+        }) as any);
     }
 
 
