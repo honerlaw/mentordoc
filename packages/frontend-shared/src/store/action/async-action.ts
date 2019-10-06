@@ -11,11 +11,19 @@ import {AddAlert} from "./alert/add-alert";
 import {Alert, AlertType} from "../model/alert/alert";
 import {plainToClass} from "class-transformer";
 import {IGenericActionRequest} from "./generic-action-request";
+import {IRootState} from "../model/root-state";
 
 export abstract class AsyncAction<Request extends IGenericActionRequest> extends GenericAction<Request> {
 
     public action(req?: Request): AsyncActionHandler<void> {
         return async (api: MiddlewareAPI, ...args: any[]): Promise<void> => {
+
+            // prevent action from being fired, if we are still fetching the previous one
+            const state: IRootState = api.getState();
+            if (state.requestStatus.statusMap[this.type] === RequestStatus.FETCHING) {
+                return;
+            }
+
             api.dispatch(ClearAlerts.action());
 
             api.dispatch(SetRequestError.action({

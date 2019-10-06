@@ -1,7 +1,7 @@
 @import "../constant";
 
 @mixin rounded-dark-button() {
-  background-color: $blue;
+  background-color: $primary-green;
   color: $white;
   border: none;
   border-radius: $default-border-radius;
@@ -10,13 +10,13 @@
   cursor: pointer;
   outline: none;
   &:hover, &:active {
-    background-color: $dark-blue;
+    background-color: $primary-dark-green;
   }
 }
 
 @mixin plain-button() {
   background-color: transparent;
   border: none;
-  color: $dark-blue;
+  color: $primary-dark-green;
   cursor: pointer;
 }

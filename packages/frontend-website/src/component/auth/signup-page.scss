@@ -1,7 +1,6 @@
 @import "../../../scss/constant";
 @import "../../../scss/mixin";
 @import "../../../scss/common/card";
-@import "../../../scss/common/button";
 @import "../../../scss/common/input";
 
 #signup-page {
@@ -23,7 +22,7 @@
     }
 
     h1 {
-      color: $dark-blue;
+      color: $primary-dark-green;
       font-weight: 100;
     }
 
@@ -33,9 +32,6 @@
       }
       button {
         margin: 10px 0 20px;
-        display: block;
-        width: 100%;
-        @include rounded-dark-button();
       }
     }
 
@@ -44,7 +40,7 @@
       border-top: 1px solid $grey;
       a {
         font-size: .8rem;
-        color: $blue;
+        color: $primary-green;
       }
     }
   }

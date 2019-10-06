@@ -10,7 +10,7 @@ interface IProps {
     isExpanded: boolean;
     onExpand?: () => void;
     onClick?: () => void;
-    options?: IDropdownButtonOption[];
+    options: IDropdownButtonOption[];
 }
 
 interface IState {

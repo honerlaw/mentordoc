@@ -17,6 +17,7 @@
     top: 0;
     left: 100%;
     padding: 3px;
+    text-align: left;
     &.bottom {
       top: calc(100% + 10px);
       right: 0;
@@ -32,6 +33,17 @@
     }
     &.visible {
       display: block;
+    }
+    .section {
+      border-bottom: 1px solid $light-grey;
+      label {
+        display: block;
+        padding: 10px 10px 5px 10px;
+        font-size: .6rem;
+        color: $dark-grey;
+        font-weight: 600;
+        text-transform: uppercase;
+      }
     }
     .option {
       cursor: pointer;

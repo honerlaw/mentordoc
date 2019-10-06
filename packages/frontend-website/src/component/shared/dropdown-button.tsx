@@ -6,15 +6,27 @@ export interface IDropdownButtonOption {
     onClick: () => void;
 }
 
+export interface IDropdownSectionOption {
+    label: string;
+    options: IDropdownButtonOption[];
+}
+
+export type DropdownOption = IDropdownButtonOption | IDropdownSectionOption;
+export type DropdownOptions = Array<DropdownOption>;
+
 interface IProps {
     label?: string | JSX.Element;
     icon?: string;
     position?: "bottom" | "left";
-    options?: IDropdownButtonOption[];
+    options: DropdownOptions;
 }
 
 interface IState {
     isVisible: boolean;
+}
+
+function isDropdownSection(opt: any): opt is IDropdownSectionOption {
+    return opt.label && opt.options && Array.isArray(opt.options)
 }
 
 export class DropdownButton extends React.PureComponent<IProps, IState> {
@@ -66,16 +78,26 @@ export class DropdownButton extends React.PureComponent<IProps, IState> {
         throw new Error("either an icon or label needs to be set");
     }
 
-    private renderOptions(): JSX.Element[] {
-        if (!this.props.options) {
-            return [];
-        }
-
-        return this.props.options.map((option: IDropdownButtonOption): JSX.Element => {
-            return <div className={"option"} key={option.label} onClick={(event: React.MouseEvent) => this.onOptionClick(event, option)}>
-                {option.label}
-            </div>
+    private renderOptions(options: DropdownOptions = this.props.options): JSX.Element[] {
+        return options.map((option: DropdownOption): JSX.Element => {
+            if (isDropdownSection(option)) {
+                return this.renderSectionOption(option);
+            }
+            return this.renderDropdownOption(option);
         });
+    }
+
+    private renderSectionOption(option: IDropdownSectionOption): JSX.Element {
+        return <div className={"section"}>
+            <label>{option.label}</label>
+            {this.renderOptions(option.options)}
+        </div>;
+    }
+
+    private renderDropdownOption(option: IDropdownButtonOption): JSX.Element {
+        return <div className={"option"} key={option.label} onClick={(event: React.MouseEvent) => this.onOptionClick(event, option)}>
+            {option.label}
+        </div>;
     }
 
     private onOptionClick(event: React.MouseEvent, option: IDropdownButtonOption): void {

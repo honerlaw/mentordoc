@@ -28,4 +28,8 @@ export abstract class GenericAction<Request> {
         };
     }
 
+    public getType(): string {
+        return this.type;
+    }
+
 }

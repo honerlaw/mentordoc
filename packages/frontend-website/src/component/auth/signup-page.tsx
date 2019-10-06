@@ -7,8 +7,15 @@ import {
     CombineDispatchers, IDispatchPropMap
 } from "@honerlawd/mentordoc-frontend-shared/dist/store/decorator/connect-props";
 import {ISignupDispatchMap, Signup} from "@honerlawd/mentordoc-frontend-shared/dist/store/action/user/signup";
-import {Page} from "../shared/page";
 import {AlertList} from "../shared/alert-list";
+import {ILoadingButtonText, LoadingButton} from "../shared/loading-button";
+
+const SIGN_UP_LOADING_BUTTON_TEXT: ILoadingButtonText = {
+    success: "signed up",
+    failure: "sign up failed",
+    loading: "signing up",
+    default: "sign up"
+};
 
 interface IState {
     fullName: string;
@@ -38,39 +45,39 @@ export class SignupPage extends React.PureComponent<IProps, IState> {
     }
 
     public render(): JSX.Element {
-        return <Page>
-            <div id={"signup-page"}>
-                <div className={"container"}>
-                    <h1>Sign Up</h1>
+        return <div id={"signup-page"}>
+            <div className={"container"}>
+                <h1>Sign Up</h1>
 
-                    <AlertList target={ALERT_TARGET} />
+                <AlertList target={ALERT_TARGET}/>
 
-                    <form onSubmit={this.onSubmit}>
-                        <input type={"text"}
-                               placeholder={"full name"}
-                               value={this.state.fullName}
-                               onChange={onChangeSetState<IState>("fullName", this)}/>
+                <form onSubmit={this.onSubmit}>
+                    <input type={"text"}
+                           placeholder={"full name"}
+                           value={this.state.fullName}
+                           onChange={onChangeSetState<IState>("fullName", this)}/>
 
-                        <input type={"text"}
-                               placeholder={"email"}
-                               value={this.state.email}
-                               onChange={onChangeSetState<IState>("email", this)}/>
+                    <input type={"text"}
+                           placeholder={"email"}
+                           value={this.state.email}
+                           onChange={onChangeSetState<IState>("email", this)}/>
 
-                        <input type={"password"}
-                               placeholder={"password"}
-                               value={this.state.password}
-                               onChange={onChangeSetState<IState>("password", this)}/>
+                    <input type={"password"}
+                           placeholder={"password"}
+                           value={this.state.password}
+                           onChange={onChangeSetState<IState>("password", this)}/>
 
-                        <button type={"submit"}>sign up</button>
-                    </form>
+                    <LoadingButton loadingType={Signup.getType()}
+                                   buttonText={SIGN_UP_LOADING_BUTTON_TEXT}
+                                   buttonProps={{type: "submit"}}/>
+                </form>
 
-                    <div className={"options"}>
-                        <Link to={"/signin"}>Already a user? Sign in!</Link>
-                    </div>
-
+                <div className={"options"}>
+                    <Link to={"/signin"}>Already a user? Sign in!</Link>
                 </div>
+
             </div>
-        </Page>;
+        </div>;
     }
 
     private async onSubmit(event: React.FormEvent): Promise<void> {

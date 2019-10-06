@@ -1,0 +1,7 @@
+@import "../../../scss/common/button";
+
+.loading-button {
+  display: block;
+  width: 100%;
+  @include rounded-dark-button();
+}

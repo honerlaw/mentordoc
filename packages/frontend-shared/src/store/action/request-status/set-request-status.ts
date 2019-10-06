@@ -17,11 +17,11 @@ export interface ISetRequestStatus {
 
 export type SelectorValue = (type: string) => RequestStatus;
 
-export interface IRequestStatusSelector extends ISelectorMap {
+export interface ISetRequestStatusSelector extends ISelectorMap {
     requestStatus: SelectorValue;
 }
 
-export interface IRequestStatusDispatch extends IDispatchMap {
+export interface ISetRequestStatusDispatch extends IDispatchMap {
     setRequestStatus: (req?: ISetRequestStatus) => void;
 }
 
@@ -34,7 +34,7 @@ class SetRequestStatusImpl extends SyncAction<IRequestStatusState, ISetRequestSt
     public handle(state: IRequestStatusState, action: IWrappedAction<ISetRequestStatus>): IRequestStatusState {
         state = cloneDeep(state);
         if (action.payload) {
-            state.statusMap[action.type] = action.payload.status;
+            state.statusMap[action.payload.actionType] = action.payload.status;
         }
         return state;
     }

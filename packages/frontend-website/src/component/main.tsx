@@ -31,7 +31,8 @@ import {
     ISetOrganizationsSelector,
     SetOrganizations
 } from "@honerlawd/mentordoc-frontend-shared/dist/store/action/organization/set-organizations";
-import {AccountPage} from "./app/account-page";
+import {OrganizationPage} from "./app/organization-page";
+import {ProfilePage} from "./app/profile-page";
 
 interface IProps extends Partial<ISelectorPropMap<IAuthenticationDataSelector & ISetCurrentUserSelector & ISetOrganizationsSelector>
     & IDispatchPropMap<IAuthenticationDataDispatch & IFetchCurrentUserDispatch & IFetchOrganizationsDispatch>> {
@@ -79,7 +80,8 @@ export class Main extends React.PureComponent<IProps, IState> {
 
         return <Switch>
             <Route exact path={"/"} component={LandingPage}/>
-            <SecureRoute redirect={"/signin"} exact={true} path={"/app/account"} component={AccountPage} />
+            <SecureRoute redirect={"/signin"} exact={true} path={"/app/profile"} component={ProfilePage} />
+            <SecureRoute redirect={"/signin"} exact={true} path={"/app/organization"} component={OrganizationPage} />
             <SecureRoute redirect={"/signin"} exact={true} path={"/app/:orgId?/:docId?"} component={DashboardPage}/>
             <UnsecureRoute redirect={"/app"} path={"/signin"} component={SigninPage}/>
             <UnsecureRoute redirect={"/app"} path={"/signup"} component={SignupPage}/>
