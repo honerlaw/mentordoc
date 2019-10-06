@@ -60,25 +60,25 @@ export class DocumentRenderer extends React.PureComponent<IProps, IState> {
         };
     }
 
-    public async componentWillReceiveProps(nextProps: Readonly<IProps>, nextContext: any): Promise<void> {
-        const didOrgChange: boolean = this.props.match!.params.orgId !== nextProps.match!.params.orgId;
-        const didDocChange: boolean = this.props.match!.params.docId !== nextProps.match!.params.docId;
+    public async componentDidUpdate(prevProps: Readonly<IProps>, prevState: Readonly<IState>, snapshot?: any): Promise<void> {
+        const didOrgChange: boolean = this.props.match!.params.orgId !== prevProps.match!.params.orgId;
+        const didDocChange: boolean = this.props.match!.params.docId !== prevProps.match!.params.docId;
         if(didOrgChange || didDocChange) {
-            await this.componentDidMount(nextProps.match!.params.docId);
+            await this.componentDidMount();
         }
     }
 
-    public async componentDidMount(docId: string = this.props.match!.params.docId): Promise<void> {
+    public async componentDidMount(): Promise<void> {
         this.props.dispatch!.setFullDocument({
             fullDocument: null
         });
 
         await this.props.dispatch!.fetchFullDocument({
-            documentId: docId
+            documentId: this.props.match!.params.docId
         });
 
         await this.props.dispatch!.fetchDocumentPath({
-            documentId: docId
+            documentId: this.props.match!.params.docId
         });
     }
 
@@ -108,11 +108,11 @@ export class DocumentRenderer extends React.PureComponent<IProps, IState> {
         for (const item of documentPath) {
             const temp: any = item;
             if (temp.name) {
-                path.push(<span key={temp.name}>{temp.name}</span>);
-                path.push(<img key={`${temp.name}-chevron`} src={chevron} alt={"separator"} />)
+                path.push(<span key={temp.id}>{temp.name}</span>);
+                path.push(<img key={`${temp.id}-${temp-name}-chevron`} src={chevron} alt={"separator"} />)
             }
             if (temp.drafts && temp.drafts.length > 0) {
-                path.push(<span key={temp.drafts[0].name}>{temp.drafts[0].name}</span>);
+                path.push(<span key={`${temp.drafts[0].id}-${temp.drafts[0].name}`}>{temp.drafts[0].name}</span>);
             }
         }
         return path

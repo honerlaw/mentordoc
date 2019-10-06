@@ -88,14 +88,14 @@ export class DropdownButton extends React.PureComponent<IProps, IState> {
     }
 
     private renderSectionOption(option: IDropdownSectionOption): JSX.Element {
-        return <div className={"section"}>
+        return <div className={"section"} key={`section-${option.label}`}>
             <label>{option.label}</label>
             {this.renderOptions(option.options)}
         </div>;
     }
 
     private renderDropdownOption(option: IDropdownButtonOption): JSX.Element {
-        return <div className={"option"} key={option.label} onClick={(event: React.MouseEvent) => this.onOptionClick(event, option)}>
+        return <div className={"option"} key={`option-${option.label}`} onClick={(event: React.MouseEvent) => this.onOptionClick(event, option)}>
             {option.label}
         </div>;
     }

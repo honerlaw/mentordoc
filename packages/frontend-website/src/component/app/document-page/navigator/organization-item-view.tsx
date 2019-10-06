@@ -65,8 +65,8 @@ export class OrganizationItemView extends React.PureComponent<IProps, {}> {
         });
     }
 
-    public async componentWillReceiveProps(nextProps: Readonly<IProps>, nextContext: any): Promise<void> {
-        if (nextProps.organization.model.id !== this.props.organization.model.id) {
+    public async componentDidUpdate(prevProps: Readonly<IProps>, prevState: Readonly<{}>, snapshot?: any): Promise<void> {
+        if (prevProps.organization.model.id !== this.props.organization.model.id) {
             await this.componentDidMount();
         }
     }
