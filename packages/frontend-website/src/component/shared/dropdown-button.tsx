@@ -46,7 +46,7 @@ export class DropdownButton extends React.PureComponent<IProps, IState> {
         this.ref = React.createRef();
     }
 
-    public componentWillMount(): void {
+    public componentDidMount(): void {
         document.addEventListener("click", this.onDocumentClick);
     }
 

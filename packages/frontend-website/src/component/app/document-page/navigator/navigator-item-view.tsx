@@ -55,19 +55,6 @@ export class NavigatorItemView extends React.PureComponent<IProps, IState> {
         return this.props.children;
     }
 
-    private hasChildren(): boolean {
-        if (Array.isArray(this.props.children)) {
-            const validChildren: any[] = this.props.children
-                .map((item: any): any | null => item)
-                .filter((item: any): boolean => !!item);
-
-            if (validChildren.length === 0) {
-                return false;
-            }
-        }
-        return true;
-    }
-
     private renderExpandButton(): JSX.Element | null {
         const classNames: string[] = ["expand-arrow"];
         if (this.state.isExpanded) {

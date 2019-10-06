@@ -1,7 +1,6 @@
 import * as React from "react";
 import {AclOrganization} from "@honerlawd/mentordoc-frontend-shared/dist/store/model/organization/acl-organization";
-import {NavigatorItemView} from "./navigator-item-view";
-import {IDropdownButtonOption} from "../../../shared/dropdown-button";
+import {DropdownButton, IDropdownButtonOption} from "../../../shared/dropdown-button";
 import {
     CombineDispatchers, CombineSelectors,
     ConnectProps, IDispatchPropMap, ISelectorPropMap
@@ -33,6 +32,8 @@ import {
     IFetchDocumentsDispatch
 } from "@honerlawd/mentordoc-frontend-shared/dist/store/action/document/fetch-documents";
 import {AclDocument} from "@honerlawd/mentordoc-frontend-shared/dist/store/model/document/acl-document";
+import * as icon from "../../../../../images/ellipsis.svg";
+import "./organization-item-view.scss";
 
 interface IProps extends Partial<IDispatchPropMap<IFetchFoldersDispatch & ICreateFolderDispatch & IFetchDocumentsDispatch & ICreateDocumentDispatch>
     & ISelectorPropMap<ISetFoldersSelector & ISetDocumentsSelector>> {
@@ -50,18 +51,37 @@ export class OrganizationItemView extends React.PureComponent<IProps, {}> {
 
         this.createFolder = this.createFolder.bind(this);
         this.createDocument = this.createDocument.bind(this);
-        this.onExpand = this.onExpand.bind(this);
+    }
+
+    public async componentDidMount(): Promise<void> {
+        await this.props.dispatch!.fetchFolders({
+            organizationId: this.props.organization.model.id,
+            parentFolderId: null
+        });
+
+        await this.props.dispatch!.fetchDocuments({
+            organizationId: this.props.organization.model.id,
+            folderId: null
+        });
+    }
+
+    public async componentWillReceiveProps(nextProps: Readonly<IProps>, nextContext: any): Promise<void> {
+        if (nextProps.organization.model.id !== this.props.organization.model.id) {
+            await this.componentDidMount();
+        }
     }
 
     public render(): JSX.Element {
-        return <NavigatorItemView title={this.props.organization.model.name}
-                                  hasChildren={true}
-                                  isExpanded={true}
-                                  onExpand={this.onExpand}
-                                  options={this.getOptions()}>
+        return <div className={"organization-item-view"}>
+
+            <div className={"organization-item-view-header"}>
+                <h5>{this.props.organization.model.name}</h5>
+                <DropdownButton icon={icon} position={"left"} options={this.getOptions()}/>
+            </div>
+
             {this.renderFolders()}
             {this.renderDocuments()}
-        </NavigatorItemView>
+        </div>;
     }
 
     private renderFolders(): JSX.Element[] | null {
@@ -124,18 +144,6 @@ export class OrganizationItemView extends React.PureComponent<IProps, {}> {
             folderId: null,
             name: "New Document",
             content: "testing"
-        });
-    }
-
-    private async onExpand(): Promise<void> {
-        await this.props.dispatch!.fetchFolders({
-            organizationId: this.props.organization.model.id,
-            parentFolderId: null
-        });
-
-        await this.props.dispatch!.fetchDocuments({
-            organizationId: this.props.organization.model.id,
-            folderId: null
         });
     }
 

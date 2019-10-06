@@ -15,8 +15,8 @@ import {
 } from "@honerlawd/mentordoc-frontend-shared/dist/store/action/document/set-full-document";
 import {RouteComponentProps} from "react-router";
 import {AclDocument} from "@honerlawd/mentordoc-frontend-shared/dist/store/model/document/acl-document";
-import {DocumentViewer} from "./document-viewer";
-import {DocumentEditor} from "./document-editor";
+import {DocumentViewer} from "./document-renderer/document-viewer";
+import {DocumentEditor} from "./document-renderer/document-editor";
 import {
     FetchDocumentPath,
     IFetchDocumentPathDispatch
@@ -26,9 +26,9 @@ import {
     SetDocumentPath
 } from "@honerlawd/mentordoc-frontend-shared/dist/store/action/document/set-document-path";
 import {DocumentPath} from "@honerlawd/mentordoc-frontend-shared/dist/store/model/document/document-state";
-import * as icon from "../../../../../images/ellipsis.svg";
-import * as chevron from "../../../../../images/chevron.svg";
-import {DropdownButton, IDropdownButtonOption} from "../../../shared/dropdown-button";
+import * as icon from "../../../../images/ellipsis.svg";
+import * as chevron from "../../../../images/chevron.svg";
+import {DropdownButton, IDropdownButtonOption} from "../../shared/dropdown-button";
 import "./document-renderer.scss";
 
 export interface IRouteProps {
@@ -64,11 +64,11 @@ export class DocumentRenderer extends React.PureComponent<IProps, IState> {
         const didOrgChange: boolean = this.props.match!.params.orgId !== nextProps.match!.params.orgId;
         const didDocChange: boolean = this.props.match!.params.docId !== nextProps.match!.params.docId;
         if(didOrgChange || didDocChange) {
-            await this.componentWillMount(nextProps.match!.params.docId);
+            await this.componentDidMount(nextProps.match!.params.docId);
         }
     }
 
-    public async componentWillMount(docId: string = this.props.match!.params.docId): Promise<void> {
+    public async componentDidMount(docId: string = this.props.match!.params.docId): Promise<void> {
         this.props.dispatch!.setFullDocument({
             fullDocument: null
         });

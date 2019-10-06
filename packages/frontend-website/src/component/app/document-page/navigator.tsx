@@ -3,30 +3,36 @@ import {
     CombineSelectors, ConnectProps,
     ISelectorPropMap
 } from "@honerlawd/mentordoc-frontend-shared/dist/store/decorator/connect-props";
-import {
-    ISetOrganizationsSelector,
-    SetOrganizations
-} from "@honerlawd/mentordoc-frontend-shared/dist/store/action/organization/set-organizations";
 import "./navigator.scss";
 import {AclOrganization} from "@honerlawd/mentordoc-frontend-shared/dist/store/model/organization/acl-organization";
 import {NavigatorItem} from "./navigator/navigator-item";
+import {
+    ISetCurrentOrganizationSelector,
+    SetCurrentOrganization
+} from "@honerlawd/mentordoc-frontend-shared/dist/store/action/organization/set-current-organization";
 
-interface IProps extends Partial<ISelectorPropMap<ISetOrganizationsSelector>> {
+interface IProps extends Partial<ISelectorPropMap<ISetCurrentOrganizationSelector>> {
 
 }
 
-@ConnectProps(CombineSelectors(SetOrganizations.selector))
+@ConnectProps(CombineSelectors(SetCurrentOrganization.selector))
 export class Navigator extends React.PureComponent<IProps, {}> {
 
     public render(): JSX.Element {
         return <div className={"dashboard-navigator"}>
             <div className={"dashboard-empty-spacer"} />
             <div className={"dashboard-navigator-container"}>
-                {this.props.selector!.organizations!.map((org: AclOrganization): JSX.Element => {
-                    return <NavigatorItem key={org.model.id} item={org}/>;
-                })}
+                {this.renderOrganization()}
             </div>
         </div>;
+    }
+
+    private renderOrganization(): JSX.Element | null {
+        const org: AclOrganization | null = this.props.selector!.currentOrganization;
+        if (!org) {
+            return null;
+        }
+        return <NavigatorItem item={org} key={org.model.id} />;
     }
 
 }

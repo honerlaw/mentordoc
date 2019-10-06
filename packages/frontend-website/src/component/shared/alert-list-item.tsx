@@ -24,7 +24,7 @@ export class AlertListItem extends React.PureComponent<IProps, {}> {
         this.remove = this.remove.bind(this);
     }
 
-    public componentWillMount(): void {
+    public componentDidMount(): void {
         if (this.props.alert.lifespan) {
             this.timeout = setTimeout(this.remove, this.props.alert.lifespan);
         }

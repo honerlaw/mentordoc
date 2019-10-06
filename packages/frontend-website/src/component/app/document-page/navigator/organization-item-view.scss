@@ -1,0 +1,28 @@
+@import "../../../../../scss/constant";
+
+.organization-item-view {
+  .organization-item-view-header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 20px;
+    h5 {
+      flex: 10;
+      margin: 0;
+      padding: 0;
+      text-transform: uppercase;
+      color: $dark-grey;
+    }
+    .dropdown-button {
+      flex: 1;
+      button {
+        padding: 0;
+        img {
+          opacity: .5;
+          height: 30px;
+        }
+      }
+    }
+
+  }
+}

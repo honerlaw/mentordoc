@@ -14,7 +14,7 @@ import {
 } from "@honerlawd/mentordoc-frontend-shared/dist/store/action/user/set-authentication-data";
 import {UnsecureRoute} from "./shared/unsecure-route";
 import {SecureRoute} from "./shared/secure-route";
-import {DashboardPage} from "./app/dashboard-page";
+import {DocumentPage} from "./app/document-page";
 import {
     FetchCurrentUser,
     IFetchCurrentUserDispatch
@@ -57,7 +57,7 @@ export class Main extends React.PureComponent<IProps, IState> {
         };
     }
 
-    public async componentWillMount(): Promise<void> {
+    public async componentDidMount(): Promise<void> {
         const data: string | null = window.localStorage.getItem(AUTHENTICATION_DATA_KEY);
         if (data) {
             this.props.dispatch!.setAuthenticationData({
@@ -82,7 +82,7 @@ export class Main extends React.PureComponent<IProps, IState> {
             <Route exact path={"/"} component={LandingPage}/>
             <SecureRoute redirect={"/signin"} exact={true} path={"/app/profile"} component={ProfilePage} />
             <SecureRoute redirect={"/signin"} exact={true} path={"/app/organization"} component={OrganizationPage} />
-            <SecureRoute redirect={"/signin"} exact={true} path={"/app/:orgId?/:docId?"} component={DashboardPage}/>
+            <SecureRoute redirect={"/signin"} exact={true} path={"/app/:orgId?/:docId?"} component={DocumentPage}/>
             <UnsecureRoute redirect={"/app"} path={"/signin"} component={SigninPage}/>
             <UnsecureRoute redirect={"/app"} path={"/signup"} component={SignupPage}/>
         </Switch>;
