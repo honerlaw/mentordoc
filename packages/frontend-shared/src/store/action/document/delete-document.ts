@@ -35,7 +35,7 @@ class DeleteDocumentImpl extends AsyncAction<IDeleteDocument> {
         });
 
         if (!document) {
-            throw new HttpError("failed to create document");
+            throw new HttpError("failed to delete document");
         }
 
         api.dispatch(UnsetDocuments.action({

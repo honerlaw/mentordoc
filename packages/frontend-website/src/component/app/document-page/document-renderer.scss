@@ -1,3 +1,5 @@
+@import "../../../../scss/constant";
+
 .document-renderer {
   padding: 0 30px 30px 30px;
 
@@ -6,27 +8,49 @@
     flex-direction: row;
     align-items: center;
     margin: 30px 0 20px 0;
-    .document-path {
-      flex: 10;
+
+    .document-info {
       display: flex;
       flex-direction: row;
       align-items: center;
-      span {
-        opacity: .6;
-        line-height: 15px;
-        font-size: 15px;
+
+      .document-path {
+        flex: 10;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+
+        span {
+          opacity: .6;
+          line-height: 15px;
+          font-size: 15px;
+        }
+
+        img {
+          opacity: .4;
+          padding: 10px;
+          height: 15px;
+        }
       }
-      img {
-        opacity: .4;
-        padding: 10px;
-        height: 15px;
+
+      .is-draft {
+        display: block;
+        margin-right: 20px;
+        padding: 8px;
+        font-size: 13px;
+        border-radius: $default-border-radius;
+        background-color: $primary-green;
+        color: $white;
       }
     }
+
     .options {
       flex: 1;
       text-align: right;
+
       .dropdown-button {
         display: inline-block;
+
         img {
           height: 30px;
         }

@@ -1,7 +1,8 @@
 package util
 
-import "database/sql"
-
+import (
+	"database/sql"
+)
 
 type Repository struct {
 	Db *sql.DB

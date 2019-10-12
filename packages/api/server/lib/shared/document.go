@@ -6,5 +6,4 @@ type Document struct {
 	OrganizationId     string          `json:"organizationId"`
 	FolderId           *string         `json:"folderId"`
 	Drafts             []DocumentDraft `json:"drafts"`
-	InitialDraftUserId *string          `json:"initialDraftUserId"`
 }

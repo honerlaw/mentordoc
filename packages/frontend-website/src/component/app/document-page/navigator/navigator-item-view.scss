@@ -10,7 +10,11 @@
     font-size: .9rem;
     padding: 5px;
     height: 30px;
-    border-radius: $default-border-radius;
+    border-radius: $default-border-radius 0 0 $default-border-radius;
+
+    &.active {
+      background-color: $grey;
+    }
 
     .title {
       flex: 9;

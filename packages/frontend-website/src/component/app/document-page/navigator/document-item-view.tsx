@@ -3,8 +3,8 @@ import {AclDocument} from "@honerlawd/mentordoc-frontend-shared/dist/store/model
 import {NavigatorItemView} from "./navigator-item-view";
 import {IDropdownButtonOption} from "../../../shared/dropdown-button";
 import {
-    CombineDispatchers,
-    ConnectProps, IDispatchPropMap
+    CombineDispatchers, CombineSelectors,
+    ConnectProps, IDispatchPropMap, ISelectorPropMap
 } from "@honerlawd/mentordoc-frontend-shared/dist/store/decorator/connect-props";
 import {
     DeleteDocument,
@@ -12,13 +12,20 @@ import {
 } from "@honerlawd/mentordoc-frontend-shared/dist/store/action/document/delete-document";
 import {WithRouter} from "@honerlawd/mentordoc-frontend-shared/dist/store/decorator/with-router";
 import {RouteComponentProps} from "react-router";
+import {
+    ISetFullDocumentSelector,
+    SetFullDocument
+} from "@honerlawd/mentordoc-frontend-shared/dist/store/action/document/set-full-document";
 
-interface IProps extends Partial<IDispatchPropMap<IDeleteDocumentDispatch> & RouteComponentProps> {
+interface IProps extends Partial<IDispatchPropMap<IDeleteDocumentDispatch> & ISelectorPropMap<ISetFullDocumentSelector> & RouteComponentProps> {
     document: AclDocument;
 }
 
 @WithRouter()
-@ConnectProps(null, CombineDispatchers(DeleteDocument.dispatch))
+@ConnectProps(
+    CombineSelectors(SetFullDocument.selector),
+    CombineDispatchers(DeleteDocument.dispatch)
+)
 export class DocumentItemView extends React.PureComponent<IProps, {}> {
 
     public constructor(props: IProps) {
@@ -31,9 +38,17 @@ export class DocumentItemView extends React.PureComponent<IProps, {}> {
     public render(): JSX.Element {
         return <NavigatorItemView title={this.props.document.model.drafts[0].name}
                                   onClick={this.onClick}
+                                  isActive={this.isActive()}
                                   hasChildren={false}
                                   isExpanded={false}
         options={this.getOptions()}/>;
+    }
+
+    private isActive(): boolean {
+        if (!this.props.selector!.fullDocument) {
+            return false;
+        }
+        return this.props.selector!.fullDocument!.model.drafts[0].id === this.props.document.model.drafts[0].id;
     }
 
     private getOptions(): IDropdownButtonOption[] {

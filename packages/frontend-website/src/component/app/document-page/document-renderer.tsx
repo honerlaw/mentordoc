@@ -30,6 +30,7 @@ import * as icon from "../../../../images/ellipsis.svg";
 import * as chevron from "../../../../images/chevron.svg";
 import {DropdownButton, IDropdownButtonOption} from "../../shared/dropdown-button";
 import "./document-renderer.scss";
+import {DocumentDraft} from "@honerlawd/mentordoc-frontend-shared/dist/store/model/document/document-draft";
 
 export interface IRouteProps {
     orgId: string;
@@ -63,7 +64,7 @@ export class DocumentRenderer extends React.PureComponent<IProps, IState> {
     public async componentDidUpdate(prevProps: Readonly<IProps>, prevState: Readonly<IState>, snapshot?: any): Promise<void> {
         const didOrgChange: boolean = this.props.match!.params.orgId !== prevProps.match!.params.orgId;
         const didDocChange: boolean = this.props.match!.params.docId !== prevProps.match!.params.docId;
-        if(didOrgChange || didDocChange) {
+        if (didOrgChange || didDocChange) {
             await this.componentDidMount();
         }
     }
@@ -89,10 +90,14 @@ export class DocumentRenderer extends React.PureComponent<IProps, IState> {
             return null;
         }
 
-        const viewerOrEditor: JSX.Element = this.state.isEditing ? <DocumentEditor document={doc}/> : <DocumentViewer document={doc}/>;
+        const viewerOrEditor: JSX.Element = this.state.isEditing ? <DocumentEditor document={doc}/> :
+            <DocumentViewer document={doc}/>;
         return <div className={"document-renderer"}>
             <div className={"document-header-bar"}>
-                <div className={"document-path"}>{this.renderPath()}</div>
+                <div className={"document-info"}>
+                    {this.renderIsDraft()}
+                    <div className={"document-path"}>{this.renderPath()}</div>
+                </div>
                 <div className={"options"}>
                     <DropdownButton icon={icon} position={"left"} options={this.getOptions()}/>
                 </div>
@@ -109,7 +114,7 @@ export class DocumentRenderer extends React.PureComponent<IProps, IState> {
             const temp: any = item;
             if (temp.name) {
                 path.push(<span key={temp.id}>{temp.name}</span>);
-                path.push(<img key={`${temp.id}-${temp-name}-chevron`} src={chevron} alt={"separator"} />)
+                path.push(<img key={`${temp.id}-${temp - name}-chevron`} src={chevron} alt={"separator"}/>)
             }
             if (temp.drafts && temp.drafts.length > 0) {
                 path.push(<span key={`${temp.drafts[0].id}-${temp.drafts[0].name}`}>{temp.drafts[0].name}</span>);
@@ -118,26 +123,62 @@ export class DocumentRenderer extends React.PureComponent<IProps, IState> {
         return path
     }
 
+    private renderIsDraft(): JSX.Element | null {
+        if (!this.isDraft()) {
+            return null;
+        }
+        return <span className={"is-draft"}>draft</span>;
+    }
+
+    private isDraft(): boolean {
+        const doc: AclDocument | null = this.props.selector!.fullDocument;
+        if (!doc) {
+            return false;
+        }
+        const draft: DocumentDraft = doc.model.drafts[0];
+
+        // this draft is published, so not actually a draft
+        return !draft.publishedAt;
+    }
+
     private getOptions(): IDropdownButtonOption[] {
+        const options: IDropdownButtonOption[] = [];
+
         if (this.state.isEditing) {
-            return [
-                {
-                    label: "save",
+            options.push({
+                label: "save",
+                onClick: () => this.setState({
+                    isEditing: false
+                })
+            });
+
+            if (this.isDraft()) {
+                options.push({
+                    label: "save and publish",
                     onClick: () => this.setState({
                         isEditing: false
                     })
-                }
-            ];
-        }
-
-        return [
-            {
+                });
+            }
+        } else {
+            options.push({
                 label: "modify",
                 onClick: () => this.setState({
                     isEditing: true
                 })
+            });
+
+            if (this.isDraft()) {
+                options.push({
+                    label: "publish",
+                    onClick: () => this.setState({
+                        isEditing: false
+                    })
+                });
             }
-        ];
+        }
+
+        return options;
     }
 
 }

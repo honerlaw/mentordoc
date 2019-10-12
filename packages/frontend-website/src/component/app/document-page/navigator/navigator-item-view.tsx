@@ -7,6 +7,7 @@ import * as chevron from "../../../../../images/chevron.svg";
 interface IProps {
     title: string;
     hasChildren: boolean;
+    isActive?: boolean;
     isExpanded: boolean;
     onExpand?: () => void;
     onClick?: () => void;
@@ -35,7 +36,7 @@ export class NavigatorItemView extends React.PureComponent<IProps, IState> {
 
     public render(): JSX.Element {
         return <div className={"navigator-item-container"}>
-            <div className={"navigator-item"} onClick={this.onToggle}>
+            <div className={`navigator-item ${this.props.isActive ? "active" : "inactive"}`} onClick={this.onToggle}>
                 {this.renderExpandButton()}
                 <span className={"title"}>{this.props.title}</span>
                 <div className={"options"}>

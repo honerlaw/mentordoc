@@ -109,14 +109,12 @@ CREATE TABLE IF NOT EXISTS `document` (
   `id` CHAR(36) NOT NULL,
   `organization_id` CHAR(36) NOT NULL,
   `folder_id` CHAR(36) NULL DEFAULT NULL,
-  `initial_draft_user_id` CHAR(36),
   `created_at` BIGINT NOT NULL,
   `updated_at` BIGINT NOT NULL,
   `deleted_at` BIGINT NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   FOREIGN KEY (`organization_id`) REFERENCES organization(`id`),
   FOREIGN KEY (`folder_id`) REFERENCES folder(`id`),
-  FOREIGN KEY (`initial_draft_user_id`) REFERENCES user(`id`),
   KEY `idx_document_deleted_at` (`deleted_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -124,6 +122,7 @@ CREATE TABLE IF NOT EXISTS `document_draft` (
   `id` CHAR(36) NOT NULL,
   `document_id` CHAR(36) NOT NULL,
   `name` varchar(255) NOT NULL,
+  `creator_id` CHAR(36) NOT NULL,
   `published_at` BIGINT NULL DEFAULT NULL,
   `retracted_at` BIGINT NULL DEFAULT NULL,
   `created_at` BIGINT NOT NULL,
@@ -131,6 +130,7 @@ CREATE TABLE IF NOT EXISTS `document_draft` (
   `deleted_at` BIGINT NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   FOREIGN KEY (`document_id`) REFERENCES document(`id`),
+  FOREIGN KEY (`creator_id`) REFERENCES user(`id`),
   KEY `idx_document_draft_deleted_at` (`deleted_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 

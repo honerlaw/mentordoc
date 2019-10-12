@@ -12,10 +12,10 @@ export class DocumentDraft extends Entity {
     public documentId: string;
 
     @Expose()
-    public publishedAt: number;
+    public publishedAt: number | null;
 
     @Expose()
-    public retractedAt: number;
+    public retractedAt: number | null;
 
     @Expose()
     @Type(() => DocumentContent)

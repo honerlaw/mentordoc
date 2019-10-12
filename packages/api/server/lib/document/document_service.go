@@ -64,58 +64,31 @@ func (service *DocumentService) FindDocument(user *shared.User, documentId strin
 		return nil, shared.NewNotFoundError("could not find document")
 	}
 
-	// document has not been initially published, so find the draft for this user
-	if document.InitialDraftUserId != nil {
-		if *document.InitialDraftUserId != user.Id {
-			return nil, shared.NewForbiddenError("can not access document")
-		}
-		return service.FindDraftDocument(user, document.Id)
-	}
-
+	// make sure the document itself is accessible
 	canAccess := service.aclService.UserCanAccessResourceByModel(user, document, "view", "modify")
 	if !canAccess {
 		return nil, shared.NewForbiddenError("can not view document")
 	}
 
-	draft := service.documentDraftRepository.FindPublishedDraftByDocumentId(documentId)
-	if draft == nil {
-		return nil, shared.NewNotFoundError("could not find published document")
+	// find the latest draft that we can access / view
+	drafts, err := service.documentDraftRepository.FindLatestAccessibleDraftForDocuments(user.Id, []string{document.Id});
+
+	// no drafts were found that this user can access
+	if err != nil || len(drafts) == 0 {
+		return nil, shared.NewForbiddenError("can not access document")
 	}
 
+	// there should only ever be one draft in this scenario (the latest accessible one)
+	draft := &drafts[0]
+
+	// attach the content to the draft
 	content := service.documentContentRepository.FindByDocumentDraftId(draft.Id)
 	if content == nil {
 		return nil, shared.NewNotFoundError("could not find document content");
 	}
 
 	draft.Content = content
-	document.Drafts = []shared.DocumentDraft{*draft}
-
-	return document, nil
-}
-
-func (service *DocumentService) FindDraftDocument(user *shared.User, documentId string) (*shared.Document, error) {
-	document := service.documentRepository.FindById(documentId)
-	if document == nil {
-		return nil, shared.NewNotFoundError("could not find document")
-	}
-
-	canAccess := service.aclService.UserCanAccessResourceByModel(user, document, "modify")
-	if !canAccess {
-		return nil, shared.NewForbiddenError("can not modify document")
-	}
-
-	draft := service.documentDraftRepository.FindDraftByDocumentId(documentId)
-	if draft == nil {
-		return nil, shared.NewNotFoundError("could not find published document")
-	}
-
-	content := service.documentContentRepository.FindByDocumentDraftId(draft.Id)
-	if content == nil {
-		return nil, shared.NewNotFoundError("could not find document content");
-	}
-
-	draft.Content = content
-	document.Drafts = []shared.DocumentDraft{*draft}
+	document.Drafts = drafts
 
 	return document, nil
 }
@@ -146,7 +119,7 @@ func (service *DocumentService) FindDocumentAncestry(user *shared.User, document
 	path = append(path, org)
 
 	// reverse the array
-	for i := len(path) / 2 - 1; i >= 0; i-- {
+	for i := len(path)/2 - 1; i >= 0; i-- {
 		opp := len(path) - 1 - i
 		path[i], path[opp] = path[opp], path[i]
 	}
@@ -161,15 +134,15 @@ func (service *DocumentService) Create(user *shared.User, organizationId string,
 	}
 
 	document := &shared.Document{
-		OrganizationId:     organizationId,
-		FolderId:           folderId,
-		InitialDraftUserId: &user.Id,
+		OrganizationId: organizationId,
+		FolderId:       folderId,
 	}
 	document.Id = uuid.NewV4().String()
 
 	documentDraft := &shared.DocumentDraft{
 		DocumentId: document.Id,
 		Name:       name,
+		CreatorId:  user.Id,
 	}
 	documentDraft.Id = uuid.NewV4().String()
 
@@ -359,12 +332,14 @@ func (service *DocumentService) List(user *shared.User, organizationId string, f
 		}
 	}
 
+	// this will find all of the documents that you are able to view, but does not take into account drafts that are not tied to you
 	documents, err := service.documentRepository.Find(user.Id, organizationIds, folderIds, documentIds, folderId, pagination)
 	if err != nil {
 		return nil, shared.NewInternalServerError("failed to find documents")
 	}
 
-	err = service.documentDraftRepository.FindAndAttachLatestDraftForDocuments(documents)
+	// so next up find the latest draft for each document, and attach them to the document
+	err = service.documentDraftRepository.FindAndAttachLatestAccessibleDraftForDocuments(user.Id, documents)
 	if err != nil {
 		return nil, shared.NewInternalServerError("failed to find document drafts")
 	}
