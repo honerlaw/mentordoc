@@ -127,6 +127,61 @@ func (service *DocumentService) FindDocumentAncestry(user *shared.User, document
 	return path, nil
 }
 
+func (service *DocumentService) CreateDraft(user *shared.User, documentId string, name string, content string) (*shared.Document, error) {
+	document := service.documentRepository.FindById(documentId)
+	if document == nil {
+		return nil, shared.NewNotFoundError("could not find document")
+	}
+
+	canAccess := service.aclService.UserCanAccessResourceByModel(user, document, "modify")
+	if !canAccess {
+		return nil, shared.NewForbiddenError("can not modify document")
+	}
+
+	documentDraft := &shared.DocumentDraft{
+		DocumentId: document.Id,
+		Name:       name,
+		CreatorId:  user.Id,
+	}
+	documentDraft.Id = uuid.NewV4().String()
+
+	documentContent := &shared.DocumentContent{
+		DocumentDraftId: documentDraft.Id,
+		Content:         content,
+	}
+	documentContent.Id = uuid.NewV4().String()
+
+	_, err := service.transactionManager.Transact(service, func(injected interface{}) (interface{}, error) {
+		injectedService := injected.(*DocumentService)
+
+		err := injectedService.documentDraftRepository.Insert(documentDraft)
+		if err != nil {
+			return nil, err
+		}
+
+		err = injectedService.documentContentRepository.Insert(documentContent)
+		if err != nil {
+			return nil, err
+		}
+
+		_, err = injectedService.resourceHistoryService.Create(documentDraft.Id, "document_draft", user.Id, "created")
+		if err != nil {
+			return nil, err
+		}
+
+		return nil, nil
+	})
+
+	if err != nil {
+		return nil, shared.NewInternalServerError("failed to create document draft")
+	}
+
+	documentDraft.Content = documentContent
+	document.Drafts = []shared.DocumentDraft{*documentDraft}
+
+	return document, nil
+}
+
 func (service *DocumentService) Create(user *shared.User, organizationId string, folderId *string, name string, content string) (*shared.Document, error) {
 	organizationId, folderId, err := service.hasAccessToOrganizationOrFolder(user, organizationId, folderId, "create:document")
 	if err != nil {
@@ -193,7 +248,10 @@ func (service *DocumentService) Create(user *shared.User, organizationId string,
 	return document, nil
 }
 
-func (service *DocumentService) Update(user *shared.User, documentId string, draftId string, name string, content string) (*shared.Document, error) {
+func (service *DocumentService) Update(
+	user *shared.User, documentId string, draftId string,
+	name *string, content *string, shouldPublish bool, shouldRetract bool,
+) (*shared.Document, error) {
 	document := service.documentRepository.FindById(documentId)
 	if document == nil {
 		return nil, shared.NewNotFoundError("could not find document")
@@ -222,13 +280,26 @@ func (service *DocumentService) Update(user *shared.User, documentId string, dra
 	res, err := service.transactionManager.Transact(service, func(injected interface{}) (interface{}, error) {
 		injectedService := injected.(*DocumentService)
 
-		documentDraft.Name = name
+		if name != nil {
+			documentDraft.Name = *name
+		}
+		if shouldPublish {
+			publishedAt := util.NowUnix()
+			documentDraft.PublishedAt = &publishedAt
+		}
+		if shouldRetract {
+			retractedAt := util.NowUnix()
+			documentDraft.RetractedAt = &retractedAt
+			documentDraft.DeletedAt = &retractedAt
+		}
 		err := injectedService.documentDraftRepository.Update(documentDraft)
 		if err != nil {
 			return nil, err
 		}
 
-		documentContent.Content = content
+		if content != nil {
+			documentContent.Content = *content
+		}
 		err = injectedService.documentContentRepository.Update(documentContent)
 		if err != nil {
 			return nil, err
@@ -344,7 +415,16 @@ func (service *DocumentService) List(user *shared.User, organizationId string, f
 		return nil, shared.NewInternalServerError("failed to find document drafts")
 	}
 
-	return documents, nil
+	// make sure the doc has at least one valid draft on it to show
+	validDocuments := make([]shared.Document, 0);
+	for i := 0; i < len(documents); i++ {
+		doc := documents[i]
+		if len(doc.Drafts) > 0 {
+			validDocuments = append(validDocuments, doc)
+		}
+	}
+
+	return validDocuments, nil
 }
 
 func (service *DocumentService) hasAccessToOrganizationOrFolder(user *shared.User, organizationId string, folderId *string, action string) (string, *string, error) {

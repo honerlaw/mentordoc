@@ -12,8 +12,10 @@ export const UPDATE_DOCUMENT_TYPE: string = "update_document_type";
 export interface IUpdateDocument extends IGenericActionRequest {
     documentId: string;
     draftId: string;
-    name: string;
-    content: string;
+    name?: string;
+    content?: string;
+    shouldPublish: boolean;
+    shouldRetract: boolean;
 }
 
 export interface IUpdateDocumentDispatch extends IDispatchMap {

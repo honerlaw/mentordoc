@@ -87,7 +87,9 @@ export class DocumentEditor extends React.PureComponent<IProps, IState> {
             documentId: this.props.document.model.id,
             draftId: this.props.document.model.drafts[0].id,
             name,
-            content
+            content,
+            shouldPublish: false,
+            shouldRetract: false
         });
     }
 

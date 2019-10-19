@@ -50,6 +50,9 @@ func (controller *DocumentController) RegisterRoutes(router chi.Router) {
 		With(controller.validatorService.Middleware(request.DocumentCreateRequest{}), controller.authenticationMiddleware.HasAccessToken()).
 		Post("/document", controller.create)
 	router.
+		With(controller.validatorService.Middleware(request.DocumentDraftCreateRequest{}), controller.authenticationMiddleware.HasAccessToken()).
+		Post("/document/draft", controller.createDraft)
+	router.
 		With(controller.validatorService.Middleware(request.DocumentUpdateRequest{}), controller.authenticationMiddleware.HasAccessToken()).
 		Put("/document", controller.update)
 	router.
@@ -111,11 +114,31 @@ func (controller *DocumentController) create(w http.ResponseWriter, req *http.Re
 	util.WriteJsonToResponse(w, http.StatusCreated, wrapped[0])
 }
 
+func (controller *DocumentController) createDraft(w http.ResponseWriter, req *http.Request) {
+	validReq := controller.validatorService.GetModelFromRequest(req).(*request.DocumentDraftCreateRequest)
+	user := controller.authenticationMiddleware.GetUserFromRequest(req)
+
+	doc, err := controller.documentService.CreateDraft(user, validReq.DocumentId, validReq.Name, validReq.Content)
+	if err != nil {
+		util.WriteHttpError(w, err)
+		return
+	}
+
+	wrapped, err := controller.aclService.Wrap(user, []*shared.Document{doc})
+	if err != nil {
+		util.WriteHttpError(w, shared.NewInternalServerError("created document draft but failed to find user access"))
+		return
+	}
+
+	util.WriteJsonToResponse(w, http.StatusCreated, wrapped[0])
+}
+
 func (controller *DocumentController) update(w http.ResponseWriter, req *http.Request) {
 	validReq := controller.validatorService.GetModelFromRequest(req).(*request.DocumentUpdateRequest)
 	user := controller.authenticationMiddleware.GetUserFromRequest(req)
 
-	doc, err := controller.documentService.Update(user, validReq.DocumentId, validReq.DraftId, validReq.Name, validReq.Content)
+	doc, err := controller.documentService.Update(user, validReq.DocumentId, validReq.DraftId,
+		validReq.Name, validReq.Content, validReq.ShouldPublish, validReq.ShouldRetract)
 	if err != nil {
 		util.WriteHttpError(w, err)
 		return

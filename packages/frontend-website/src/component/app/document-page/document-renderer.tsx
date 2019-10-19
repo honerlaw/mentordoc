@@ -31,13 +31,22 @@ import * as chevron from "../../../../images/chevron.svg";
 import {DropdownButton, IDropdownButtonOption} from "../../shared/dropdown-button";
 import "./document-renderer.scss";
 import {DocumentDraft} from "@honerlawd/mentordoc-frontend-shared/dist/store/model/document/document-draft";
+import {
+    IUpdateDocumentDispatch,
+    UpdateDocument
+} from "@honerlawd/mentordoc-frontend-shared/dist/store/action/document/update-document";
+import {
+    CreateDocumentDraft,
+    ICreateDocumentDraftDispatch
+} from "@honerlawd/mentordoc-frontend-shared/dist/store/action/document/create-document-draft";
 
 export interface IRouteProps {
     orgId: string;
     docId: string;
 }
 
-interface IProps extends Partial<IDispatchPropMap<IFetchFullDocumentDispatch & ISetFullDocumentDispatch & IFetchDocumentPathDispatch> &
+interface IProps extends Partial<IDispatchPropMap<IFetchFullDocumentDispatch & ISetFullDocumentDispatch
+    & IFetchDocumentPathDispatch & IUpdateDocumentDispatch & ICreateDocumentDraftDispatch> &
     ISelectorPropMap<ISetFullDocumentSelector & ISetDocumentPathSelector> &
     RouteComponentProps<IRouteProps>> {
 }
@@ -49,7 +58,7 @@ interface IState {
 @WithRouter()
 @ConnectProps(
     CombineSelectors(SetFullDocument.selector, SetDocumentPath.selector),
-    CombineDispatchers(FetchFullDocument.dispatch, SetFullDocument.dispatch, FetchDocumentPath.dispatch)
+    CombineDispatchers(FetchFullDocument.dispatch, SetFullDocument.dispatch, FetchDocumentPath.dispatch, UpdateDocument.dispatch, CreateDocumentDraft.dispatch)
 )
 export class DocumentRenderer extends React.PureComponent<IProps, IState> {
 
@@ -59,6 +68,12 @@ export class DocumentRenderer extends React.PureComponent<IProps, IState> {
         this.state = {
             isEditing: false
         };
+
+        this.onSave = this.onSave.bind(this);
+        this.onSaveAndPublish = this.onSaveAndPublish.bind(this);
+        this.onModify = this.onModify.bind(this);
+        this.onPublish = this.onPublish.bind(this);
+        this.onRetract = this.onRetract.bind(this);
     }
 
     public async componentDidUpdate(prevProps: Readonly<IProps>, prevState: Readonly<IState>, snapshot?: any): Promise<void> {
@@ -147,38 +162,117 @@ export class DocumentRenderer extends React.PureComponent<IProps, IState> {
         if (this.state.isEditing) {
             options.push({
                 label: "save",
-                onClick: () => this.setState({
-                    isEditing: false
-                })
+                onClick: this.onSave
             });
-
-            if (this.isDraft()) {
-                options.push({
-                    label: "save and publish",
-                    onClick: () => this.setState({
-                        isEditing: false
-                    })
-                });
-            }
+            options.push({
+                label: "save and publish",
+                onClick: this.onSaveAndPublish
+            });
+            options.push({
+                label: "delete draft",
+                onClick: this.onRetract
+            });
         } else {
             options.push({
                 label: "modify",
-                onClick: () => this.setState({
-                    isEditing: true
-                })
+                onClick: this.onModify
             });
 
             if (this.isDraft()) {
                 options.push({
                     label: "publish",
-                    onClick: () => this.setState({
-                        isEditing: false
-                    })
+                    onClick: this.onPublish
+                });
+                options.push({
+                    label: "delete draft",
+                    onClick: this.onRetract
+                });
+            } else {
+                options.push({
+                    label: "retract",
+                    onClick: this.onRetract
                 });
             }
         }
 
         return options;
+    }
+
+    private async onSave(): Promise<void> {
+        this.setState({
+            isEditing: false
+        });
+    }
+
+    private async onSaveAndPublish(): Promise<void> {
+        const doc: AclDocument | null = this.props.selector!.fullDocument;
+        if (!doc) {
+            return;
+        }
+
+        await this.props.dispatch!.updateDocument({
+            documentId: doc.model.id,
+            draftId: doc.model.drafts[0].id,
+            shouldPublish: true,
+            shouldRetract: false
+        });
+
+        this.setState({
+            isEditing: false
+        });
+    }
+
+    private async onModify(): Promise<void> {
+        if (!this.isDraft()) {
+            const doc: AclDocument | null = this.props.selector!.fullDocument;
+            if (!doc) {
+                return;
+            }
+
+            await this.props.dispatch!.createDocumentDraft({
+                documentId: doc.model.id,
+                name: doc.model.drafts[0].name,
+                content: doc.model.drafts[0].content!.content
+            });
+        }
+
+        this.setState({
+            isEditing: true
+        });
+
+        // @todo we need to create a new draft document
+    }
+
+    private async onPublish(): Promise<void> {
+        const doc: AclDocument | null = this.props.selector!.fullDocument;
+        if (!doc) {
+            return;
+        }
+
+        await this.props.dispatch!.updateDocument({
+            documentId: doc.model.id,
+            draftId: doc.model.drafts[0].id,
+            shouldPublish: true,
+            shouldRetract: false
+        });
+    }
+
+    private async onRetract(): Promise<void> {
+        const doc: AclDocument | null = this.props.selector!.fullDocument;
+        if (!doc) {
+            return;
+        }
+
+        await this.props.dispatch!.updateDocument({
+            documentId: doc.model.id,
+            draftId: doc.model.drafts[0].id,
+            shouldPublish: false,
+            shouldRetract: true
+        });
+
+        this.setState({
+            isEditing: false
+        });
     }
 
 }
