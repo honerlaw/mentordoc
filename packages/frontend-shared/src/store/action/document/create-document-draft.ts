@@ -8,6 +8,8 @@ import {AclDocument} from "../../model/document/acl-document";
 import {SetDocuments} from "./set-documents";
 import {FetchFolders} from "../folder/fetch-folders";
 import {FetchDocuments} from "./fetch-documents";
+import {SetFullDocument} from "./set-full-document";
+import {FetchFullDocument} from "./fetch-full-document";
 
 export const CREATE_DOCUMENT_DRAFT_TYPE: string = "create_document_draft_type";
 
@@ -43,6 +45,10 @@ class CreateDocumentDraftImpl extends AsyncAction<ICreateDocumentDraft> {
         api.dispatch(SetDocuments.action({
             documents: [document]
         }));
+
+        api.dispatch(FetchFullDocument.action({
+            documentId: document.model.id
+        }) as any);
 
         api.dispatch(FetchDocuments.action({
             organizationId: document.model.organizationId,

@@ -23,6 +23,11 @@ services:
       - ./:/opt/server
     depends_on:
       - db
+  shared:
+    image: node:10.13.0
+    command: ["/bin/bash", "-c", "cd /opt/mentordoc && cd /opt/mentordoc/packages/frontend-shared && npm run build -- --watch"]
+    volumes:
+      - ${CURDIR}:/opt/mentordoc
   website:
     image: node:10.13.0
     command: ["/bin/bash", "-c", "cd /opt/mentordoc && npm rebuild node-sass && cd /opt/mentordoc/packages/frontend-website && npm run start"]
@@ -30,5 +35,7 @@ services:
       - "9000:9000"
     volumes:
       - ${CURDIR}:/opt/mentordoc
+    depends_on:
+      - shared
 volumes:
   mentor-doc-db:

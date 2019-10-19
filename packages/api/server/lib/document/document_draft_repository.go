@@ -34,7 +34,7 @@ func (repo *DocumentDraftRepository) FindLatestAccessibleDraftForDocuments(userI
 	// this query will find the latest version of a draft for each document that is either
 	// published (so we can view it) OR not published but we are the initial draft creator
 	// AND (d1.published_at is not null OR (d1.published_at IS NULL AND d1.creator_id = userId))
-	query := fmt.Sprintf("SELECT d1.id, d1.document_id, d1.name, d1.creator_id, d1.published_at, d1.retracted_at, d1.created_at, d1.updated_at, d1.deleted_at FROM document_draft d1 LEFT JOIN document_draft d2 ON (d1.document_id = d2.document_id AND d1.created_at < d2.created_at) WHERE d2.document_id IS NULL AND d1.document_id in (%s) AND ((d1.published_at IS NOT NULL AND d1.retracted_at IS NULL AND d1.deleted_at IS NULL) OR (d1.published_at IS NULL AND d1.creator_id = ? AND d1.retracted_at IS NULL AND d1.deleted_at IS NULL))", placeholders);
+	query := fmt.Sprintf("SELECT DISTINCT d1.id, d1.document_id, d1.name, d1.creator_id, d1.published_at, d1.retracted_at, d1.created_at, d1.updated_at, d1.deleted_at FROM document_draft d1 LEFT JOIN document_draft d2 ON (d1.document_id = d2.document_id) WHERE d1.created_at < d2.created_at AND d1.document_id in (%s) AND ((d1.published_at IS NOT NULL AND d1.retracted_at IS NULL AND d1.deleted_at IS NULL) OR (d1.published_at IS NULL AND d1.creator_id = ? AND d1.retracted_at IS NULL AND d1.deleted_at IS NULL))", placeholders);
 
 	params := util.ConvertStringArrayToInterfaceArray(documentIds)
 	params = append(params, userId)

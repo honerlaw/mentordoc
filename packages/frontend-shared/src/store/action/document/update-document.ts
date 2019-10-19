@@ -6,6 +6,8 @@ import {request} from "../../../util/request";
 import {AclDocument} from "../../model/document/acl-document";
 import {SetFullDocument} from "./set-full-document";
 import {FetchDocuments} from "./fetch-documents";
+import {FetchFullDocument} from "./fetch-full-document";
+import {FetchFolders} from "../folder/fetch-folders";
 
 export const UPDATE_DOCUMENT_TYPE: string = "update_document_type";
 
@@ -41,11 +43,16 @@ class UpdateDocumentImpl extends AsyncAction<IUpdateDocument> {
             fullDocument: document
         }));
 
+        api.dispatch(FetchFullDocument.action({
+            documentId: document.model.id
+        }) as any);
+
         // re-fetch the folder documents, so the nav bar updates properly
         api.dispatch(FetchDocuments.action({
             organizationId: document.model.organizationId,
             folderId: document.model.folderId
         }) as any);
+        FetchFolders.findParentAndUpdate(api, document.model.organizationId, document.model.folderId);
     }
 
 

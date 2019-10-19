@@ -32,38 +32,42 @@ class SetDocumentsImpl extends SyncAction<IDocumentState, ISetDocuments, Selecto
     }
 
     public handle(state: IDocumentState, action: IWrappedAction<ISetDocuments>): IDocumentState {
-        state = cloneDeep(state);
-        if (action.payload) {
-            action.payload.documents.forEach((doc: AclDocument): void => {
-                const key: string = this.getKeyForDocument(doc);
-
-                const documents: AclDocument[] | undefined = state.documentMap[key];
-
-                // no folders exist for the key, so just add it
-                if (!documents) {
-                    state.documentMap[key] = [doc];
-                    return;
-                }
-
-                let found: boolean = false;
-
-                // see if the folder exists already
-                for (let i: number = documents.length - 1; i >= 0; --i) {
-                    const d: AclDocument = documents[i];
-
-                    // if it does exist, replace it and mark that we found it
-                    if (d.model.id === doc.model.id) {
-                        found = true;
-                        documents[i] = doc;
-                    }
-                }
-
-                // if it wasn't found then add it
-                if (!found) {
-                    documents.push(doc);
-                }
-            });
+        if (!action.payload) {
+            return state;
         }
+
+        state = cloneDeep(state);
+
+        action.payload.documents.forEach((doc: AclDocument): void => {
+            const key: string = this.getKeyForDocument(doc);
+
+            const documents: AclDocument[] | undefined = state.documentMap[key];
+
+            // no folders exist for the key, so just add it
+            if (!documents) {
+                state.documentMap[key] = [doc];
+                return;
+            }
+
+            let found: boolean = false;
+
+            // see if the folder exists already
+            for (let i: number = documents.length - 1; i >= 0; --i) {
+                const d: AclDocument = documents[i];
+
+                // if it does exist, replace it and mark that we found it
+                if (d.model.id === doc.model.id) {
+                    found = true;
+                    documents[i] = doc;
+                    break;
+                }
+            }
+
+            // if it wasn't found then add it
+            if (!found) {
+                documents.push(doc);
+            }
+        });
         return state;
     }
 
