@@ -106,21 +106,6 @@ func (repo *DocumentDraftRepository) FindAndAttachLatestAccessibleDraftForDocume
 	return nil
 }
 
-func (repo *DocumentDraftRepository) FindDraftByDocumentId(documentId string) *shared.DocumentDraft {
-	row := repo.QueryRow(
-		"select id, document_id, name, creator_id, published_at, retracted_at, created_at, updated_at, deleted_at from document_draft where document_id = ? and deleted_at is null and published_at is null and retracted_at is null",
-		documentId,
-	)
-
-	var draft shared.DocumentDraft
-	err := row.Scan(&draft.Id, &draft.DocumentId, &draft.Name, &draft.CreatorId, &draft.PublishedAt, &draft.RetractedAt, &draft.CreatedAt, &draft.UpdatedAt, &draft.DeletedAt)
-	if err != nil {
-		log.Print(err)
-		return nil
-	}
-	return &draft
-}
-
 func (repo *DocumentDraftRepository) FindPublishedDraftByDocumentId(documentId string) *shared.DocumentDraft {
 	row := repo.QueryRow(
 		"select id, document_id, name, creator_id, published_at, retracted_at, created_at, updated_at, deleted_at from document_draft where document_id = ? and deleted_at is null and published_at is not null and retracted_at is null",

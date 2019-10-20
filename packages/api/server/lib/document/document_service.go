@@ -263,11 +263,12 @@ func (service *DocumentService) Update(
 	}
 
 	// find the draft version, we can only update if a draft exists
-	documentDraft := service.documentDraftRepository.FindDraftByDocumentId(document.Id)
-	if documentDraft == nil {
-		return nil, shared.NewBadRequestError("could not find draft version off the document to update")
+	documentDrafts, err := service.documentDraftRepository.FindLatestAccessibleDraftForDocuments(user.Id, []string{document.Id})
+	if err != nil {
+		return nil, shared.NewInternalServerError("could not find drafts for document")
 	}
 
+	documentDraft := &documentDrafts[0]
 	if documentDraft.Id != draftId {
 		return nil, shared.NewBadRequestError("target draft and current draft are not the same")
 	}
