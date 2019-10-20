@@ -5,10 +5,12 @@
   "main": "index.js",
   "scripts": {
     "lerna": "lerna",
+    "clean": "npm run lerna -- clean -y && rm -rf ./node_modules",
     "setup:env:main": "cat ./config/.env.local.api ./config/.env.local.shared > .env",
     "setup:env:api": "cat ./config/.env.local.api ./config/.env.local.shared > ./packages/api/.env && cat ./config/.env.local.shared ./config/.env.test.api > ./packages/api/.env.test",
     "setup:env:website": "cat ./config/.env.local.shared > ./packages/frontend-website/.env",
     "setup:env": "npm run setup:env:main && npm run setup:env:api && npm run setup:env:website",
+    "bootstrap": "docker run -v $PWD:/opt/mentordoc -i node:10.13.0 /bin/bash -c \"cd /opt/mentordoc && npm ci && npm run lerna -- bootstrap\"",
     "start": "npm run setup:env && npm run stop && CURDIR=$(pwd) docker-compose up",
     "stop": "CURDIR=$(pwd) docker-compose down",
     "test": "echo \"Error: no test specified\" && exit 1"

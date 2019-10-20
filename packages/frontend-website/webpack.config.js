@@ -1,5 +1,6 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const FaviconsWebpackPlugin = require('favicons-webpack-plugin')
 const EnvironmentPlugin = require('webpack').EnvironmentPlugin;
 const dotenv = require('dotenv');
 
@@ -39,6 +40,11 @@ module.exports = {
             meta: {
                 "viewport": "width=device-width, initial-scale=1"
             }
+        }),
+        new FaviconsWebpackPlugin({
+            logo: path.resolve("./images/bulb.svg"),
+            mode: 'webapp',
+            devMode: 'webapp'
         })
     ],
     module: {
