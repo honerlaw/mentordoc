@@ -33,8 +33,8 @@ func (repo *DocumentDraftRepository) FindLatestAccessibleDraftForDocuments(userI
 
 	// this query will find the latest version of a draft for each document that is either
 	// published (so we can view it) OR not published but we are the initial draft creator
-	// AND (d1.published_at is not null OR (d1.published_at IS NULL AND d1.creator_id = userId))
-	query := fmt.Sprintf("SELECT DISTINCT d1.id, d1.document_id, d1.name, d1.creator_id, d1.published_at, d1.retracted_at, d1.created_at, d1.updated_at, d1.deleted_at FROM document_draft d1 LEFT JOIN document_draft d2 ON (d1.document_id = d2.document_id) WHERE d1.created_at < d2.created_at AND d1.document_id in (%s) AND ((d1.published_at IS NOT NULL AND d1.retracted_at IS NULL AND d1.deleted_at IS NULL) OR (d1.published_at IS NULL AND d1.creator_id = ? AND d1.retracted_at IS NULL AND d1.deleted_at IS NULL))", placeholders);
+	// @todo this should be optimized to return exactly what we want
+	query := fmt.Sprintf("SELECT DISTINCT d1.id, d1.document_id, d1.name, d1.creator_id, d1.published_at, d1.retracted_at, d1.created_at, d1.updated_at, d1.deleted_at FROM document_draft d1 WHERE d1.document_id in (%s) AND ((d1.published_at IS NOT NULL AND d1.retracted_at IS NULL AND d1.deleted_at IS NULL) OR (d1.published_at IS NULL AND d1.creator_id = ? AND d1.retracted_at IS NULL AND d1.deleted_at IS NULL)) ORDER BY d1.created_at DESC", placeholders);
 
 	params := util.ConvertStringArrayToInterfaceArray(documentIds)
 	params = append(params, userId)
@@ -46,6 +46,10 @@ func (repo *DocumentDraftRepository) FindLatestAccessibleDraftForDocuments(userI
 	}
 	defer rows.Close()
 
+	// basically, the query above will find the latest valid drafts, so it should return at most 2 drafts per document
+	// the publish draft, or the active draft that the current user can view, the results are ordered, latest first,
+	// so we simply need to only add the first occurrence of the draft to the drafts array
+	idMap := make(map[string]bool);
 	drafts := make([]shared.DocumentDraft, 0)
 	for rows.Next() {
 		var draft shared.DocumentDraft
@@ -55,6 +59,12 @@ func (repo *DocumentDraftRepository) FindLatestAccessibleDraftForDocuments(userI
 			return nil, errors.New("failed to parse document drafts")
 		}
 
+		// the draft has already been added, so skip it
+		if _, ok := idMap[draft.DocumentId]; ok {
+			continue;
+		}
+
+		idMap[draft.DocumentId] = true;
 		drafts = append(drafts, draft)
 	}
 
