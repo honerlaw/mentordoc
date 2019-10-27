@@ -1,9 +1,12 @@
 import * as React from "react";
-import {AclOrganization} from "@honerlawd/mentordoc-frontend-shared/dist/store/model/organization/acl-organization";
+import {
+    AclOrganization,
+    isAclOrganization
+} from "@honerlawd/mentordoc-frontend-shared/dist/store/model/organization/acl-organization";
 import {OrganizationItemView} from "./organization-item-view";
-import {AclFolder} from "@honerlawd/mentordoc-frontend-shared/dist/store/model/folder/acl-folder";
+import {AclFolder, isAclFolder} from "@honerlawd/mentordoc-frontend-shared/dist/store/model/folder/acl-folder";
 import {FolderItemView} from "./folder-item-view";
-import {AclDocument} from "@honerlawd/mentordoc-frontend-shared/dist/store/model/document/acl-document";
+import {AclDocument, isAclDocument} from "@honerlawd/mentordoc-frontend-shared/dist/store/model/document/acl-document";
 import {DocumentItemView} from "./document-item-view";
 
 interface IProps {
@@ -13,13 +16,16 @@ interface IProps {
 export class NavigatorItem extends React.PureComponent<IProps, {}> {
 
     public render(): JSX.Element | null {
-        if (this.props.item instanceof AclOrganization) {
+        if (isAclOrganization(this.props.item)) {
             return <OrganizationItemView organization={this.props.item} />;
         }
-        if (this.props.item instanceof AclFolder) {
+        if (isAclFolder(this.props.item)) {
             return <FolderItemView folder={this.props.item} />;
         }
-        return <DocumentItemView document={this.props.item} />;
+        if (isAclDocument(this.props.item)) {
+            return <DocumentItemView document={this.props.item}/>;
+        }
+        return null;
     }
 
 }

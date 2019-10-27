@@ -1,8 +1,6 @@
 import {cloneDeep} from "lodash";
-import {AnyAction, Dispatch} from "redux";
 import {ReducerType} from "../../model/reducer-type";
-import {RequestStatus} from "../../model/request-status/request-status";
-import {IRequestStatusState} from "../../model/request-status/request-status-state";
+import {IRequestStatus, IRequestStatusState} from "../../model/request-status/request-status-state";
 import {IRootState} from "../../model/root-state";
 import {IWrappedAction} from "../../model/wrapped-action";
 import {ISelectorMap, SyncAction} from "../sync-action";
@@ -12,10 +10,10 @@ export const SET_REQUEST_STATUS_TYPE: string = "set_request_status_type";
 
 export interface ISetRequestStatus {
     actionType: string;
-    status: RequestStatus;
+    status: IRequestStatus;
 }
 
-export type SelectorValue = (type: string) => RequestStatus;
+export type SelectorValue = (type: string) => IRequestStatus | undefined;
 
 export interface ISetRequestStatusSelector extends ISelectorMap {
     requestStatus: SelectorValue;
@@ -39,8 +37,8 @@ class SetRequestStatusImpl extends SyncAction<IRequestStatusState, ISetRequestSt
         return state;
     }
 
-    getSelectorValue(state: IRootState): ((type: string) => RequestStatus) | null {
-        return (type: string): RequestStatus => state.requestStatus.statusMap[type];
+    getSelectorValue(state: IRootState): (type: string) => IRequestStatus | undefined {
+        return (type: string): IRequestStatus => state.requestStatus.statusMap[type];
     }
 
 }

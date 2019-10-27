@@ -35,12 +35,17 @@ export class DocumentItemView extends React.PureComponent<IProps, {}> {
         this.onClick = this.onClick.bind(this);
     }
 
-    public render(): JSX.Element {
+    public render(): JSX.Element | null {
+        console.log(this.props.document);
+        if (this.props.document.model.drafts.length === 0) {
+            return null;
+        }
+
         return <NavigatorItemView title={this.props.document.model.drafts[0].name}
                                   onClick={this.onClick}
                                   isActive={this.isActive()}
                                   hasChildren={false}
-                                  isExpanded={false}
+                                  isExpanded={true}
         options={this.getOptions()}/>;
     }
 

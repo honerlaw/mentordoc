@@ -32,38 +32,44 @@ export class SetFoldersImpl extends SyncAction<IFolderState, ISetFolders, Select
     }
 
     public handle(state: IFolderState, action: IWrappedAction<ISetFolders>): IFolderState {
-        state = cloneDeep(state);
-        if (action.payload) {
-            action.payload.folders.forEach((folder: AclFolder): void => {
-                const key: string = this.getKeyForFolder(folder);
-
-                const folders: AclFolder[] | undefined = state.folderMap[key];
-
-                // no folders exist for the key, so just add it
-                if (!folders) {
-                    state.folderMap[key] = [folder];
-                    return;
-                }
-
-                let found: boolean = false;
-
-                // see if the folder exists already
-                for (let i: number = folders.length - 1; i >= 0; --i) {
-                    const f: AclFolder = folders[i];
-
-                    // if it does exist, replace it and mark that we found it
-                    if (f.model.id === folder.model.id) {
-                        found = true;
-                        folders[i] = folder;
-                    }
-                }
-
-                // if it wasn't found then add it
-                if (!found) {
-                    folders.push(folder);
-                }
-            });
+        if (!action.payload) {
+            return state;
         }
+
+        state = cloneDeep(state);
+
+        action.payload.folders.forEach((folder: AclFolder): void => {
+            const key: string = this.getKeyForFolder(folder);
+
+            const folders: AclFolder[] | undefined = state.folderMap[key];
+
+            // no folders exist for the key, so just add it
+            if (!folders) {
+                state.folderMap[key] = [folder];
+                return;
+            }
+
+            let found: boolean = false;
+
+            // see if the folder exists already
+            for (let i: number = folders.length - 1; i >= 0; --i) {
+                const f: AclFolder = folders[i];
+
+                // if it does exist, replace it and mark that we found it
+                if (f.model.id === folder.model.id) {
+                    found = true;
+                    folders[i] = folder;
+                    break;
+                }
+            }
+
+            // if it wasn't found then add it
+            if (!found) {
+                folders.push(folder);
+            }
+        });
+        console.log(state); // tslint:disable-line
+
         return state;
     }
 

@@ -92,7 +92,13 @@ func (controller *DocumentController) findPath(w http.ResponseWriter, req *http.
 		return
 	}
 
-	util.WriteJsonToResponse(w, http.StatusCreated, path)
+	wrapped, err := controller.aclService.Wrap(user, path)
+	if err != nil {
+		util.WriteHttpError(w, shared.NewInternalServerError("could not find user access for items in path"))
+		return
+	}
+
+	util.WriteJsonToResponse(w, http.StatusCreated, wrapped)
 }
 
 func (controller *DocumentController) create(w http.ResponseWriter, req *http.Request) {

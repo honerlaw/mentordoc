@@ -51,20 +51,23 @@ export class FolderItemView extends React.PureComponent<IProps, {}> {
     public constructor(props: IProps) {
         super(props);
 
-        this.state = {
-            isExpanded: false
-        };
-
         this.createFolder = this.createFolder.bind(this);
         this.createDocument = this.createDocument.bind(this);
         this.deleteFolder = this.deleteFolder.bind(this);
         this.onExpand = this.onExpand.bind(this);
     }
 
+    public componentDidUpdate(prevProps: Readonly<IProps>, prevState: Readonly<{}>, snapshot?: any): void {
+        const selector: SelectorSetFoldersChildValue = this.props.selector!.getFolders("child") as SelectorSetFoldersChildValue;
+        const folders: AclFolder[] = selector(this.props.folder.model.organizationId, this.props.folder.model.id);
+
+        console.log(folders);
+    }
+
     public render(): JSX.Element {
         return <NavigatorItemView title={this.props.folder.model.name}
                                   hasChildren={this.props.folder.model.childCount > 0}
-                                  isExpanded={false}
+                                  isExpanded={true}
                                   onExpand={this.onExpand}
                                   options={this.getOptions()}>
             {this.renderFolders()}

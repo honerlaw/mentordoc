@@ -10,6 +10,7 @@ import {
     SetRequestStatus
 } from "@honerlawd/mentordoc-frontend-shared/dist/store/action/request-status/set-request-status";
 import {RequestStatus} from "@honerlawd/mentordoc-frontend-shared/dist/store/model/request-status/request-status";
+import {IRequestStatus} from "@honerlawd/mentordoc-frontend-shared/dist/store/model/request-status/request-status-state";
 
 type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement>;
 
@@ -49,8 +50,12 @@ export class LoadingButton extends React.PureComponent<IProps, {}> {
     }
 
     private getButtonText(): string {
-        const status: RequestStatus = this.props.selector!.requestStatus(this.props.loadingType);
-        switch (status) {
+        const status: IRequestStatus | undefined = this.props.selector!.requestStatus(this.props.loadingType);
+        if (!status) {
+            return this.props.buttonText.default;
+        }
+
+        switch (status.status) {
             case RequestStatus.FETCHING:
                 return this.props.buttonText.loading;
             case RequestStatus.SUCCESS:

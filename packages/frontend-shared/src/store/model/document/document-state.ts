@@ -1,8 +1,8 @@
 import {AclDocument} from "./acl-document";
-import {Organization} from "../organization/organization";
-import {Folder} from "../folder/folder";
+import {AclOrganization} from "../organization/acl-organization";
+import {AclFolder} from "../folder/acl-folder";
 
-export type DocumentPath = Array<Organization | Folder | Document>;
+export type DocumentPath = Array<AclOrganization | AclFolder | AclDocument>;
 
 export interface IDocumentState {
     documentMap: Record<string, AclDocument[]>;

@@ -12,6 +12,8 @@ import {Alert, AlertType} from "../model/alert/alert";
 import {plainToClass} from "class-transformer";
 import {IGenericActionRequest} from "./generic-action-request";
 import {IRootState} from "../model/root-state";
+import {IRequestStatus} from "../model/request-status/request-status-state";
+import {isEqual} from "lodash";
 
 export abstract class AsyncAction<Request extends IGenericActionRequest> extends GenericAction<Request> {
 
@@ -20,7 +22,10 @@ export abstract class AsyncAction<Request extends IGenericActionRequest> extends
 
             // prevent action from being fired, if we are still fetching the previous one
             const state: IRootState = api.getState();
-            if (state.requestStatus.statusMap[this.type] === RequestStatus.FETCHING) {
+            const status: IRequestStatus<Request> | undefined = state.requestStatus.statusMap[this.type];
+
+            // do isEqual because we use cloneDeep to make the state immutable
+            if (status && status.status === RequestStatus.FETCHING && isEqual(status.payload, req)) {
                 return;
             }
 
@@ -33,7 +38,10 @@ export abstract class AsyncAction<Request extends IGenericActionRequest> extends
 
             api.dispatch(SetRequestStatus.action({
                 actionType: this.type,
-                status: RequestStatus.FETCHING,
+                status: {
+                    status: RequestStatus.FETCHING,
+                    payload: req
+                },
             }));
 
             try {
@@ -41,14 +49,20 @@ export abstract class AsyncAction<Request extends IGenericActionRequest> extends
 
                 api.dispatch(SetRequestStatus.action({
                     actionType: this.type,
-                    status: RequestStatus.SUCCESS,
+                    status: {
+                        status: RequestStatus.SUCCESS,
+                        payload: req
+                    },
                 }));
             } catch (err) {
                 err = err instanceof HttpError ? err : new HttpError("something went wrong");
 
                 api.dispatch(SetRequestStatus.action({
                     actionType: this.type,
-                    status: RequestStatus.FAILED,
+                    status: {
+                        status: RequestStatus.FAILED,
+                        payload: req
+                    },
                 }));
 
                 api.dispatch(SetRequestError.action({

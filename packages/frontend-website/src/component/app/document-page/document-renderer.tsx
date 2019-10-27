@@ -14,7 +14,7 @@ import {
     SetFullDocument
 } from "@honerlawd/mentordoc-frontend-shared/dist/store/action/document/set-full-document";
 import {RouteComponentProps} from "react-router";
-import {AclDocument} from "@honerlawd/mentordoc-frontend-shared/dist/store/model/document/acl-document";
+import {AclDocument, isAclDocument} from "@honerlawd/mentordoc-frontend-shared/dist/store/model/document/acl-document";
 import {DocumentViewer} from "./document-renderer/document-viewer";
 import {DocumentEditor} from "./document-renderer/document-editor";
 import {
@@ -39,6 +39,15 @@ import {
     CreateDocumentDraft,
     ICreateDocumentDraftDispatch
 } from "@honerlawd/mentordoc-frontend-shared/dist/store/action/document/create-document-draft";
+import {
+    DeleteDocument,
+    IDeleteDocumentDispatch
+} from "@honerlawd/mentordoc-frontend-shared/dist/store/action/document/delete-document";
+import {
+    AclOrganization,
+    isAclOrganization
+} from "@honerlawd/mentordoc-frontend-shared/dist/store/model/organization/acl-organization";
+import {AclFolder, isAclFolder} from "@honerlawd/mentordoc-frontend-shared/dist/store/model/folder/acl-folder";
 
 export interface IRouteProps {
     orgId: string;
@@ -46,7 +55,7 @@ export interface IRouteProps {
 }
 
 interface IProps extends Partial<IDispatchPropMap<IFetchFullDocumentDispatch & ISetFullDocumentDispatch
-    & IFetchDocumentPathDispatch & IUpdateDocumentDispatch & ICreateDocumentDraftDispatch> &
+    & IFetchDocumentPathDispatch & IUpdateDocumentDispatch & ICreateDocumentDraftDispatch & IDeleteDocumentDispatch> &
     ISelectorPropMap<ISetFullDocumentSelector & ISetDocumentPathSelector> &
     RouteComponentProps<IRouteProps>> {
 }
@@ -58,7 +67,8 @@ interface IState {
 @WithRouter()
 @ConnectProps(
     CombineSelectors(SetFullDocument.selector, SetDocumentPath.selector),
-    CombineDispatchers(FetchFullDocument.dispatch, SetFullDocument.dispatch, FetchDocumentPath.dispatch, UpdateDocument.dispatch, CreateDocumentDraft.dispatch)
+    CombineDispatchers(FetchFullDocument.dispatch, SetFullDocument.dispatch, FetchDocumentPath.dispatch,
+        UpdateDocument.dispatch, CreateDocumentDraft.dispatch, DeleteDocument.dispatch)
 )
 export class DocumentRenderer extends React.PureComponent<IProps, IState> {
 
@@ -74,6 +84,7 @@ export class DocumentRenderer extends React.PureComponent<IProps, IState> {
         this.onModify = this.onModify.bind(this);
         this.onPublish = this.onPublish.bind(this);
         this.onRetract = this.onRetract.bind(this);
+        this.onDelete = this.onDelete.bind(this);
     }
 
     public async componentDidUpdate(prevProps: Readonly<IProps>, prevState: Readonly<IState>, snapshot?: any): Promise<void> {
@@ -126,13 +137,15 @@ export class DocumentRenderer extends React.PureComponent<IProps, IState> {
 
         const documentPath: DocumentPath = this.props.selector!.documentPath;
         for (const item of documentPath) {
-            const temp: any = item;
-            if (temp.name) {
-                path.push(<span key={temp.id}>{temp.name}</span>);
-                path.push(<img key={`${temp.id}-${temp - name}-chevron`} src={chevron} alt={"separator"}/>)
+            const temp: AclOrganization | AclFolder | AclDocument = item;
+            if ((isAclOrganization(temp) || isAclFolder(temp)) && temp.model.name) {
+                path.push(<span key={temp.model.id}>{temp.model.name}</span>);
+                path.push(<img key={`${temp.model.id}-${temp.model.name}-chevron`} src={chevron} alt={"separator"}/>)
             }
-            if (temp.drafts && temp.drafts.length > 0) {
-                path.push(<span key={`${temp.drafts[0].id}-${temp.drafts[0].name}`}>{temp.drafts[0].name}</span>);
+            if (isAclDocument(temp) && temp.model.drafts.length > 0) {
+                const draft: DocumentDraft = temp.model.drafts[0];
+
+                path.push(<span key={`${draft.id}-${draft.name}`}>{draft.name}</span>);
             }
         }
         return path
@@ -157,40 +170,61 @@ export class DocumentRenderer extends React.PureComponent<IProps, IState> {
     }
 
     private getOptions(): IDropdownButtonOption[] {
+        if (this.state.isEditing) {
+            return this.getEditOptions();
+        }
+        return this.getViewOptions();
+    }
+
+    private getEditOptions(): IDropdownButtonOption[] {
         const options: IDropdownButtonOption[] = [];
 
-        if (this.state.isEditing) {
+        options.push({
+            label: "save",
+            onClick: this.onSave
+        });
+        options.push({
+            label: "save and publish",
+            onClick: this.onSaveAndPublish
+        });
+
+        // can always delete their own draft
+        options.push({
+            label: "delete draft",
+            onClick: this.onRetract
+        });
+
+        return options;
+    }
+
+    private getViewOptions(): IDropdownButtonOption[] {
+        const options: IDropdownButtonOption[] = [];
+        const doc: AclDocument = this.props.selector!.fullDocument!;
+
+        if (doc.hasAction("modify")) {
             options.push({
-                label: "save",
-                onClick: this.onSave
+                label: "modify",
+                onClick: this.onModify
             });
+        }
+
+        if (this.isDraft()) {
             options.push({
-                label: "save and publish",
-                onClick: this.onSaveAndPublish
+                label: "publish",
+                onClick: this.onPublish
             });
+
+            // can always delete their own draft
             options.push({
                 label: "delete draft",
                 onClick: this.onRetract
             });
         } else {
-            options.push({
-                label: "modify",
-                onClick: this.onModify
-            });
 
-            if (this.isDraft()) {
+            if (doc.hasAction("delete")) {
                 options.push({
-                    label: "publish",
-                    onClick: this.onPublish
-                });
-                options.push({
-                    label: "delete draft",
-                    onClick: this.onRetract
-                });
-            } else {
-                options.push({
-                    label: "retract",
-                    onClick: this.onRetract
+                    label: "delete document",
+                    onClick: this.onDelete
                 });
             }
         }
@@ -239,8 +273,6 @@ export class DocumentRenderer extends React.PureComponent<IProps, IState> {
         this.setState({
             isEditing: true
         });
-
-        // @todo we need to create a new draft document
     }
 
     private async onPublish(): Promise<void> {
@@ -272,6 +304,17 @@ export class DocumentRenderer extends React.PureComponent<IProps, IState> {
 
         this.setState({
             isEditing: false
+        });
+    }
+
+    private async onDelete(): Promise<void> {
+        const doc: AclDocument | null = this.props.selector!.fullDocument;
+        if (!doc) {
+            return;
+        }
+
+        await this.props.dispatch!.deleteDocument({
+            documentId: doc.model.id
         });
     }
 

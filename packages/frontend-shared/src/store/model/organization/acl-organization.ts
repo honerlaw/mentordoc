@@ -1,6 +1,10 @@
 import {Organization} from "./organization";
 import {Exclude, Expose, Type} from "class-transformer";
 
+export function isAclOrganization(data: any): data is AclOrganization {
+    return !data.model.organizationId;
+}
+
 @Exclude()
 export class AclOrganization {
 
