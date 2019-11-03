@@ -40,6 +40,36 @@ func (repo *DocumentRepository) FindById(id string) *shared.Document {
 	return &document
 }
 
+func (repo *DocumentRepository) FindByIds(ids ...string) ([]shared.Document, error) {
+	params := util.ConvertStringArrayToInterfaceArray(ids)
+
+	placeholders := util.BuildSqlPlaceholderArray(params)
+
+	rows, err := repo.Query(
+		fmt.Sprintf("select id, folder_id, organization_id, created_at, updated_at, deleted_at from document where id IN (%s) and deleted_at is null", placeholders),
+		params...,
+	)
+	if err != nil {
+		log.Print(err)
+		return nil, errors.New("failed to find documents by id")
+	}
+	defer rows.Close()
+
+	// parse all of the documents results
+	documents := make([]shared.Document, 0)
+	for rows.Next() {
+		var document shared.Document
+		err := rows.Scan(&document.Id, &document.FolderId, &document.OrganizationId, &document.CreatedAt, &document.UpdatedAt, &document.DeletedAt)
+		if err != nil {
+			log.Print(err)
+			return nil, errors.New("failed to parse document result")
+		}
+		documents = append(documents, document)
+	}
+
+	return documents, nil
+}
+
 func (repo *DocumentRepository) Find(userId string, organizationIds []string, folderIds []string, documentIds []string, folderId *string, pagination *shared.Pagination) ([]shared.Document, error) {
 	query := "select distinct d.id, d.folder_id, d.organization_id, d.created_at, d.updated_at, d.deleted_at from document d WHERE "
 

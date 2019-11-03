@@ -131,6 +131,7 @@ CREATE TABLE IF NOT EXISTS `document_draft` (
   PRIMARY KEY (`id`),
   FOREIGN KEY (`document_id`) REFERENCES document(`id`),
   FOREIGN KEY (`creator_id`) REFERENCES user(`id`),
+  FULLTEXT (`name`),
   KEY `idx_document_draft_deleted_at` (`deleted_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -144,6 +145,7 @@ CREATE TABLE IF NOT EXISTS `document_draft_content` (
   `deleted_at` BIGINT NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   FOREIGN KEY (`document_draft_id`) REFERENCES document_draft(`id`),
+  FULLTEXT (`content`),
   KEY `idx_document_draft_content_deleted_at` (`deleted_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 

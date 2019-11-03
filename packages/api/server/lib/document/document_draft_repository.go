@@ -7,6 +7,7 @@ import (
 	"github.com/honerlaw/mentordoc/server/lib/shared"
 	"github.com/honerlaw/mentordoc/server/lib/util"
 	"log"
+	"strings"
 )
 
 type DocumentDraftRepository struct {
@@ -22,6 +23,67 @@ func NewDocumentDraftRepository(db *sql.DB, tx *sql.Tx) *DocumentDraftRepository
 
 func (repo *DocumentDraftRepository) InjectTransaction(tx *sql.Tx) interface{} {
 	return NewDocumentDraftRepository(repo.Db, tx)
+}
+
+/*
+Given the organizations / documents / folders that the user has access to, search for documents in it
+ */
+func (repo *DocumentDraftRepository) Search(userId string, organizationIds []string, folderIds []string, documentIds []string, searchQuery string) ([]shared.DocumentDraft, error) {
+	query := "SELECT DISTINCT d1.id, d1.document_id, d1.name, d1.creator_id, d1.published_at, d1.retracted_at, d1.created_at, d1.updated_at, d1.deleted_at FROM document_draft d1 JOIN document d3 ON d3.id = d1.document_id JOIN document_draft_content d2 ON d2.document_draft_id = d1.id WHERE (MATCH(d1.name) AGAINST(?) OR MATCH(d2.content) AGAINST(?)) AND ((d1.published_at IS NOT NULL AND d1.retracted_at IS NULL AND d1.deleted_at IS NULL) OR (d1.published_at IS NULL AND d1.creator_id = ? AND d1.retracted_at IS NULL AND d1.deleted_at IS NULL))";
+
+	params := util.ConvertStringArrayToInterfaceArray([]string{searchQuery, searchQuery, userId});
+
+	// build the in queries
+	inQueries := make([]string, 0)
+	if len(organizationIds) > 0 {
+		inQueries = append(inQueries, fmt.Sprintf("d3.organization_id in (%s)", util.BuildSqlPlaceholderArray(organizationIds)))
+		params = append(params, util.ConvertStringArrayToInterfaceArray(organizationIds)...)
+	}
+	if len(folderIds) > 0 {
+		inQueries = append(inQueries, fmt.Sprintf("d3.folder_id in (%s)", util.BuildSqlPlaceholderArray(folderIds)))
+		params = append(params, util.ConvertStringArrayToInterfaceArray(folderIds)...)
+	}
+	if len(documentIds) > 0 {
+		inQueries = append(inQueries, fmt.Sprintf("d3.id in (%s)", util.BuildSqlPlaceholderArray(documentIds)))
+		params = append(params, util.ConvertStringArrayToInterfaceArray(documentIds)...)
+	}
+
+	// tack on the in query
+	query = fmt.Sprintf("%s AND (%s)", query, strings.Join(inQueries, " OR "))
+
+	// order the results
+	query = fmt.Sprintf("%s %s", query, "ORDER BY d1.created_at DESC");
+
+	rows, err := repo.Query(query, params...)
+	if err != nil {
+		log.Print(err)
+		return nil, errors.New("failed to find documents for query")
+	}
+	defer rows.Close()
+
+	// basically, the query above will find the latest valid drafts, so it should return at most 2 drafts per document
+	// the publish draft, or the active draft that the current user can view, the results are ordered, latest first,
+	// so we simply need to only add the first occurrence of the draft to the drafts array
+	idMap := make(map[string]bool);
+	drafts := make([]shared.DocumentDraft, 0)
+	for rows.Next() {
+		var draft shared.DocumentDraft
+		err := rows.Scan(&draft.Id, &draft.DocumentId, &draft.Name, &draft.CreatorId, &draft.PublishedAt, &draft.RetractedAt, &draft.CreatedAt, &draft.UpdatedAt, &draft.DeletedAt)
+		if err != nil {
+			log.Print(err)
+			return nil, errors.New("failed to parse document drafts")
+		}
+
+		// the draft has already been added, so skip it
+		if _, ok := idMap[draft.DocumentId]; ok {
+			continue;
+		}
+
+		idMap[draft.DocumentId] = true;
+		drafts = append(drafts, draft)
+	}
+
+	return drafts, nil
 }
 
 func (repo *DocumentDraftRepository) FindLatestAccessibleDraftForDocuments(userId string, documentIds []string) ([]shared.DocumentDraft, error) {

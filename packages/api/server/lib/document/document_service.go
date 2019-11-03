@@ -428,6 +428,66 @@ func (service *DocumentService) List(user *shared.User, organizationId string, f
 	return validDocuments, nil
 }
 
+
+func (service *DocumentService) Search(user *shared.User, searchQuery string) ([]shared.Document, error) {
+	documentResourceData, err := service.aclService.GetResourceDataForModel(&shared.Document{})
+	if err != nil {
+		return nil, shared.NewInternalServerError("failed to find document information")
+	}
+
+	// find all of the resources that you can view
+	resp, err := service.aclService.UserActionableResourcesByPath(user, documentResourceData.ResourcePath, "view", "modify")
+	if err != nil {
+		return nil, shared.NewInternalServerError("failed to find accessible documents")
+	}
+
+	organizationIds := make([]string, 0)
+	folderIds := make([]string, 0)
+	documentIds := make([]string, 0)
+	for _, res := range resp {
+		if strings.HasPrefix(res.ResourcePath, "organization") {
+			organizationIds = append(organizationIds, res.ResourceId)
+		}
+		if strings.HasPrefix(res.ResourcePath, "folder") {
+			folderIds = append(folderIds, res.ResourceId)
+		}
+		if strings.HasPrefix(res.ResourcePath, "document") {
+			documentIds = append(documentIds, res.ResourceId)
+		}
+	}
+
+	// find all of the drafts that you have access to AND match the search criteria
+	drafts, err := service.documentDraftRepository.Search(user.Id, organizationIds, folderIds, documentIds, searchQuery)
+	if err != nil {
+		return nil, shared.NewInternalServerError("failed to find documents")
+	}
+
+	// get the document ids
+	foundDocumentIds := make([]string, len(drafts))
+	for i := 0; i < len(drafts); i++ {
+		foundDocumentIds[i] = drafts[i].Id
+	}
+
+	// find the documents
+	documents, err := service.documentRepository.FindByIds(foundDocumentIds...)
+
+	// attach the found draft to the document
+	for j := 0; j < len(drafts); j++ {
+		draft := drafts[j];
+
+		for i := 0; i < len(documents); i++ {
+			doc := &documents[i]
+
+			if draft.DocumentId == doc.Id {
+				doc.Drafts = []shared.DocumentDraft{draft}
+			}
+		}
+	}
+
+	return documents, nil
+}
+
+
 func (service *DocumentService) hasAccessToOrganizationOrFolder(user *shared.User, organizationId string, folderId *string, action string) (string, *string, error) {
 	org := service.organizationService.FindById(organizationId)
 	if org == nil {

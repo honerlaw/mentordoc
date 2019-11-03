@@ -33,12 +33,6 @@ func NewDocumentController(
 	}
 }
 
-/**
-Future
-- Delete
-- Verification
-- Drafts
-*/
 func (controller *DocumentController) RegisterRoutes(router chi.Router) {
 	router.
 		With(controller.authenticationMiddleware.HasAccessToken()).
@@ -46,6 +40,9 @@ func (controller *DocumentController) RegisterRoutes(router chi.Router) {
 	router.
 		With(controller.authenticationMiddleware.HasAccessToken()).
 		Get("/document/path/{id}", controller.findPath)
+	router.
+		With(controller.authenticationMiddleware.HasAccessToken()).
+		Get("/document/search", controller.search)
 	router.
 		With(controller.validatorService.Middleware(request.DocumentCreateRequest{}), controller.authenticationMiddleware.HasAccessToken()).
 		Post("/document", controller.create)
@@ -208,6 +205,30 @@ func (controller *DocumentController) list(w http.ResponseWriter, req *http.Requ
 	wrapped, err := controller.aclService.Wrap(user, documents)
 	if err != nil {
 		util.WriteHttpError(w, shared.NewInternalServerError("found documents but failed to find user access"))
+		return
+	}
+
+	util.WriteJsonToResponse(w, http.StatusOK, wrapped)
+}
+
+func (controller *DocumentController) search(w http.ResponseWriter, req *http.Request) {
+	user := controller.authenticationMiddleware.GetUserFromRequest(req)
+	searchQuery := req.URL.Query().Get("query")
+
+	if len(searchQuery) == 0 {
+		util.WriteHttpError(w, shared.NewBadRequestError("a search query is required"))
+		return
+	}
+
+	documents, err := controller.documentService.Search(user, searchQuery);
+	if err != nil {
+		util.WriteHttpError(w, shared.NewInternalServerError("failed to find documents"))
+		return
+	}
+
+	wrapped, err := controller.aclService.Wrap(user, documents)
+	if err != nil {
+		util.WriteHttpError(w, shared.NewInternalServerError("updated document but failed to find user access"))
 		return
 	}
 
