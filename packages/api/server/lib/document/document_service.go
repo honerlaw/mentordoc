@@ -462,14 +462,22 @@ func (service *DocumentService) Search(user *shared.User, searchQuery string) ([
 		return nil, shared.NewInternalServerError("failed to find documents")
 	}
 
+	// din't find anything, so return nothing found
+	if len(drafts) == 0 {
+		return make([]shared.Document, 0), nil
+	}
+
 	// get the document ids
 	foundDocumentIds := make([]string, len(drafts))
 	for i := 0; i < len(drafts); i++ {
-		foundDocumentIds[i] = drafts[i].Id
+		foundDocumentIds[i] = drafts[i].DocumentId
 	}
 
 	// find the documents
 	documents, err := service.documentRepository.FindByIds(foundDocumentIds...)
+	if err != nil {
+		return nil, shared.NewInternalServerError("failed to find documents")
+	}
 
 	// attach the found draft to the document
 	for j := 0; j < len(drafts); j++ {

@@ -228,7 +228,7 @@ func (controller *DocumentController) search(w http.ResponseWriter, req *http.Re
 
 	wrapped, err := controller.aclService.Wrap(user, documents)
 	if err != nil {
-		util.WriteHttpError(w, shared.NewInternalServerError("updated document but failed to find user access"))
+		util.WriteHttpError(w, shared.NewInternalServerError("found documents but failed to find user access"))
 		return
 	}
 

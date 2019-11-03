@@ -44,9 +44,10 @@ func (repo *DocumentRepository) FindByIds(ids ...string) ([]shared.Document, err
 	params := util.ConvertStringArrayToInterfaceArray(ids)
 
 	placeholders := util.BuildSqlPlaceholderArray(params)
+	query := fmt.Sprintf("select id, folder_id, organization_id, created_at, updated_at, deleted_at from document where id IN (%s) and deleted_at is null", placeholders)
 
 	rows, err := repo.Query(
-		fmt.Sprintf("select id, folder_id, organization_id, created_at, updated_at, deleted_at from document where id IN (%s) and deleted_at is null", placeholders),
+		query,
 		params...,
 	)
 	if err != nil {

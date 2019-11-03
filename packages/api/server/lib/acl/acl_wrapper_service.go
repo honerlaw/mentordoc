@@ -56,6 +56,10 @@ func (service *AclWrapperService) Wrap(user *shared.User, modelSlice interface{}
 		models[i] = s.Index(i).Interface()
 	}
 
+	if len(models) == 0 {
+		return make([]AclWrappedModel, 0), nil
+	}
+
 	paths := make([][]string, len(models))
 	ids := make([][]string, len(models))
 

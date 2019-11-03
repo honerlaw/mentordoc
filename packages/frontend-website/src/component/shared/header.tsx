@@ -19,6 +19,7 @@ import {
     SetOrganizations
 } from "@honerlawd/mentordoc-frontend-shared/dist/store/action/organization/set-organizations";
 import {AclOrganization} from "@honerlawd/mentordoc-frontend-shared/dist/store/model/organization/acl-organization";
+import {Search} from "./header/search";
 
 interface IProps extends Partial<IDispatchPropMap<ILogoutDispatch> & ISelectorPropMap<IAuthenticationDataSelector & ISetOrganizationsSelector> & RouteComponentProps> {
 
@@ -35,9 +36,7 @@ export class Header extends React.PureComponent<IProps, {}> {
                     <Link className={"logo"} to={"/app"}>mentordoc</Link>
                 </div>
 
-                <div className={"search"}>
-                    <input type={"text"} placeholder={"search"} />
-                </div>
+                <Search />
 
                 <div className={"options"}>
                     {this.renderOptions()}
