@@ -26,18 +26,6 @@
       font-weight: 800;
     }
 
-    .search {
-      input {
-        width: 100%;
-        @include box-sizing(border-box);
-        border: none;
-        padding: 10px;
-        background-color: $off-white;
-        text-align: center;
-        font-size: 1rem;
-      }
-    }
-
     .options {
       .dropdown-button {
         display: inline-block;

@@ -1,0 +1,50 @@
+@import "../../../../scss/mixin";
+@import "../../../../scss/constant";
+
+#header-container {
+  .search {
+    position: relative;
+    input {
+      width: 100%;
+      @include box-sizing(border-box);
+      border: none;
+      padding: 10px;
+      background-color: $off-white;
+      text-align: center;
+      font-size: 1rem;
+      border-radius: $default-border-radius;
+    }
+
+    .search-results {
+      position: absolute;
+      @include box-sizing(border-box);
+      margin: 0;
+      top: 110%;
+      z-index: 1000;
+      background-color: white;
+      width: 100%;
+      padding: 0;
+      border: 1px solid $grey;
+      list-style-type: none;
+      border-radius: $default-border-radius;
+      li {
+        a {
+          display: block;
+          text-decoration: none;
+          padding: 10px;
+          &:hover {
+            background-color: $light-grey;
+          }
+          .title {
+            color: $black;
+          }
+          .timeago {
+            padding-top: 5px;
+            font-size: .7rem;
+            color: $dark-grey;
+          }
+        }
+      }
+    }
+  }
+}
