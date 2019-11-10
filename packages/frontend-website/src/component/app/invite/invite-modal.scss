@@ -1,0 +1,56 @@
+@import "../../../../scss/mixin";
+@import "../../../../scss/constant";
+
+.invite-modal {
+  width: 300px;
+  margin: 20px;
+
+  h3 {
+    font-family: $font-family-normal;
+    font-weight: 100;
+    margin-bottom: 30px;
+  }
+
+  select, input, .dropdown-button button {
+    @include box-sizing(border-box);
+    text-decoration: none;
+    background-color: white;
+    padding: 10px;
+    margin: 0;
+    outline: none;
+    text-align: center;
+    border: 1px solid $grey;
+    border-radius: 0;
+    width: 100%;
+  }
+
+  input {
+    width: calc(100% - 4px);
+  }
+
+  input, .send-button, .dropdown-button button, .dropdown-button {
+    margin: 2px;
+    border-radius: $default-border-radius;
+  }
+
+  .dropdown-button button {
+    margin: 0;
+  }
+
+  .options {
+    display: flex;
+    flex-direction: row;
+
+    .send-button {
+      flex: 1;
+      color: white;
+      background-color: $primary-green;
+      border: 1px solid $primary-green;
+    }
+
+    .dropdown-button {
+      flex: 2;
+    }
+  }
+
+}

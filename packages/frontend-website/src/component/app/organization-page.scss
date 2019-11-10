@@ -1,7 +1,63 @@
 @import "../../../scss/common/card";
 
-#organization-page {
-  .settings {
-    @include card();
+// use similar to https://s3.amazonaws.com/helpscout.net/docs/assets/526eaec5e4b09e5feddf35bb/images/5b08228b0428635ba8b2be39/file-qANw2vJ745.png
+
+.organization-page {
+  .page-content-container {
+    display: block !important;
+    text-align: center;
+    margin: 0 auto;
+
+    .settings {
+      width: 650px;
+      text-align: center;
+
+      .user-management {
+        margin-top: 30px;
+
+        .user-management-header {
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          padding: 0 5px;
+          margin-bottom: 10px;
+
+          h5 {
+            flex: 10;
+            font-weight: 300;
+            margin: 0;
+            padding: 0;
+            text-align: left;
+            font-size: 1rem;
+          }
+
+          button {
+            color: $primary-green;
+            border: 1px solid $primary-green;
+            border-radius: $default-border-radius;
+            padding: 7px 14px;
+            cursor: pointer;
+            &:hover {
+              background-color: rgba(16, 172, 132, .05);
+            }
+          }
+        }
+
+        table {
+          table-layout: fixed;
+          width: 100%;
+          border-collapse: collapse;
+          margin-top: 10px;
+          thead {
+            background-color: $light-grey;
+            th {
+              font-weight: 100;
+              padding: 10px 0;
+              font-size: .85rem;
+            }
+          }
+        }
+      }
+    }
   }
 }

@@ -18,11 +18,13 @@ interface IProps {
     label?: string | JSX.Element;
     icon?: string;
     position?: "bottom" | "left";
+    showSelected?: boolean;
     options: DropdownOptions;
 }
 
 interface IState {
     isVisible: boolean;
+    selected: IDropdownButtonOption | null;
 }
 
 function isDropdownSection(opt: any): opt is IDropdownSectionOption {
@@ -37,7 +39,8 @@ export class DropdownButton extends React.PureComponent<IProps, IState> {
         super(props);
 
         this.state = {
-            isVisible: false
+            isVisible: false,
+            selected: null
         };
 
         this.onClick = this.onClick.bind(this);
@@ -68,6 +71,10 @@ export class DropdownButton extends React.PureComponent<IProps, IState> {
     }
 
     private renderButtonContent(): JSX.Element | string {
+        if (this.props.showSelected && this.state.selected) {
+            return this.state.selected.label;
+        }
+
         if (this.props.label) {
             return this.props.label;
         }
@@ -105,7 +112,8 @@ export class DropdownButton extends React.PureComponent<IProps, IState> {
         event.stopPropagation();
 
         this.setState({
-            isVisible: false
+            isVisible: false,
+            selected: option
         });
 
         option.onClick();
